@@ -1,0 +1,114 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %} REGISTER {% endblock %}
+
+{% block extra_header %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/register.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+
+  <section class="hero-panel">
+    <img class="hero-img" src="https://images.unsplash.com/photo-1508125673219-7cec6bc90159?w=1200&h=1600&fit=crop&auto=format" alt="White Nike Air Force shoes">
+    <a href="#" class="hero-logo">SIMP</a>
+    <span class="hero-est">EST. 2018</span>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Member Benefits</p>
+      <h1 class="hero-headline">Join The<br>Inner Circle</h1>
+      <ul class="hero-benefits">
+        <li><span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L4.5 8.5L10 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Early access to every limited drop</li>
+        <li><span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L4.5 8.5L10 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Members-only pricing &amp; offers</li>
+        <li><span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L4.5 8.5L10 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Free express shipping on all orders</li>
+        <li><span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6L4.5 8.5L10 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Exclusive collabs &amp; events</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="form-panel">
+    <div class="form-inner">
+      <p class="form-eyebrow">New Member</p>
+      <h2 class="form-title">Create Account</h2>
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="auth-alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" action="{% url 'account:register' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          <div class="input-wrap {% if field.errors %}error{% endif %}">
+            {{ field }}
+            {% if field.name == 'password1' or field.name == 'password2' %}
+            <button type="button" class="toggle-visibility" data-target="{{ field.id_for_label }}" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            {% endif %}
+          </div>
+          {% if field.name == 'password1' %}
+          <div class="pw-strength" id="pw-strength">
+            <div class="pw-strength-bars">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <span class="pw-strength-label"></span>
+          </div>
+          {% endif %}
+          {% if field.errors %}
+            <div class="field-errors">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-primary">
+          Create Account
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+
+      <p class="form-footer">Already a member? <a href="{% url 'account:login' %}">Sign In</a></p>
+    </div>
+  </section>
+
+</div>
+<script>
+document.querySelectorAll('.toggle-visibility').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.getAttribute('data-target'));
+    if (input) input.type = input.type === 'password' ? 'text' : 'password';
+  });
+});
+
+(function() {
+  const pw1 = document.getElementById('{{ form.password1.id_for_label }}');
+  const bars = document.querySelectorAll('#pw-strength .pw-strength-bars span');
+  const label = document.querySelector('#pw-strength .pw-strength-label');
+  if (!pw1 || !bars.length) return;
+
+  const strengthMap = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const fillMap = ['', 'fill-weak', 'fill-fair', 'fill-good', 'fill-strong'];
+
+  pw1.addEventListener('input', () => {
+    const val = pw1.value;
+    let score = 0;
+    if (val.length >= 6) score++;
+    if (val.length >= 10) score++;
+    if (/[a-z]/.test(val) && /[A-Z]/.test(val)) score++;
+    if (/\d/.test(val)) score++;
+    if (/[^a-zA-Z0-9]/.test(val)) score++;
+    score = Math.min(score, 4);
+
+    bars.forEach((bar, i) => {
+      bar.className = i < score ? fillMap[score] : '';
+    });
+    label.textContent = score > 0 ? strengthMap[score] : '';
+  });
+})();
+</script>
+{% endblock %}

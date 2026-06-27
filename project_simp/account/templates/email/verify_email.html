@@ -1,0 +1,139 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %} Verify Your Email{% endblock %} 
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/email/email_verifi.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="otp-card">
+  <div class="otp-header">
+    <h1>Verify Your Email</h1>
+    <p>Enter the 6-digit code we sent you</p>
+  </div>
+
+  <div class="otp-body">
+
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <p class="email-line">
+      Code sent to <strong>{{ user.email }}</strong>
+    </p>
+
+    <form id="otpForm" method="post" action="{% url 'account:verify_otp' %}">
+      {% csrf_token %}
+
+      <div class="otp-inputs">
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-box" autofocus>
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-box">
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-box">
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-box">
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-box">
+        <input type="text" inputmode="numeric" maxlength="1" class="otp-box">
+      </div>
+
+      <input type="hidden" name="otp" id="otpHidden">
+
+      <button type="submit" class="verify-btn" id="verifyBtn" disabled>
+        Verify Email
+      </button>
+    </form>
+
+    <div class="resend-row">
+      <span id="timerText">Resend code in <span id="countdown">60</span>s</span>
+      <form class="resend-form" method="post" action="{% url 'account:send_otp' %}" id="resendForm" style="display:none;">
+        {% csrf_token %}
+        <button type="submit" class="resend-btn">Resend code</button>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="footer-note">
+    <p>Didn't request this? You can safely ignore it.</p>
+  </div>
+</div>
+
+<script>
+  const boxes = document.querySelectorAll('.otp-box');
+  const hiddenInput = document.getElementById('otpHidden');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const form = document.getElementById('otpForm');
+
+  function updateHiddenAndButton() {
+    const value = Array.from(boxes).map(b => b.value).join('');
+    hiddenInput.value = value;
+    verifyBtn.disabled = value.length !== 6;
+    if (value.length === 6) {
+      //form.submit();
+    }
+  }
+
+  boxes.forEach((box, idx) => {
+    box.addEventListener('input', () => {
+      box.value = box.value.replace(/[^0-9]/g, '');
+      if (box.value) {
+        box.classList.add('filled');
+        if (idx < boxes.length - 1) boxes[idx + 1].focus();
+      } else {
+        box.classList.remove('filled');
+      }
+      updateHiddenAndButton();
+    });
+
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !box.value && idx > 0) {
+        boxes[idx - 1].focus();
+      }
+    });
+
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+      pasted.split('').forEach((char, i) => {
+        if (boxes[i]) {
+          boxes[i].value = char;
+          boxes[i].classList.add('filled');
+        }
+      });
+      updateHiddenAndButton();
+      if (pasted.length === 6) boxes[5].focus();
+    });
+  });
+
+let seconds = 10 * 60; // 10 minutes
+
+const countdownEl = document.getElementById('countdown');
+const timerText = document.getElementById('timerText');
+const resendForm = document.getElementById('resendForm');
+
+function updateCountdown() {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+
+  countdownEl.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+updateCountdown();
+
+const interval = setInterval(() => {
+  seconds--;
+
+  if (seconds <= 0) {
+    clearInterval(interval);
+    timerText.style.display = 'none';
+    resendForm.style.display = 'inline';
+  } else {
+    updateCountdown();
+  }
+}, 1000);
+</script>
+{% endblock %}

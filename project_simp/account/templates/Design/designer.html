@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Design Your Shoes — SIMP{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/designer.css' %}" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<main class="designer-layout">
+  <aside class="controls-panel">
+    <h2 class="controls-panel__heading">Design Your Shoes</h2>
+
+    <section class="control-group">
+      <h3 class="control-group__label">Size</h3>
+      <div class="size-options">
+        {% for s in sizes %}
+        <button class="size-pill {% if forloop.first %}size-pill--active{% endif %}" type="button">{{ s }}</button>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="control-group">
+      <h3 class="control-group__label">Colors</h3>
+      {% for part in shoe_parts %}
+      <div class="color-row">
+        <label class="color-row__label" for="color-{{ part.key }}">{{ part.label }}</label>
+        <div class="color-row__input-wrap">
+          <input type="color" id="color-{{ part.key }}" class="color-picker" data-part="{{ part.key }}" value="{{ part.default }}">
+          <span class="color-row__hex">{{ part.default }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+
+    <section class="control-group">
+      <h3 class="control-group__label">Pattern</h3>
+      <div class="pattern-grid" id="pattern-grid">
+        {% for p in patterns %}
+        <button class="pattern-swatch{% if forloop.first %} pattern-swatch--active{% endif %}" data-pattern="{{ p.key }}" style="background: {{ p.preview }}" title="{{ p.label }}"></button>
+        {% endfor %}
+      </div>
+    </section>
+
+    <button class="btn-add-cart" id="btn-add-cart" type="button">Add to Cart</button>
+  </aside>
+
+  <div class="preview-panel" id="preview-container"></div>
+</main>
+{% endblock %}
+
+{% block script %}
+<script type="module" src="{% static 'js/designer.js' %}"></script>
+{% endblock %}

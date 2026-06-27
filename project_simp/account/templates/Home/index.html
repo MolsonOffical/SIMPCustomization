@@ -1,0 +1,311 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %} HOME {% endblock %} 
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="topbar">🎉 Free shipping on orders over <span>Rs. 5,000</span> — Use code <span>SIMP2025</span></div>
+
+<!-- NAVBAR -->
+
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <span class="hero-collection-tag">SS 2025 Collection</span>
+    <h1 class="hero-h1">Made to<br>Order.<br><span class="green">Yours to<br>Design.</span></h1>
+    <p class="hero-sub">Customize colors, patterns, artwork & size. Every pair is built for you — no two alike. Delivered to your door in Nepal.</p>
+    <div class="hero-btns">
+      <a href="/customize" class="btn-green">Design Now →</a>
+      <a href="/business" class="btn-white-outline">Business Orders</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-shoe-display">👟</div>
+    <div class="hero-badge">
+      <div class="badge-title">Payment via</div>
+      <div class="badge-val">eSewa · Khalti · Card</div>
+    </div>
+    <div class="hero-badge2">
+      <div class="badge2-val">4K+</div>
+      <div class="badge2-label">Pairs Delivered</div>
+    </div>
+  </div>
+</section>
+
+<!-- PARTNERS / RATINGS STRIP -->
+<div class="partners-strip">
+  <span class="partners-label">Trusted by</span>
+  <div class="partners-divider"></div>
+  <span class="partner-name">FAIRFIELD</span>
+  <span class="partner-name">RELEC</span>
+  <span class="partner-name">ABB</span>
+  <span class="partner-name">TURNER</span>
+  <span class="partner-name">FOXEN</span>
+  <div class="rating-pills">
+    <div class="rating-pill"><span class="stars">★★★★★</span><span class="score">4.9</span><span class="source">Google</span></div>
+    <div class="rating-pill"><span class="stars">★★★★★</span><span class="score">4.8</span><span class="source">Trustpilot</span></div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="section-eyebrow">How it works</div>
+  <h2 class="section-h2">Customize Your Pair<br>in <span class="green">3 Easy Steps</span></h2>
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num-big">1</div>
+      <div class="step-icon">👟</div>
+      <div class="step-title">Choose Your Style</div>
+      <div class="step-desc">Browse 30+ styles: low tops, high tops, boots, sandals, basketball shoes, and more. Every style is fully customizable.</div>
+      <a href="/shop" class="step-cta">Browse styles →</a>
+    </div>
+    <div class="step-card">
+      <div class="step-num-big">2</div>
+      <div class="step-icon">🎨</div>
+      <div class="step-title">Design Every Surface</div>
+      <div class="step-desc">Upload your artwork or logo. Change colors, patterns, and materials on any panel. Use the live preview as you customize.</div>
+      <a href="/customize" class="step-cta">Start designing →</a>
+    </div>
+    <div class="step-card">
+      <div class="step-num-big">3</div>
+      <div class="step-icon">🚚</div>
+      <div class="step-title">We Make & Ship It</div>
+      <div class="step-desc">After you approve the design, we print and ship anywhere in Nepal. Production in 2–3 weeks, shipping in 3–5 days.</div>
+      <a href="/faq" class="step-cta">Shipping info →</a>
+    </div>
+  </div>
+</section>
+
+<!-- BEST SELLING STYLES -->
+<section class="shoes-section">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Featured Collection</div>
+      <h2 class="section-h2" style="margin-bottom:0;">Best Selling <span class="green">Styles</span></h2>
+    </div>
+    <a href="/shop" class="view-all">View all shoes →</a>
+  </div>
+  <div class="shoes-grid">
+    <div class="shoe-card">
+      <div class="shoe-img-wrap" style="background:#f5f5f5;">
+        👟
+        <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
+      </div>
+      <div class="shoe-body">
+        <div class="shoe-name">Air Runner</div>
+        <div class="shoe-price">Rs. 4,500</div>
+      </div>
+      <div class="shoe-footer">
+        <a href="/product/1" class="btn-customize-card">Customize →</a>
+      </div>
+    </div>
+    <div class="shoe-card">
+      <div class="shoe-img-wrap" style="background:#f0f0f0;">
+        🥿
+        <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
+      </div>
+      <div class="shoe-body">
+        <div class="shoe-name">Core Low Top</div>
+        <div class="shoe-price">Rs. 5,200</div>
+      </div>
+      <div class="shoe-footer">
+        <a href="/product/2" class="btn-customize-card">Customize →</a>
+      </div>
+    </div>
+    <div class="shoe-card">
+      <div class="shoe-img-wrap" style="background:#eef0f5;">
+        👟
+        <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
+      </div>
+      <div class="shoe-body">
+        <div class="shoe-name">Urban Canvas</div>
+        <div class="shoe-price">Rs. 3,800</div>
+      </div>
+      <div class="shoe-footer">
+        <a href="/product/3" class="btn-customize-card">Customize →</a>
+      </div>
+    </div>
+    <div class="shoe-card">
+      <div class="shoe-img-wrap" style="background:#f5f0ea;">
+        🥾
+        <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
+      </div>
+      <div class="shoe-body">
+        <div class="shoe-name">Street Runner</div>
+        <div class="shoe-price">Rs. 4,100</div>
+      </div>
+      <div class="shoe-footer">
+        <a href="/product/4" class="btn-customize-card">Customize →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT + FEATURES -->
+<section class="about-section">
+  <div class="about-left">
+    <div class="section-eyebrow">Who We Are</div>
+    <h2 class="about-h2">The Original Home<br>of <span class="green">Custom Shoes</span></h2>
+    <p class="about-desc">Every pair from SIMP is built by people who understand footwear. We combine direct-to-shoe printing, hand-finishing, and expert quality inspection to deliver shoes that are truly yours.</p>
+    <a href="/customize" class="btn-green" style="display:inline-flex;width:fit-content;">Start Designing →</a>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-num">4K+</div>
+        <div class="stat-label">Pairs Delivered</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">150+</div>
+        <div class="stat-label">Design Options</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Customizable</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">3–5</div>
+        <div class="stat-label">Days Delivery</div>
+      </div>
+    </div>
+  </div>
+  <div class="about-right">
+    <div class="feature-row">
+      <div class="feature-icon">🖨️</div>
+      <div>
+        <div class="feature-title">Direct-to-shoe printing</div>
+        <div class="feature-desc">Your artwork bonds into the material surface for vibrant, long-lasting color that won't peel or crack.</div>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">✅</div>
+      <div>
+        <div class="feature-title">Hand-finished & inspected</div>
+        <div class="feature-desc">Every pair is assembled and inspected by hand before it leaves our facility.</div>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">🚚</div>
+      <div>
+        <div class="feature-title">Fast delivery to Nepal</div>
+        <div class="feature-desc">Production in 2–3 weeks. Shipping in 3–5 business days anywhere in Nepal.</div>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">💳</div>
+      <div>
+        <div class="feature-title">Pay with eSewa or Khalti</div>
+        <div class="feature-desc">Secure local payment options plus card and cash on delivery.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMER WALL -->
+<section class="customer-section">
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Real Customers</div>
+      <h2 class="section-h2" style="margin-bottom:0;">From the <span class="green">Customer Wall</span></h2>
+    </div>
+    <a href="/reviews" class="view-all">See all reviews →</a>
+  </div>
+  <div class="customer-grid">
+    <div class="customer-tile">👟</div>
+    <div class="customer-tile">🥿</div>
+    <div class="customer-tile">👟</div>
+    <div class="customer-tile">🥾</div>
+    <div class="customer-tile">👟</div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="section-eyebrow">Got Questions?</div>
+  <h2 class="section-h2">Frequently Asked <span class="green">Questions</span></h2>
+  <p style="font-size:14px;color:var(--gray-text);margin-top:-32px;margin-bottom:0;">Quick answers about custom shoes, ordering, and shipping.</p>
+  <div class="faq-grid">
+    <div class="faq-item">
+      <div>
+        <div class="faq-label">Q1</div>
+        <div class="faq-q">How much does customization cost?</div>
+      </div>
+      <span class="faq-arrow">▾</span>
+    </div>
+    <div class="faq-item">
+      <div>
+        <div class="faq-label">Q2</div>
+        <div class="faq-q">Will the print fade or peel over time?</div>
+      </div>
+      <span class="faq-arrow">▾</span>
+    </div>
+    <div class="faq-item">
+      <div>
+        <div class="faq-label">Q3</div>
+        <div class="faq-q">What file formats can I upload?</div>
+      </div>
+      <span class="faq-arrow">▾</span>
+    </div>
+    <div class="faq-item">
+      <div>
+        <div class="faq-label">Q4</div>
+        <div class="faq-q">Which parts of the shoe can I customize?</div>
+      </div>
+      <span class="faq-arrow">▾</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">SIMP</div>
+      <p class="footer-tagline">Shoe Identity & Modification Platform. Custom shoes built for you — no two pairs alike.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Custom Shoes</div>
+      <ul class="footer-links">
+        <li><a href="#">Low-Top Sneakers</a></li>
+        <li><a href="#">High-Top Sneakers</a></li>
+        <li><a href="#">Boots</a></li>
+        <li><a href="#">Sandals</a></li>
+        <li><a href="#">All Styles</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">About Us</div>
+      <ul class="footer-links">
+        <li><a href="#">Who We Are</a></li>
+        <li><a href="#">Manufacturing</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Contact</div>
+      <ul class="footer-links">
+        <li><a href="#">simp@email.com</a></li>
+        <li><a href="#">+977 9800000000</a></li>
+        <li><a href="#">Kathmandu, Nepal</a></li>
+        <li><a href="#" style="margin-top:8px;display:block;">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2025 SIMP. All rights reserved.</span>
+    <div class="social-row">
+      <a href="#">Instagram</a>
+      <a href="#">Facebook</a>
+      <a href="#">Twitter</a>
+      <a href="#">TikTok</a>
+      <a href="#">YouTube</a>
+    </div>
+  </div>
+</footer>
+{% endblock %}

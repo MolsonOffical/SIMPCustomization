@@ -1,0 +1,148 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %} About Us — SIMP {% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="about-hero">
+  <div class="about-hero__overlay"></div>
+  <div class="about-hero__content">
+    <span class="about-hero__eyebrow">Since 2025</span>
+    <h1 class="about-hero__title">Our Story</h1>
+    <p class="about-hero__subtitle">How SIMP is reshaping custom footwear for Nepal</p>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section class="mission-section">
+  <div class="mission-container">
+    <div class="mission-text">
+      <span class="section-eyebrow">Our Mission</span>
+      <h2 class="section-h2">Bringing <span class="green">Custom Shoes</span> to Every Foot in Nepal</h2>
+      <p class="mission-desc">SIMP was born from a simple idea: everyone deserves shoes that fit their style, their personality, and their feet. We combine direct-to-shoe printing technology with hand-finishing craftsmanship to create footwear that's truly yours.</p>
+      <p class="mission-desc">From the streets of Kathmandu to the hills of Pokhara, we deliver custom-designed shoes with local payment options — eSewa, Khalti, and card — so anyone in Nepal can design and order their perfect pair.</p>
+      <div class="mission-stats">
+        <div class="mission-stat">
+          <span class="mission-stat__num">4K+</span>
+          <span class="mission-stat__label">Pairs Delivered</span>
+        </div>
+        <div class="mission-stat">
+          <span class="mission-stat__num">150+</span>
+          <span class="mission-stat__label">Design Options</span>
+        </div>
+        <div class="mission-stat">
+          <span class="mission-stat__num">100%</span>
+          <span class="mission-stat__label">Customizable</span>
+        </div>
+      </div>
+    </div>
+    <div class="mission-image">
+      <img src="{% static 'images/about-shoe-design.jpg' %}" alt="Custom shoe design showcasing vibrant patterns and craftsmanship" class="mission-img">
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="about-steps-section">
+  <div class="about-steps-inner">
+    <span class="section-eyebrow">How It Works</span>
+    <h2 class="section-h2">Your Vision, <span class="green">Our Craft</span></h2>
+    <div class="about-steps-grid">
+      <div class="about-step-card">
+        <div class="about-step-num">1</div>
+        <div class="about-step-icon">👟</div>
+        <h3 class="about-step-title">Choose Your Style</h3>
+        <p class="about-step-desc">Browse our collection of styles — from low-top sneakers to boots. Pick the base that speaks to you.</p>
+      </div>
+      <div class="about-step-card">
+        <div class="about-step-num">2</div>
+        <div class="about-step-icon">🎨</div>
+        <h3 class="about-step-title">Customize & Order</h3>
+        <p class="about-step-desc">Upload artwork, pick colors and patterns, choose your size. Pay securely with eSewa, Khalti, or card.</p>
+      </div>
+      <div class="about-step-card">
+        <div class="about-step-num">3</div>
+        <div class="about-step-icon">🚚</div>
+        <h3 class="about-step-title">Delivered to Your Door</h3>
+        <p class="about-step-desc">Handcrafted and inspected. Shipped anywhere in Nepal within 3–5 business days.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY SIMP -->
+<section class="about-stats-section">
+  <div class="about-stats-inner">
+    <span class="section-eyebrow" style="color: var(--green-mid);">Why SIMP</span>
+    <h2 class="section-h2" style="color: var(--white);">Built for <span class="green" style="color: var(--green-mid);">Nepal</span></h2>
+    <div class="about-stats-grid">
+      <div class="about-stat-box">
+        <div class="about-stat-icon">🎨</div>
+        <div class="about-stat-num">500+</div>
+        <div class="about-stat-label">Custom Designs Created</div>
+      </div>
+      <div class="about-stat-box">
+        <div class="about-stat-icon">🏔️</div>
+        <div class="about-stat-num">77</div>
+        <div class="about-stat-label">Districts Served</div>
+      </div>
+      <div class="about-stat-box">
+        <div class="about-stat-icon">💳</div>
+        <div class="about-stat-num">3</div>
+        <div class="about-stat-label">Payment Options (eSewa, Khalti, Card)</div>
+      </div>
+      <div class="about-stat-box">
+        <div class="about-stat-icon">⭐</div>
+        <div class="about-stat-num">100%</div>
+        <div class="about-stat-label">Satisfaction Guarantee</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="about-values-section">
+  <div class="about-values-inner">
+    <span class="section-eyebrow">Our Values</span>
+    <h2 class="section-h2">What We <span class="green">Stand For</span></h2>
+    <div class="about-values-grid">
+      <div class="about-value-card">
+        <div class="about-value-icon">🔧</div>
+        <h3 class="about-value-title">Quality</h3>
+        <p class="about-value-desc">Every pair is hand-finished and inspected. We use premium materials and direct-to-shoe printing that won't peel or crack.</p>
+      </div>
+      <div class="about-value-card">
+        <div class="about-value-icon">🤝</div>
+        <h3 class="about-value-title">Craftsmanship</h3>
+        <p class="about-value-desc">Our artisans bring decades of experience. Each shoe is assembled with care and attention to every detail.</p>
+      </div>
+      <div class="about-value-card">
+        <div class="about-value-icon">🇳🇵</div>
+        <h3 class="about-value-title">Local First</h3>
+        <p class="about-value-desc">Nepal-built, Nepal-delivered. We support local supply chains and offer payment methods that Nepali customers trust.</p>
+      </div>
+      <div class="about-value-card">
+        <div class="about-value-icon">🌱</div>
+        <h3 class="about-value-title">Sustainability</h3>
+        <p class="about-value-desc">Made-to-order means zero waste. We produce only what you design — no overstock, no unsold inventory.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="about-cta-section">
+  <div class="about-cta-inner">
+    <h2 class="about-cta-title">Ready to design your perfect pair?</h2>
+    <p class="about-cta-desc">Join thousands of happy customers across Nepal. Your custom shoes are just a few clicks away.</p>
+    <a href="{% url 'account:login' %}?next={% url 'account:design' %}" class="btn-about-green btn-about-green--large">Start Designing →</a>
+  </div>
+</section>
+
+{% endblock %}

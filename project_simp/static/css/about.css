@@ -1,0 +1,490 @@
+:root {
+  --ink: #111111;
+  --white: #ffffff;
+  --green: #1a7a4a;
+  --green-light: #e8f5ee;
+  --green-mid: #2ea865;
+  --gray-light: #f7f7f7;
+  --gray-mid: #e8e8e8;
+  --gray-text: #666;
+  --gray-muted: #999;
+  --border: #e2e2e2;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--white);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ── Shared section patterns (match home.css) ── */
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+
+.section-h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 52px;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 48px;
+}
+
+.section-h2 .green {
+  color: var(--green-mid);
+}
+
+/* ── Buttons ── */
+.btn-about-green {
+  background: var(--green-mid);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: 4px;
+  border: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  letter-spacing: 0.02em;
+}
+
+.btn-about-green:hover {
+  background: #25915a;
+  color: var(--white);
+}
+
+.btn-about-green--large {
+  font-size: 16px;
+  padding: 16px 40px;
+}
+
+/* ── HERO ── */
+.about-hero {
+  position: relative;
+  min-height: 65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.about-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(17,17,17,0.85) 0%, rgba(26,122,74,0.3) 100%);
+}
+
+.about-hero__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 24px;
+  max-width: 800px;
+}
+
+.about-hero__eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--green-mid);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.about-hero__title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: clamp(56px, 8vw, 100px);
+  font-weight: 900;
+  font-style: italic;
+  line-height: 0.9;
+  text-transform: uppercase;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+
+.about-hero__subtitle {
+  font-size: 16px;
+  color: #bbb;
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto 36px;
+}
+
+/* ── MISSION SECTION ── */
+.mission-section {
+  background: var(--white);
+  padding: 100px 60px;
+}
+
+.mission-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.mission-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.mission-desc {
+  font-size: 15px;
+  color: var(--gray-text);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.mission-stats {
+  display: flex;
+  gap: 32px;
+  margin-top: 12px;
+}
+
+.mission-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.mission-stat__num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--green-mid);
+  line-height: 1;
+}
+
+.mission-stat__label {
+  font-size: 12px;
+  color: var(--gray-muted);
+  margin-top: 4px;
+}
+
+.mission-image {
+  display: flex;
+  justify-content: center;
+}
+
+.mission-img {
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  object-fit: cover;
+  aspect-ratio: 4/3;
+}
+
+/* ── HOW IT WORKS ── */
+.about-steps-section {
+  background: var(--gray-light);
+  padding: 100px 60px;
+}
+
+.about-steps-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.about-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: 0 2px 20px rgba(0,0,0,0.06);
+}
+
+.about-step-card {
+  padding: 48px 40px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+
+.about-step-card:last-child {
+  border-right: none;
+}
+
+.about-step-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  color: var(--green-light);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.about-step-icon {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.about-step-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.about-step-desc {
+  font-size: 14px;
+  color: var(--gray-text);
+  line-height: 1.7;
+}
+
+/* ── WHY SIMP STATS ── */
+.about-stats-section {
+  background: var(--ink);
+  padding: 100px 60px;
+}
+
+.about-stats-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.about-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.about-stat-box {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 36px 24px;
+  text-align: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.about-stat-box:hover {
+  transform: translateY(-4px);
+  background: rgba(255,255,255,0.1);
+}
+
+.about-stat-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.about-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--green-mid);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.about-stat-label {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+/* ── VALUES ── */
+.about-values-section {
+  background: var(--white);
+  padding: 100px 60px;
+}
+
+.about-values-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.about-values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.about-value-card {
+  background: var(--gray-light);
+  border-radius: 12px;
+  padding: 36px 28px;
+  text-align: center;
+  border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.about-value-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.about-value-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.about-value-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.about-value-desc {
+  font-size: 13px;
+  color: var(--gray-text);
+  line-height: 1.7;
+}
+
+/* ── FINAL CTA ── */
+.about-cta-section {
+  background: var(--green-light);
+  padding: 100px 60px;
+}
+
+.about-cta-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.about-cta-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.about-cta-desc {
+  font-size: 15px;
+  color: var(--gray-text);
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 992px) {
+  .mission-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .mission-image {
+    order: -1;
+  }
+
+  .mission-img {
+    max-width: 100%;
+  }
+
+  .about-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .mission-section,
+  .about-steps-section,
+  .about-stats-section,
+  .about-values-section,
+  .about-cta-section {
+    padding: 60px 24px;
+  }
+
+  .section-h2 {
+    font-size: 36px;
+    margin-bottom: 32px;
+  }
+
+  .about-steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-step-card {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 36px 28px;
+  }
+
+  .about-step-card:last-child {
+    border-bottom: none;
+  }
+
+  .about-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .about-values-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .about-cta-title {
+    font-size: 36px;
+  }
+
+  .mission-stats {
+    gap: 20px;
+  }
+
+  .mission-stat__num {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 576px) {
+  .about-hero {
+    min-height: 50vh;
+  }
+
+  .about-hero__title {
+    font-size: 42px;
+  }
+
+  .about-hero__subtitle {
+    font-size: 14px;
+  }
+
+  .about-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .about-stat-box {
+    padding: 24px 16px;
+  }
+
+  .about-stat-num {
+    font-size: 32px;
+  }
+
+  .mission-stats {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Shoes{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/shoes_list.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="search-results-container">
+        {% if shoes_list %}
+            <div class="card-container">
+                {% for shoe in shoes_list %}
+                <div class="card-wrapper">
+                    <a href="{% url 'shoes:shoe_detail' pk=shoe.pk %}" class="card-link">
+                        <div class="card">
+                            <div class="card-image"
+                                 style="background-image: url(
+                                     {% if shoe.thumbnail %}{{ shoe.thumbnail.url }}
+                                     {% else %}{% static 'images/shoe_default.jpg' %}{% endif %}
+                                 );">
+
+                                <div class="card-category">
+                                    <span class="category-badge">{{ shoe.category.name|default:"Uncategorized" }}</span>
+                                </div>
+
+                                {% if not shoe.total_stock %}
+                                <div class="stock-badge out">Out of Stock</div>
+                                {% endif %}
+                            </div>
+                            <div class="card-content">
+                                <h2 class="card-title">{{ shoe.name }}</h2>
+                                <p class="card-brand">{{ shoe.brand.name }}</p>
+                                <p class="card-description">
+                                    {{ shoe.description|default:"No description available."|truncatewords:18 }}
+                                </p>
+                                <div class="card-meta">
+                                    <span class="price">
+                                        {% if shoe.min_price %}NPR.{{ shoe.min_price }}{% else %}N/A{% endif %}
+                                    </span>
+                                    <span class="stock {% if not shoe.total_stock %}out{% endif %}">
+                                        {% if shoe.total_stock %}{{ shoe.total_stock }} in stock{% else %}Out of stock{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-actions">
+                                    <span class="btn">View Details</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-results">
+                <i class="fa-solid fa-shoe-prints"></i>
+                <h2>No shoes found{% if query %} for "{{ query }}"{% endif %}</h2>
+                <p>Try searching with different keywords</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="pagination">
+    {% if shoes_list.has_previous %}
+        <a href="?page={{ shoes_list.previous_page_number }}{% if query %}&searched={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">&laquo; Prev</a>
+    {% endif %}
+
+    {% for num in shoes_list.paginator.page_range %}
+        {% if shoes_list.number == num %}
+            <span class="current-page">{{ num }}</span>
+        {% else %}
+            <a href="?page={{ num }}{% if query %}&searched={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if shoes_list.has_next %}
+        <a href="?page={{ shoes_list.next_page_number }}{% if query %}&searched={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">Next &raquo;</a>
+    {% endif %}
+</div>
+
+{% endblock %}

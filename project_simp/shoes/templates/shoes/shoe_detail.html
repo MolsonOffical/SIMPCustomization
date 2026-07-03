@@ -1,0 +1,148 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}{{ shoe.name }}{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/shoe_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="main-layout">
+        <main>
+            <article class="shoe-detail">
+
+                {% if messages %}
+                <div class="messages-wrap">
+                    {% for message in messages %}
+                        <div class="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="detail-grid">
+                    <div class="image-section">
+                        <div class="main-image" id="main-image"
+                             data-default="{% if shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}"
+                             style="background-image: url('{% if selected_variant.resolved_photo %}{{ selected_variant.resolved_photo }}{% elif shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}');">
+                            {% if selected_variant.stock_quantity == 0 %}
+                            <div class="stock-badge out">Out of Stock</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="thumbnail-row">
+                            {% for color in colors %}
+                            <div class="thumb {% if color.id == selected_variant.color_id %}active{% endif %}"
+                                 data-color-id="{{ color.id }}"
+                                 onclick="selectColor({{ color.id }})"
+                                 style="background-image: url('{% if color.display_thumbnail %}{{ color.display_thumbnail }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}');"
+                                 title="{{ color.name }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="shoe-category">
+                            <span class="category-badge">{{ shoe.category.name }}</span>
+                            <span class="brand-badge">{{ shoe.brand.name }}</span>
+                        </div>
+
+                        <h1 class="shoe-title">{{ shoe.name }}</h1>
+
+                        <div class="shoe-price" id="shoe-price">NPR.{{ selected_variant.price|floatformat:0 }}</div>
+
+                        <div class="shoe-stock {% if selected_variant.stock_quantity == 0 %}out{% endif %}" id="shoe-stock">
+                            {% if selected_variant.stock_quantity > 0 %}
+                                <i class="fa-solid fa-circle-check"></i> {{ selected_variant.stock_quantity }} in stock
+                            {% else %}
+                                <i class="fa-solid fa-circle-xmark"></i> Out of stock
+                            {% endif %}
+                        </div>
+
+                        <form id="cart-form" method="POST" action="#">
+                            {% csrf_token %}
+                            <input type="hidden" name="variant_id" id="selected-variant-id" value="{{ selected_variant.pk }}">
+
+                            <div class="option-group">
+                                <label>Color</label>
+                                <div class="color-options">
+                                    {% for color in colors %}
+                                    <button type="button"
+                                            class="color-swatch {% if color.id == selected_variant.color_id %}selected{% endif %}"
+                                            data-color-id="{{ color.id }}"
+                                            onclick="selectColor({{ color.id }})">
+                                        {{ color.name }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="option-group">
+                                <label>Size</label>
+                                <div class="size-options" id="size-options">
+                                    {% for variant in variants %}
+                                    <button type="button"
+                                            class="size-btn
+                                                {% if variant.pk == selected_variant.pk %}selected{% endif %}
+                                                {% if variant.stock_quantity == 0 %}disabled{% endif %}
+                                                {% if variant.color_id != selected_variant.color_id %}hidden{% endif %}"
+                                            data-variant-id="{{ variant.pk }}"
+                                            data-color-id="{{ variant.color_id }}"
+                                            data-size-id="{{ variant.size_id }}"
+                                            onclick="selectVariant({{ variant.pk }})">
+                                        {{ variant.size.size_value }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="option-group quantity-group">
+                                <label>Quantity</label>
+                                <div class="quantity-selector">
+                                    <button type="button" onclick="changeQty(-1)">-</button>
+                                    <input type="number" name="quantity" id="quantity" value="1" min="1"
+                                           max="{{ selected_variant.stock_quantity|default:0 }}"
+                                           {% if selected_variant.stock_quantity == 0 %}disabled{% endif %}>
+                                    <button type="button" onclick="changeQty(1)">+</button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-add-cart" id="add-cart-btn"
+                                    {% if not selected_variant or selected_variant.stock_quantity == 0 %}disabled{% endif %}>
+                                <i class="fa-solid fa-cart-shopping"></i> Add to Cart
+                            </button>
+                        </form>
+
+                        <div class="shoe-description">
+                            <h3>Description</h3>
+                            <p>{{ shoe.description|default:"No description available." }}</p>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </main>
+
+        <aside>
+            <section class="recommendations">
+                <h2 class="section-title">More from {{ shoe.brand.name }}</h2>
+                    <p>No recommendations available.</p>
+                
+            </section>
+
+            <section class="similarity-section">
+                <h2 class="section-title">Similar Shoes</h2>
+                <p>No similar shoes available.</p>
+            </section>
+        </aside>
+    </div>
+</div>
+
+{{ variants_data|json_script:"variants-data" }}
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'js/shoe_detail.js' %}"></script>
+{% endblock %}

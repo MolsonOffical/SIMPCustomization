@@ -126,16 +126,49 @@
         </main>
 
         <aside>
-            <section class="recommendations">
-                <h2 class="section-title">More from {{ shoe.brand.name }}</h2>
-                    <p>No recommendations available.</p>
-                
-            </section>
+             <section class="recommendations">
+    <h2 class="section-title">More from {{ shoe.brand.name }}</h2>
+    {% if brand_shoes %}
+        {% for s in brand_shoes %}
+        <a href="{% url 'shoes:shoe_detail' pk=s.pk %}" class="rec-card">
+            <div class="rec-image" style="background-image: url(
+                {% if s.thumbnail %}{{ s.thumbnail.url }}
+                {% else %}{% static 'images/shoe_default.jpg' %}{% endif %}
+            );"></div>
+            <div class="rec-info">
+                <p class="rec-name">{{ s.name }}</p>
+                <p class="rec-price">
+                    {% if s.min_price %}NPR.{{ s.min_price }}{% else %}N/A{% endif %}
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <p>No other shoes from this brand.</p>
+    {% endif %}
+</section>
 
-            <section class="similarity-section">
-                <h2 class="section-title">Similar Shoes</h2>
-                <p>No similar shoes available.</p>
-            </section>
+<section class="similarity-section">
+    <h2 class="section-title">Similar Shoes</h2>
+    {% if similar_shoes %}
+        {% for s in similar_shoes %}
+        <a href="{% url 'shoes:shoe_detail' pk=s.pk %}" class="rec-card">
+            <div class="rec-image" style="background-image: url(
+                {% if s.thumbnail %}{{ s.thumbnail.url }}
+                {% else %}{% static 'images/shoe_default.jpg' %}{% endif %}
+            );"></div>
+            <div class="rec-info">
+                <p class="rec-name">{{ s.name }}</p>
+                <p class="rec-price">
+                    {% if s.min_price %}NPR.{{ s.min_price }}{% else %}N/A{% endif %}
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <p>No similar shoes found.</p>
+    {% endif %}
+</section>
         </aside>
     </div>
 </div>

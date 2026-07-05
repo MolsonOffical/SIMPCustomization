@@ -27,7 +27,10 @@ class ShoesListView(View):
 
 class ShoeDetailView(View):
     def get(self, request, pk):
-        variants_qs = ShoesVariant.objects.select_related('color', 'size').order_by('color__name', 'size__size_value')
+        variants_qs = ShoesVariant.objects.select_related(
+            'color', 'size'
+        ).order_by('color__name', 'size__size_value')
+
         shoe = get_object_or_404(
             Shoes.objects.select_related('category', 'brand').prefetch_related(
                 Prefetch('variants', queryset=variants_qs)
@@ -42,12 +45,14 @@ class ShoeDetailView(View):
                 color_photo[v.color_id] = v.shoes_photo.url
 
         for v in variants:
-            v.resolved_photo = v.shoes_photo.url if v.shoes_photo else color_photo.get(v.color_id, '')
+            v.resolved_photo = v.shoes_photo.url if v.shoes_photo else color_photo.get(
+                v.color_id, '')
 
         variant_id = request.GET.get('variant')
         selected_variant = None
         if variant_id:
-            selected_variant = next((v for v in variants if str(v.pk) == variant_id), None)
+            selected_variant = next(
+                (v for v in variants if str(v.pk) == variant_id), None)
         if not selected_variant and variants:
             in_stock = [v for v in variants if v.stock_quantity > 0]
             selected_variant = in_stock[0] if in_stock else variants[0]
@@ -72,11 +77,26 @@ class ShoeDetailView(View):
             }
             for v in variants
         ]
+
+        brand_shoes = Shoes.objects.filter(
+            brand=shoe.brand
+        ).exclude(pk=pk).annotate(
+            min_price=Min('variants__price')
+        ).select_related('category', 'brand')[:4]
+
+        similar_shoes = Shoes.objects.filter(
+            category=shoe.category
+        ).exclude(pk=pk).annotate(
+            min_price=Min('variants__price')
+        ).select_related('category', 'brand')[:4]
+
         context = {
             'shoe': shoe,
             'variants': variants,
             'variants_data': variants_data,
             'colors': colors,
             'selected_variant': selected_variant,
+            'brand_shoes': brand_shoes,
+            'similar_shoes': similar_shoes,
         }
         return render(request, 'shoes/shoe_detail.html', context)

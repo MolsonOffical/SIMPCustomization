@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Your Cart | SIMP{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+  <h1>Your Cart</h1>
+  <div id="cart-root">
+    <!-- rendered by JS below, using the shared Cart object from cart.js -->
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }} {# keeps cart.js loaded from base.html #}
+<script>
+  function formatCurrency(n) {
+    return "NPR." + n.toFixed(2).replace(/\.00$/, "");
+  }
+
+  function renderCartPage() {
+    const root = document.querySelector("#cart-root");
+    const items = Cart.getItems();
+
+    if (items.length === 0) {
+      root.innerHTML = `
+        <div class="cart-empty">
+          <i class="fa-solid fa-cart-shopping" style="font-size:40px;color:#ccc;"></i>
+          <p>Your cart is empty.</p>
+          <a href="{% url 'shoes:shoes_list' %}">Continue shopping</a>
+        </div>`;
+      return;
+    }
+
+    const itemsHtml = items.map(item => `
+      <div class="cart-item" data-variant-id="${item.variant_id}">
+        <img src="${item.photo}" alt="${item.name}">
+        <div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-meta">Color: ${item.color} &nbsp;•&nbsp; Size: ${item.size}</div>
+          <div class="cart-item-price">${formatCurrency(parseFloat(item.price))}</div>
+        </div>
+        <div class="cart-item-actions">
+          <div class="cart-qty">
+            <button type="button" class="qty-decrease">-</button>
+            <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.stock}">
+            <button type="button" class="qty-increase">+</button>
+          </div>
+          <button type="button" class="cart-remove-btn">
+            <i class="fa-solid fa-trash"></i> Remove
+          </button>
+        </div>
+      </div>
+    `).join("");
+
+    const subtotal = Cart.getSubtotal();
+
+    root.innerHTML = `
+      <div class="cart-layout">
+        <div class="cart-items">${itemsHtml}</div>
+        <div class="cart-summary">
+          <h2>Order Summary</h2>
+          <div class="cart-summary-row">
+            <span>Subtotal (${Cart.getCount()} items)</span>
+            <span>${formatCurrency(subtotal)}</span>
+          </div>
+          <div class="cart-summary-row">
+            <span>Shipping</span>
+            <span>Calculated at checkout</span>
+          </div>
+          <div class="cart-summary-total">
+            <span>Total</span>
+            <span>${formatCurrency(subtotal)}</span>
+          </div>
+          <button class="btn-checkout" id="checkout-btn">Proceed to Checkout</button>
+        </div>
+      </div>
+    `;
+
+    root.querySelectorAll(".cart-item").forEach(row => {
+      const variantId = parseInt(row.dataset.variantId, 10);
+      const input = row.querySelector(".qty-input");
+
+      row.querySelector(".qty-decrease").addEventListener("click", () => {
+        Cart.updateQuantity(variantId, parseInt(input.value, 10) - 1);
+      });
+      row.querySelector(".qty-increase").addEventListener("click", () => {
+        Cart.updateQuantity(variantId, parseInt(input.value, 10) + 1);
+      });
+      input.addEventListener("change", () => {
+        Cart.updateQuantity(variantId, parseInt(input.value, 10) || 1);
+      });
+      row.querySelector(".cart-remove-btn").addEventListener("click", () => {
+        Cart.removeItem(variantId);
+      });
+    });
+
+    document.querySelector("#checkout-btn").addEventListener("click", () => {
+      window.location.href = "/checkout/";
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", renderCartPage);
+  window.addEventListener("cart:updated", renderCartPage);
+</script>
+{% endblock %}

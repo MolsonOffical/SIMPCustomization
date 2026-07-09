@@ -100,3 +100,10 @@ class ShoeDetailView(View):
             'similar_shoes': similar_shoes,
         }
         return render(request, 'shoes/shoe_detail.html', context)
+
+
+class CartView(View):
+    def get(self, request):
+        # Cart contents are rendered client-side from localStorage by cart.js,
+        # this view just needs to serve the template shell.
+        return render(request, 'shoes/cart.html')

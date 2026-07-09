@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const dropdowns = document.querySelectorAll('.dropdown');
   const isTouchDevice = 'ontouchstart' in window || matchMedia('(pointer: coarse)').matches;
+  const isMobileContext = () => isTouchDevice || window.innerWidth <= 768;
 
   const hideAllDropdowns = (except) => {
     dropdowns.forEach(d => {
@@ -12,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
         content.style.visibility = 'hidden';
         content.style.display = 'none';
       }, 400);
+      const t = d.querySelector('.dropdown-toggle');
+      if (t) t.setAttribute('aria-expanded', 'false');
     });
   };
 
@@ -39,9 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         content.style.opacity = '1';
       });
       isOpen = true;
-      if (dropdown.classList.contains('dropdown--profile')) {
-        toggle.setAttribute('aria-expanded', 'true');
-      }
+      toggle.setAttribute('aria-expanded', 'true');
     };
 
     const hideDropdown = () => {
@@ -51,34 +52,39 @@ document.addEventListener('DOMContentLoaded', () => {
         content.style.display = 'none';
       }, 400);
       isOpen = false;
-      if (dropdown.classList.contains('dropdown--profile')) {
-        toggle.setAttribute('aria-expanded', 'false');
-      }
+      toggle.setAttribute('aria-expanded', 'false');
     };
 
-    const isProfile = dropdown.classList.contains('dropdown--profile');
-    const useClickToggle = isProfile && (isTouchDevice || window.innerWidth <= 768);
-
-    if (useClickToggle) {
-      toggle.addEventListener('click', (e) => {
+    // Click: drives mobile/touch (tap to open/close). On desktop it just
+    // stops "#" toggle links from jumping the page to the top.
+    toggle.addEventListener('click', (e) => {
+      if (isMobileContext()) {
         e.preventDefault();
-        if (isOpen) {
-          hideDropdown();
-        } else {
-          showDropdown();
-        }
-      });
-    }
+        isOpen ? hideDropdown() : showDropdown();
+      } else if (toggle.getAttribute('href') === '#') {
+        e.preventDefault();
+      }
+    });
 
-    if (!useClickToggle) {
-      toggle.addEventListener('mouseenter', showDropdown);
-      toggle.addEventListener('mouseleave', () => {
-        if (!content.matches(':hover')) hideDropdown();
-      });
+    // Hover: drives desktop only. Checked live so resizing the window
+    // switches behavior without needing a page reload.
+    toggle.addEventListener('mouseenter', () => {
+      if (isMobileContext()) return;
+      showDropdown();
+    });
+    toggle.addEventListener('mouseleave', () => {
+      if (isMobileContext()) return;
+      if (!content.matches(':hover')) hideDropdown();
+    });
 
-      content.addEventListener('mouseenter', showDropdown);
-      content.addEventListener('mouseleave', hideDropdown);
-    }
+    content.addEventListener('mouseenter', () => {
+      if (isMobileContext()) return;
+      showDropdown();
+    });
+    content.addEventListener('mouseleave', () => {
+      if (isMobileContext()) return;
+      hideDropdown();
+    });
   });
 
   document.addEventListener('keydown', (e) => {
@@ -98,11 +104,52 @@ document.addEventListener('DOMContentLoaded', () => {
             content.style.display = 'none';
           }, 400);
           const toggle = dropdown.querySelector('.dropdown-toggle');
-          if (toggle && dropdown.classList.contains('dropdown--profile')) {
-            toggle.setAttribute('aria-expanded', 'false');
-          }
+          if (toggle) toggle.setAttribute('aria-expanded', 'false');
         }
       }
     });
   });
+
+  // ---- Mobile hamburger menu ----
+  const navToggle = document.getElementById('navToggle');
+  const navCollapse = document.getElementById('navCollapse');
+
+  if (navToggle && navCollapse) {
+    const closeMenu = () => {
+      navCollapse.classList.remove('active');
+      navToggle.setAttribute('aria-expanded', 'false');
+      navToggle.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+      hideAllDropdowns(null);
+    };
+
+    const openMenu = () => {
+      navCollapse.classList.add('active');
+      navToggle.setAttribute('aria-expanded', 'true');
+      navToggle.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+    };
+
+    navToggle.addEventListener('click', () => {
+      navCollapse.classList.contains('active') ? closeMenu() : openMenu();
+    });
+
+    // Close the mobile panel when an actual navigation link is clicked —
+    // but NOT the "Categories" dropdown-toggle itself, since that should
+    // expand inline, not close the whole menu.
+    navCollapse.querySelectorAll('.nav-links a:not(.dropdown-toggle), .user-actions a').forEach(link => {
+      link.addEventListener('click', closeMenu);
+    });
+
+    document.addEventListener('click', (event) => {
+      const isInside = navCollapse.contains(event.target) || navToggle.contains(event.target);
+      if (!isInside && navCollapse.classList.contains('active')) {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768 && navCollapse.classList.contains('active')) {
+        closeMenu();
+      }
+    });
+  }
 });

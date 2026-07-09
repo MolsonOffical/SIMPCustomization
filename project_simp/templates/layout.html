@@ -26,80 +26,98 @@
         </a>
       </div>
 
-      {% if request.user.is_authenticated %}
-      <div class="nav-links nav-links--auth">
-        <a href="/">Home</a>
-        <a href="{% url 'account:design' %}">Customize Your Shoes</a>
-        <a href="#" title="Coming soon">Explore</a>
-      </div>
-      {% else %}
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="#">Blogs</a>
-        <div class="dropdown dropdown--categories">
-          <a href="#" class="dropdown-toggle">
-            Categories <i class="fa fa-caret-down"></i>
-          </a>
-          <div class="dropdown-content">
-            <div class="dropdown-grid">
-              {% for category in categories %}
-                <a href="#">
-                  {{ category.name }}
-                </a>
-              {% empty %}
-                <span class="no-categories">No categories available</span>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-        <a href="{% url 'account:about' %}">About</a>
-      </div>
-      {% endif %}
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navCollapse">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
 
-<div class="user-actions">
+      <div class="nav-collapse" id="navCollapse">
         {% if request.user.is_authenticated %}
-        <div class="nav-icon-group">
-          <a href="#" class="nav-icon-btn" aria-label="Your orders" title="Coming soon">
-            <i class="fa-solid fa-box" aria-hidden="true"></i>
-          </a>
-          <a href="{% url 'shoes:cart_view' %}" class="nav-icon-btn" aria-label="Cart">
-            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-            <span id="cart-badge"></span>
-          </a>
-          <a href="#" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications" title="Coming soon">
-            <i class="fa-solid fa-bell" aria-hidden="true"></i>
-          </a>
-          </a>
-          <a href="#" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications" title="Coming soon">
-            <i class="fa-solid fa-bell" aria-hidden="true"></i>
-          </a>
-          <div class="dropdown dropdown--profile">
-            <button type="button" class="profile-trigger dropdown-toggle" aria-label="Account menu" aria-expanded="false" aria-haspopup="true">
-              {% if request.user.profile %}
-              <img src="{{ request.user.profile.url }}" alt="" class="profile-trigger__img">
-              {% else %}
-              <i class="fa-solid fa-circle-user profile-trigger__icon" aria-hidden="true"></i>
-              {% endif %}
-            </button>
-            <div class="dropdown-content dropdown-content--menu">
-              <span class="profile-menu__header">{{ request.user.username }}</span>
-              <a href="{% url 'account:logout' %}">
-                <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Logout
-              </a>
+        <div class="nav-links nav-links--auth">
+          <a href="/">Home</a>
+          <div class="dropdown dropdown--categories">
+            <a href="#" class="dropdown-toggle">
+              Categories <i class="fa fa-caret-down"></i>
+            </a>
+            <div class="dropdown-content">
+              <div class="dropdown-grid">
+                {% for category in categories %}
+                  <a href="{% url 'shoes:category' category.id %}">
+                    {{ category.name }}
+                  </a>
+                {% empty %}
+                  <span class="no-categories">No categories available</span>
+                {% endfor %}
+              </div>
             </div>
           </div>
+          <a href="{% url 'account:design' %}">Customize Your Shoes</a>
+          <a href="{% url 'shoes:shoes_list' %}" title="Coming soon">Explore</a>
         </div>
         {% else %}
-        <form method="get" action="#" class="search-form">
-          <input type="text" name="searched" placeholder="Search posts..." value="{{ request.GET.searched }}">
-        </form>
-        <a href="{% url 'account:login' %}">
-          <i class="fa-solid fa-right-to-bracket"></i> Login
-        </a>
-        <a href="{% url 'account:register' %}">
-          <i class="fa-solid fa-user-plus"></i> Register
-        </a>
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="{% url 'shoes:shoes_list' %}">Shoes</a>
+          <div class="dropdown dropdown--categories">
+            <a href="#" class="dropdown-toggle">
+              Categories <i class="fa fa-caret-down"></i>
+            </a>
+            <div class="dropdown-content">
+              <div class="dropdown-grid">
+                {% for category in categories %}
+                  <a href="{% url 'shoes:category' category.id %}">
+                    {{ category.name }}
+                  </a>
+                {% empty %}
+                  <span class="no-categories">No categories available</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          <a href="{% url 'account:about' %}">About</a>
+        </div>
         {% endif %}
+
+        <div class="user-actions">
+          {% if request.user.is_authenticated %}
+          <div class="nav-icon-group">
+            <a href="#" class="nav-icon-btn" aria-label="Your orders" title="Coming soon">
+              <i class="fa-solid fa-box" aria-hidden="true"></i>
+            </a>
+            <a href="{% url 'shoes:cart_view' %}" class="nav-icon-btn" aria-label="Cart">
+              <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+              <span id="cart-badge"></span>
+            </a>
+            <a href="#" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications" title="Coming soon">
+              <i class="fa-solid fa-bell" aria-hidden="true"></i>
+            </a>
+            <div class="dropdown dropdown--profile">
+              <button type="button" class="profile-trigger dropdown-toggle" aria-label="Account menu" aria-expanded="false" aria-haspopup="true">
+                {% if request.user.profile %}
+                <img src="{{ request.user.profile.url }}" alt="" class="profile-trigger__img">
+                {% else %}
+                <i class="fa-solid fa-circle-user profile-trigger__icon" aria-hidden="true"></i>
+                {% endif %}
+              </button>
+              <div class="dropdown-content dropdown-content--menu">
+                <span class="profile-menu__header">{{ request.user.username }}</span>
+                <a href="{% url 'account:logout' %}">
+                  <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Logout
+                </a>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <form method="get" action="#" class="search-form">
+            <input type="text" name="searched" placeholder="Search posts..." value="{{ request.GET.searched }}">
+          </form>
+          <a href="{% url 'account:login' %}">
+            <i class="fa-solid fa-right-to-bracket"></i> Login
+          </a>
+          <a href="{% url 'account:register' %}">
+            <i class="fa-solid fa-user-plus"></i> Register
+          </a>
+          {% endif %}
+        </div>
       </div>
     </nav>
 

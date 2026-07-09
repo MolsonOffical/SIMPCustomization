@@ -6,12 +6,10 @@ from django.contrib import messages
 from .models import CustomUser
 from django.contrib.auth import login, logout, authenticate
 from .services import create_and_send_otp, verify_otp
-from shoes.models import Category
 
 # Create your views here.
 class HomePage(View):
     def get(self, request):
-       
         return render(request, 'Home/index.html')
 
 
@@ -75,6 +73,11 @@ class LoginUser(View):
         else:
             messages.error(request, 'Username or Password is invalid.')
         return render(request, 'login/login.html', {'form': form})
+
+
+class ConverseCustomizePage(View):
+    def get(self, request):
+        return render(request, 'Converse/converse_customizer.html')
 
 
 class DesignPage(LoginRequiredMixin, View):

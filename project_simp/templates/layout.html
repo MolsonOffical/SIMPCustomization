@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Django App{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-     <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="{% static 'js/navbar.js' %}"></script>
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/cart.css' %}" />
     {% block extra_header %}
 
     {% endblock %}
@@ -82,6 +83,10 @@
             <a href="#" class="nav-icon-btn" aria-label="Your orders" title="Coming soon">
               <i class="fa-solid fa-box" aria-hidden="true"></i>
             </a>
+            <a href="{% url 'shoes:cart_view' %}" class="nav-icon-btn" aria-label="Cart">
+              <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+              <span id="cart-badge"></span>
+            </a>
             <a href="#" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications" title="Coming soon">
               <i class="fa-solid fa-bell" aria-hidden="true"></i>
             </a>
@@ -129,7 +134,7 @@ hello
     </div>
 {%endblock %}
     {% block script %}
-  
+    <script src="{% static 'js/cart.js' %}"></script>
     {% endblock %}
   </body>
 </html>

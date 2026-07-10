@@ -101,7 +101,7 @@
         <div class="shoe-price">Rs. 4,500</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/1" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=air-runner" class="btn-customize-card">Customize →</a>
       </div>
     </div>
     <div class="shoe-card">
@@ -141,6 +141,19 @@
       </div>
       <div class="shoe-footer">
         <a href="/product/4" class="btn-customize-card">Customize →</a>
+      </div>
+    </div>
+    <div class="shoe-card">
+      <div class="shoe-img-wrap" style="position:relative;background:#f5f5f5;">
+        <img src="{% static 'images/products/converse-classic.jpeg' %}" alt="Converse Classic" class="shoe-img-photo">
+        <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
+      </div>
+      <div class="shoe-body">
+        <div class="shoe-name">Converse Classic</div>
+        <div class="shoe-price">Rs. 4,800</div>
+      </div>
+      <div class="shoe-footer">
+        <a href="{% url 'account:converse_customize' %}" class="btn-customize-card">Customize →</a>
       </div>
     </div>
   </div>

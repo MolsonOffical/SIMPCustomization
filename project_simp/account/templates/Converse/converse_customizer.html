@@ -1,0 +1,914 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Customize Your Converse — SIMP{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/converse_customizer.css' %}" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/",
+    "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="title" id="shoeTitle">Loading…</div>
+    <div class="icons-list">
+      <!-- Magic wand: randomize colors -->
+      <button class="apply-button" id="btnMagic" title="Randomize Colors">
+        🎨
+      </button>
+      <!-- Download screenshot -->
+      <button class="apply-button" id="btnDownload" title="Download Image">
+        ⬇️
+      </button>
+      <!-- Custom color picker -->
+      <div class="color-picker">
+        <input type="color" class="color-input" id="colorPicker" value="#ff0000"
+               title="Pick a custom color">
+        <button class="menu-button" id="btnApplyColor">Apply</button>
+      </div>
+      <!-- Upload / add custom design -->
+      <button class="apply-button" id="btnAddDesign" title="Upload a design image">🖼️</button>
+      <input type="file" id="designFileInput" accept="image/*" style="display:none" />
+    </div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <canvas class="webgl" id="canvas"></canvas>
+
+  <!-- Drag-and-drop overlay for the canvas -->
+  <div class="decal-dropzone" id="decalDropzone">
+    <div class="decal-dropzone-text">Drop your image here</div>
+  </div>
+
+  <!-- Hint shown while the user is placing a design -->
+  <div class="decal-hint hidden" id="decalHint">Click anywhere on the shoe to place your design</div>
+
+  <!-- Controls shown once at least one design is placed -->
+  <div class="decal-controls hidden" id="decalControls">
+    <label class="decal-controls-label" for="decalSizeSlider">Design size</label>
+    <input type="range" id="decalSizeSlider" min="0.05" max="0.9" step="0.01" value="0.28" />
+    <label class="decal-controls-label" for="decalRotationSlider">Rotation</label>
+    <input type="range" id="decalRotationSlider" min="-180" max="180" step="1" value="0" />
+    <button class="menu-button" id="btnUndoDecal">Undo</button>
+    <button class="menu-button" id="btnClearDecals">Clear all</button>
+  </div>
+
+  <!-- Spinner -->
+  <div class="loader" id="loader"></div>
+
+  <!-- Shoe switcher (top-right) -->
+  <div class="switcher" id="switcher"></div>
+
+  <!-- Bottom customizer -->
+  <div class="color-customizer">
+    <div class="color-customizer-tab">
+      <div class="carousel-wrapper">
+        <button class="carousel-arrow" id="arrowLeft">&#8249;</button>
+        <div class="carousel-track">
+          <div class="carousel-inner" id="carouselInner">
+            <!-- slides populated by JS -->
+          </div>
+        </div>
+        <button class="carousel-arrow" id="arrowRight">&#8250;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom sheet overlay -->
+<div class="bottom-sheet-overlay" id="sheetOverlay"></div>
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="menu-title">Options</div>
+  <div id="menuContent"></div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
+import { gsap } from 'gsap';
+
+/* Base path for Converse customizer static assets (Django static files) */
+const ASSET_BASE = "{% static 'converse/' %}";
+
+/* Base path for Air Runner static assets (Django static files) */
+const AIR_RUNNER_ASSET_BASE = "{% static 'air-runner/' %}";
+
+/* ============================================================
+   SHOE CONFIGURATION  (ported 1-to-1 from ShoeConfig.js)
+   ============================================================ */
+const shoeColorConfigs = [
+  {
+    modelUrl: ASSET_BASE + 'model/nike-converse-low-top.gltf',
+    name: 'Converse Custom Chuck Taylor — Low Top',
+    id: 'nike-converse-low-top',
+    src: ASSET_BASE + 'images/shoes/nike-converse-low-top.jpeg',
+    colorConfigs: [
+      {
+        title: 'Outside Body',
+        types: ['lf_quarter_lateral', 'rt_quarter_lateral'],
+        colors: ['#F4F6EF','#F9F1DF','#B50024','#127048','#008FD2','#34394B','#9A9B9D','#44312E','#221E1F'],
+        modelPosition: { x:1.40, y:1.58, z:-2.52 },
+      },
+      {
+        title: 'Inside Body',
+        types: ['lf_quarter_medial', 'rt_quarter_medial'],
+        colors: ['#F4F6EF','#F9F1DF','#B50024','#127048','#008FD2','#34394B','#9A9B9D','#44312E','#221E1F'],
+        modelPosition: { x:2.82, y:1.79, z:-1.45 },
+      },
+      {
+        title: 'Tongue Outer',
+        types: ['rt_tongue_outer','lf_tongue_outer'],
+        colors: ['#88CCEE','#44AA99','#117733','#DDCC77','#CC6677','#AA4499'],
+        modelPosition: { x:2.98, y:2.17, z:0.003 },
+      },
+      {
+        title: 'Heel Stripe',
+        types: ['lf_heel_stay','rt_heel_stay'],
+        colors: ['#7596A4','#F9B7AB','#BEE2D4','#5480A3'],
+        modelPosition: { x:-1.03, y:2.12, z:-0.002 },
+      },
+      {
+        title: 'Lining',
+        types: ['lf_liner_medial','rt_liner_medial','lf_liner_lateral','rt_liner_lateral'],
+        colors: ['#3E92CC','#7FCDCD','#F48FB1','#2D728F','#6B5B95','#F7CAC9','#F5F5DC'],
+        modelPosition: { x:-0.44, y:2.83, z:-0.049 },
+      },
+      {
+        title: 'Stitch',
+        types: [
+          'lf_stiches_tongue','lf_stitches_heel_stay','lf_stitches_inner_counter_binding',
+          'lf_stitches_lace_loop','lf_stitches_lateral_outer','lf_stitches_medial_outer_collar',
+          'lf_stitches_quarter_lateral_liner','lf_stitches_quarter_medial_liner',
+          'rt_stitches_tongue_label','rt_stiches_tongue','rt_stitches_heel_stay',
+          'rt_stitches_inner_counter_binding','rt_stitches_lace_loop','rt_stitches_lateral_outer',
+          'rt_stitches_medial_outer_collar','rt_stitches_quarter_lateral_liner',
+          'rt_stitches_quarter_medial_liner','rt_stitches_tongue_label',
+        ],
+        colors: ['#A569BD','#F1C40F','#3498DB','#EC407A','#2ECC71','#E74C3C','#1ABC9C','#F39C12','#1E824C','#95A5A6'],
+        modelPosition: { x:1.40, y:1.58, z:-2.52 },
+      },
+      {
+        title: 'Laces',
+        types: ['lf_lace_a','lf_lace_b','rt_lace_a','rt_lace_b'],
+        colors: ['#F08080','#6495ED','#87CEFA','#FF69B4','#40E0D0','#9ACD32','#FFDAB9','#FFA07A'],
+        modelPosition: { x:3.05, y:2.00, z:-0.021 },
+      },
+      {
+        title: 'Rubber',
+        types: ['lf_midsole_tape_a','lf_midsole_tape_b','lf_midsole_tape_c','rt_midsole_tape_a','rt_midsole_tape_b','rt_midsole_tape_c'],
+        colors: ['#B0E0E6','#BDB76B','#4682B4','#F08080','#FF6347','#87CEEB','#D2B48C','#90EE90'],
+        modelPosition: { x:1.52, y:0.72, z:-2.72 },
+      },
+      {
+        title: 'Racing Stripe',
+        types: ['lf_midsole_pinstripe','lf_midsole_topline','rt_midsole_pinstripe','rt_midsole_topline'],
+        colors: ['#FED63C','#E48F3D','#2F6E55','#B6011F'],
+        modelPosition: { x:1.52, y:0.73, z:-2.72 },
+      },
+    ],
+  },
+  {
+    modelUrl: ASSET_BASE + 'model/nike-converse-high-top.gltf',
+    name: 'Converse Custom Chuck Taylor — High Top',
+    id: 'nike-converse-high-top',
+    src: ASSET_BASE + 'images/shoes/nike-converse-high-top.jpeg',
+    colorConfigs: [
+      {
+        title: 'Outside Body',
+        types: ['lf_lateral_outer_collar','rt_lateral_outer_collar'],
+        colors: ['#F4F6EF','#F9F1DF','#B50024','#127048','#008FD2','#34394B','#9A9B9D','#44312E','#221E1F'],
+        modelPosition: { x:1.40, y:1.58, z:-2.52 },
+      },
+      {
+        title: 'Inside Body',
+        types: ['lf_medial_outer_collar','rt_medial_outer_collar'],
+        colors: ['#F4F6EF','#F9F1DF','#B50024','#127048','#008FD2','#34394B','#9A9B9D','#44312E','#221E1F'],
+        modelPosition: { x:2.82, y:1.79, z:-1.45 },
+      },
+      {
+        title: 'Tongue Outer',
+        types: ['lf_tongue_top','rt_tongue_top'],
+        colors: ['#88CCEE','#44AA99','#117733','#DDCC77','#CC6677','#AA4499'],
+        modelPosition: { x:2.98, y:2.17, z:0.003 },
+      },
+      {
+        title: 'Heel Stripe',
+        types: ['lf_heel_stay','rt_heel_stay'],
+        colors: ['#7596A4','#F9B7AB','#BEE2D4','#5480A3'],
+        modelPosition: { x:-1.03, y:2.12, z:-0.002 },
+      },
+      {
+        title: 'Lining',
+        types: ['rt_lateral_inner_collar','lf_lateral_inner_collar','rt_medial_inner_collar','lf_medial_inner_collar'],
+        colors: ['#3E92CC','#7FCDCD','#F48FB1','#2D728F','#6B5B95','#F7CAC9','#F5F5DC'],
+        modelPosition: { x:-0.44, y:2.83, z:-0.049 },
+      },
+      {
+        title: 'Stitch',
+        types: [
+          'rt_stitch_heel_stay','rt_stitch_lateral_inner_collar','rt_stitch_lateral_outer_collar',
+          'rt_stitch_medial_inner_collar','rt_stitch_medial_outer_collar','rt_stitch_tongue',
+          'lf_stitch_heel_stay','lf_stitch_lateral_inner_collar','lf_stitch_lateral_outer_collar',
+          'lf_stitch_medial_inner_collar','lf_stitch_medial_outer_collar','lf_stitch_tongue',
+        ],
+        colors: ['#A569BD','#F1C40F','#3498DB','#EC407A','#2ECC71','#E74C3C','#1ABC9C','#F39C12','#1E824C','#95A5A6'],
+        modelPosition: { x:1.40, y:1.58, z:-2.52 },
+      },
+      {
+        title: 'Laces',
+        types: ['rt_lace','lf_lace','rt_lace_stay','lf_lace_stay'],
+        colors: ['#F08080','#6495ED','#87CEFA','#FF69B4','#40E0D0','#9ACD32','#FFDAB9','#FFA07A'],
+        modelPosition: { x:3.05, y:2.00, z:-0.021 },
+      },
+      {
+        title: 'Rubber',
+        types: ['lf_midsole_tape_a','lf_midsole_tape_b','lf_midsole_tape_c','rt_midsole_tape_a','rt_midsole_tape_b','rt_midsole_tape_c'],
+        colors: ['#B0E0E6','#BDB76B','#4682B4','#F08080','#FF6347','#87CEEB','#D2B48C','#90EE90'],
+        modelPosition: { x:1.52, y:0.72, z:-2.72 },
+      },
+      {
+        title: 'Racing Stripe',
+        types: ['lf_midsole_pinstripe','lf_midsole_topline','rt_midsole_pinstripe','rt_midsole_topline'],
+        colors: ['#FED63C','#E48F3D','#2F6E55','#B6011F'],
+        modelPosition: { x:1.52, y:0.73, z:-2.72 },
+      },
+    ],
+  },
+
+  /* --------------------------------------------------------------
+     AIR RUNNER (air_force1.glb) — separate config, separate mesh
+     names. This model's mesh names come from the Sketchfab source
+     file and are unrelated to the Converse naming scheme above, so
+     it gets its own colorConfigs instead of reusing Converse's.
+     -------------------------------------------------------------- */
+  {
+    modelUrl: AIR_RUNNER_ASSET_BASE + 'model/air_force1.glb',
+    name: 'Air Runner',
+    id: 'air-runner',
+    src: AIR_RUNNER_ASSET_BASE + 'images/air-runner-thumb.svg',
+    /* Air Runner's raw bounding box is a similar order of magnitude
+       to the Converse models, so it starts at the same scale/offset.
+       Tune these two numbers if the model looks too big/small or
+       off-center once you preview it — nothing else needs to change. */
+    scale: 1,
+    offsetX: 1.4,
+    colorConfigs: [
+      {
+        title: 'Upper (Leather)',
+        types: ['Plane.001_Fine leather black_0'],
+        colors: ['#FFFFFF','#F5F0E6','#111111','#8B0000','#0B3D91','#1B5E20','#3E3E3E','#C9A227'],
+        modelPosition: { x:1.38, y:2.1, z:-0.10 },
+      },
+      {
+        title: 'Upper (Fabric)',
+        types: ['Plane.001_Fabric_0'],
+        colors: ['#F4F6EF','#D9CBB8','#7596A4','#B50024','#34394B','#9A9B9D','#221E1F'],
+        modelPosition: { x:2.26, y:2.4, z:-0.07 },
+      },
+      {
+        title: 'Side Mesh Panel',
+        types: ['Plane.002_Hex fabric Cloth_0'],
+        colors: ['#88CCEE','#44AA99','#117733','#DDCC77','#CC6677','#AA4499','#F2F2F2'],
+        modelPosition: { x:1.36, y:2.4, z:-0.11 },
+      },
+      {
+        title: 'Eyelets & Metal',
+        types: ['Plane.002_Degradable Metal_0', 'Plane.002_Metal_0'],
+        colors: ['#C0C0C0','#D4AF37','#B87333','#3B3B3B','#E5E4E2'],
+        modelPosition: { x:0.97, y:2.2, z:-0.11 },
+      },
+      {
+        title: 'Swoosh / Side Stripe',
+        types: ['Plane.004_Fabric Pattern 06_0', 'Plane.019_Fabric Pattern 06_0'],
+        colors: ['#111111','#FFFFFF','#B50024','#008FD2','#F1C40F','#2ECC71'],
+        modelPosition: { x:2.90, y:2.3, z:-1.14 },
+      },
+      {
+        title: 'Outsole',
+        types: [
+          'Plane.005_Material.004_0','Plane.006_Material.004_0','Plane.007_Material.004_0',
+          'Plane.008_Material.004_0','Plane.009_Material.004_0','Plane.010_Material.004_0',
+          'Plane.011_Material.004_0','Plane.012_Material.004_0','Plane.013_Material.004_0',
+          'Plane.014_Material.004_0',
+        ],
+        colors: ['#FFFFFF','#F5F0DC','#C9A66B','#3E3E3E','#111111'],
+        modelPosition: { x:1.48, y:1.0, z:-2.4 },
+      },
+      {
+        title: 'Sole Base',
+        types: [
+          'Plane_Material.001_0','Plane_Material.006_0','Plane_Material.010_0',
+          'Plane_Material.002_0','Plane.003__0',
+        ],
+        colors: ['#FFFFFF','#EDE6D6','#B0B0B0','#222222'],
+        modelPosition: { x:1.49, y:0.6, z:-2.4 },
+      },
+    ],
+  },
+];
+
+/* Meshes that should be kept white / excluded from normal coloring */
+const excludedMesh = {
+  rt_midsole_tape_a:true, rt_midsole_tape_b:true, rt_midsole_tape_c:true,
+  rt_toe_bumper_a:true, rt_toe_bumper_b:true, rt_toe_bumper_c:true, rt_toe_bumper_d:true,
+  lf_midsole_tape_a:true, lf_midsole_tape_b:true, lf_midsole_tape_c:true,
+  lf_toe_bumper_a:true, lf_toe_bumper_b:true, lf_toe_bumper_c:true, lf_toe_bumper_d:true,
+  rt_tooling_grp:true, lf_tooling_grp:true,
+  lf_midsole_topline:true, rt_midsole_topline:true,
+  rt_midsole_pinstripe:true, lf_midsole_pinstripe:true,
+  rt_shoe_grp:true, lf_shoe_grp:true,
+};
+
+/* ============================================================
+   THREE.JS SCENE SETUP
+   ============================================================ */
+const canvas     = document.getElementById('canvas');
+const loaderEl   = document.getElementById('loader');
+
+/* Scene */
+const scene    = new THREE.Scene();
+scene.background = new THREE.Color(0xf6f6f6);
+
+/* Camera */
+const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+camera.position.set(3, 2, 0);
+
+/* Renderer — note preserveDrawingBuffer:true for the screenshot/download feature */
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true,
+  canvas: canvas,
+  preserveDrawingBuffer: true,
+});
+renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.toneMapping = THREE.ReinhardToneMapping;
+renderer.toneMappingExposure = 1.25;
+renderer.setPixelRatio(window.devicePixelRatio);
+
+/* Lights */
+const hemi1 = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.5);
+hemi1.position.set(4, 2, 4);
+scene.add(hemi1);
+
+const hemi2 = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.4);
+hemi2.position.set(0, 2, 0);
+scene.add(hemi2);
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 4);
+dirLight.position.set(0.25, 3, -2.25);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+scene.add(dirLight);
+
+const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+fillLight.position.set(0, -1, 0);
+scene.add(fillLight);
+
+/* Environment map (cube) */
+const cubeLoader = new THREE.CubeTextureLoader();
+const envMap = cubeLoader.load([
+  ASSET_BASE + 'texture/environmentMaps/nx.jpg',
+  ASSET_BASE + 'texture/environmentMaps/ny.jpg',
+  ASSET_BASE + 'texture/environmentMaps/nz.jpg',
+  ASSET_BASE + 'texture/environmentMaps/px.jpg',
+  ASSET_BASE + 'texture/environmentMaps/py.jpg',
+  ASSET_BASE + 'texture/environmentMaps/pz.jpg',
+]);
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 1).texture;
+
+/* PBR environment */
+const debugObject = { envMapIntensity: 5 };
+
+/* Controls */
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(1, 0, 0);
+controls.rotateSpeed   = 0.2;
+controls.zoomSpeed     = 0.5;
+controls.panSpeed      = 0.5;
+controls.minDistance   = 3.5;
+controls.maxDistance   = 4.5;
+controls.enableDamping = true;
+controls.enablePan     = false;
+controls.dampingFactor = 0.1;
+
+/* DRACO loader (needed because the GLTF files use Draco mesh compression) */
+function buildLoader() {
+  const loader = new GLTFLoader();
+  const draco  = new DRACOLoader();
+  draco.setDecoderConfig({ type: 'wasm' });
+  draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+  loader.setDRACOLoader(draco);
+  return loader;
+}
+
+/* Animate loop */
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+/* Resize */
+window.addEventListener('resize', () => {
+  camera.aspect = canvas.clientWidth / canvas.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+});
+
+/* ============================================================
+   MODEL MANAGEMENT
+   ============================================================ */
+let modelRef = null;       // the currently loaded THREE.Group
+const textureLoader = new THREE.TextureLoader();
+
+function removeObjects(model) {
+  ['lf_pid_grp','rt_pid_grp','lf_lateral_pid','rt_lateral_pid','lf_heel_stay_pid','rt_heel_stay_pid']
+    .forEach(name => {
+      const obj = model.getObjectByName(name);
+      if (obj) obj.visible = false;
+    });
+}
+
+function addShadow(model) {
+  const shadowPlane = model.getObjectByName('shadow_plane');
+  if (!shadowPlane) return;
+  const tex = textureLoader.load(ASSET_BASE + 'images/nike-low-top/ground_shadow.png');
+  shadowPlane.material = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+  shadowPlane.visible = true;
+}
+
+function handleLoad(gltf, cfg) {
+  const model = gltf.scene;
+  modelRef = model;
+
+  /* Per-shoe scale/offset, defaulting to the original hardcoded
+     Converse values (scale 1, offsetX 1.4) so Converse's behavior
+     is completely unchanged. Other shoes can override these in
+     their config entry (see Air Runner above) without touching
+     any of this shared loading logic. */
+  const shoeScale   = (cfg && cfg.scale   !== undefined) ? cfg.scale   : 1;
+  const shoeOffsetX = (cfg && cfg.offsetX !== undefined) ? cfg.offsetX : 1.4;
+
+  model.scale.set(shoeScale, shoeScale, shoeScale);
+  model.position.set(0, 0, 0);
+
+  scene.traverse(child => {
+    if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+      child.material.envMapIntensity = debugObject.envMapIntensity;
+      child.castShadow  = true;
+      child.receiveShadow = true;
+      if (excludedMesh[child.name]) {
+        child.material.color.set(0xffffff);
+      }
+    }
+  });
+
+  removeObjects(model);
+  model.position.x = shoeOffsetX;
+  addShadow(model);
+  scene.add(model);
+  loaderEl.classList.add('hidden');
+}
+
+function loadShoe(index) {
+  loaderEl.classList.remove('hidden');
+  if (modelRef) scene.remove(modelRef);
+  clearAllDecals(); // designs are tied to the previous model, so drop them on switch
+  const cfg    = shoeColorConfigs[index];
+  const loader = buildLoader();
+  loader.load(cfg.modelUrl, gltf => handleLoad(gltf, cfg));
+}
+
+/* ============================================================
+   UTILITY FUNCTIONS  (ported from customizeUtils.js)
+   ============================================================ */
+
+function getRandomColor(colors) {
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+/* Change one zone's color with a smooth GSAP tween (same as original) */
+function changeColor(color, types) {
+  if (!modelRef) return;
+  types.forEach(type => {
+    const obj = modelRef.getObjectByName(type);
+    if (obj && obj.material) {
+      obj.material = obj.material.clone();
+      const c = new THREE.Color(color);
+      gsap.to(obj.material.color, { r: c.r, g: c.g, b: c.b, duration: 0.3 });
+    }
+  });
+}
+
+/* Blink highlight when you select a zone category (same as original) */
+function blinkAnimation(type) {
+  if (!modelRef) return;
+  const mesh = modelRef.getObjectByName(type);
+  if (!mesh || !mesh.material) return;
+  mesh.material = mesh.material.clone();
+  gsap.to(mesh.material, {
+    envMapIntensity: 20, duration: 0.5,
+    onComplete: () => gsap.to(mesh.material, { envMapIntensity: 3, duration: 0.5 }),
+  });
+}
+
+/* Download the current canvas as a PNG screenshot */
+function downloadScreenshot() {
+  if (!modelRef) return;
+  const shadowPlane = modelRef.getObjectByName('shadow_plane');
+  if (shadowPlane) { shadowPlane.visible = false; shadowPlane.material.visible = false; }
+  setTimeout(() => {
+    const dataURL = renderer.domElement.toDataURL('image/png');
+    const link    = document.createElement('a');
+    link.download  = 'simp-custom-shoe.png';
+    link.href      = dataURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    if (shadowPlane) { shadowPlane.visible = true; shadowPlane.material.visible = true; }
+  }, 100);
+}
+
+/* Randomize all zone colors with a spin animation (same "magic wand" as original) */
+function applyRandomPalette(shoeIndex) {
+  if (!modelRef) return;
+  const configs = shoeColorConfigs[shoeIndex].colorConfigs;
+
+  gsap.to(modelRef.rotation, {
+    y: Math.PI * 2, duration: 0.8, ease: 'power1.inOut',
+    onComplete: () => {
+      gsap.to(modelRef.rotation, { y: 0, duration: 0 });
+      configs.forEach(config => {
+        const color = getRandomColor(config.colors);
+        config.types.forEach(type => {
+          const obj = modelRef && modelRef.getObjectByName(type);
+          if (!obj || !obj.material) return;
+          obj.material = obj.material.clone();
+          const c = new THREE.Color(color);
+          gsap.to(obj.material.color, { r: c.r, g: c.g, b: c.b, duration: 0.1 });
+        });
+      });
+    },
+  });
+}
+
+/* Move camera to focus on a specific zone (same as original GSAP camera tween) */
+function focusZone(position) {
+  gsap.to(controls.object.position, {
+    ...position, duration: 1, ease: 'power3.inOut',
+  });
+}
+
+/* ============================================================
+   CUSTOM DESIGN UPLOAD  (upload / drag-drop an image, click the
+   shoe to stick it on as a decal, tweak size, undo / clear)
+   ============================================================ */
+const decalDropzone   = document.getElementById('decalDropzone');
+const decalHint       = document.getElementById('decalHint');
+const decalControls   = document.getElementById('decalControls');
+const decalSizeSlider = document.getElementById('decalSizeSlider');
+const decalRotationSlider = document.getElementById('decalRotationSlider');
+const designFileInput = document.getElementById('designFileInput');
+
+const raycaster = new THREE.Raycaster();
+const pointerNDC = new THREE.Vector2();
+
+let pendingDecalTexture = null;  // texture waiting to be placed on next click
+let placedDecals = [];           // { mesh, point, normal, targetMesh, texture }
+
+/* Read a File (image) into a THREE.Texture and enter "placement mode" */
+function beginDecalPlacement(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    textureLoader.load(e.target.result, (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      pendingDecalTexture = texture;
+      canvas.classList.add('placing-decal');
+      decalHint.classList.remove('hidden');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Build (or rebuild) a decal mesh from stored hit data + current size/rotation */
+function buildDecalMesh(entry, size, rotationDeg) {
+  if (entry.mesh) scene.remove(entry.mesh);
+  if (rotationDeg === undefined) rotationDeg = entry.rotationDeg || 0;
+  entry.rotationDeg = rotationDeg;
+
+  const dummy = new THREE.Object3D();
+  dummy.position.copy(entry.point);
+  dummy.lookAt(entry.point.clone().add(entry.normal));
+  dummy.rotateZ(THREE.MathUtils.degToRad(rotationDeg)); // spin in-plane, stays flush with the surface
+
+  const geometry = new DecalGeometry(
+    entry.targetMesh,
+    entry.point,
+    dummy.rotation,
+    new THREE.Vector3(size, size, size * 0.5)
+  );
+  const material = new THREE.MeshStandardMaterial({
+    map: entry.texture,
+    transparent: true,
+    depthTest: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    envMapIntensity: debugObject.envMapIntensity,
+  });
+  entry.mesh = new THREE.Mesh(geometry, material);
+  scene.add(entry.mesh);
+}
+
+/* Place the pending design at a raycast hit point on the shoe */
+function placeDecalAt(clientX, clientY) {
+  if (!pendingDecalTexture || !modelRef) return;
+
+  const rect = canvas.getBoundingClientRect();
+  pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+  scene.updateMatrixWorld(true);
+  raycaster.setFromCamera(pointerNDC, camera);
+  const hits = raycaster.intersectObject(modelRef, true).filter(hit => {
+    const obj = hit.object;
+    return obj.visible && obj.name !== 'shadow_plane';
+  });
+  if (hits.length === 0) return;
+
+  const hit = hits[0];
+  const normalMatrix = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
+  const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
+
+  const entry = {
+    mesh: null,
+    point: hit.point.clone(),
+    normal: worldNormal,
+    targetMesh: hit.object,
+    texture: pendingDecalTexture,
+    rotationDeg: 0,
+  };
+  buildDecalMesh(entry, parseFloat(decalSizeSlider.value), 0);
+  placedDecals.push(entry);
+  decalRotationSlider.value = 0;
+
+  pendingDecalTexture = null;
+  canvas.classList.remove('placing-decal');
+  decalHint.classList.add('hidden');
+  decalControls.classList.remove('hidden');
+}
+
+/* Resize the most recently placed decal (live, as the slider moves) */
+function resizeLastDecal(size) {
+  if (placedDecals.length === 0) return;
+  const entry = placedDecals[placedDecals.length - 1];
+  buildDecalMesh(entry, size, entry.rotationDeg);
+}
+
+/* Rotate the most recently placed decal in-plane (live, as the slider moves) */
+function rotateLastDecal(rotationDeg) {
+  if (placedDecals.length === 0) return;
+  const entry = placedDecals[placedDecals.length - 1];
+  buildDecalMesh(entry, parseFloat(decalSizeSlider.value), rotationDeg);
+}
+
+function undoLastDecal() {
+  const entry = placedDecals.pop();
+  if (entry && entry.mesh) scene.remove(entry.mesh);
+  if (placedDecals.length === 0) decalControls.classList.add('hidden');
+}
+
+function clearAllDecals() {
+  placedDecals.forEach(entry => { if (entry.mesh) scene.remove(entry.mesh); });
+  placedDecals = [];
+  pendingDecalTexture = null;
+  canvas.classList.remove('placing-decal');
+  decalHint.classList.add('hidden');
+  decalControls.classList.add('hidden');
+}
+
+/* -- Wire up UI -- */
+document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
+designFileInput.addEventListener('change', (e) => {
+  beginDecalPlacement(e.target.files[0]);
+  designFileInput.value = ''; // allow re-selecting the same file later
+});
+
+canvas.addEventListener('click', (e) => {
+  if (pendingDecalTexture) placeDecalAt(e.clientX, e.clientY);
+});
+
+decalSizeSlider.addEventListener('input', (e) => {
+  resizeLastDecal(parseFloat(e.target.value));
+});
+decalRotationSlider.addEventListener('input', (e) => {
+  rotateLastDecal(parseFloat(e.target.value));
+});
+document.getElementById('btnUndoDecal').addEventListener('click', undoLastDecal);
+document.getElementById('btnClearDecals').addEventListener('click', clearAllDecals);
+
+/* Drag-and-drop straight onto the canvas */
+['dragenter', 'dragover'].forEach(evt => {
+  canvas.addEventListener(evt, (e) => {
+    e.preventDefault();
+    decalDropzone.classList.add('active');
+  });
+});
+['dragleave', 'drop'].forEach(evt => {
+  canvas.addEventListener(evt, (e) => {
+    e.preventDefault();
+    decalDropzone.classList.remove('active');
+  });
+});
+canvas.addEventListener('drop', (e) => {
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  beginDecalPlacement(file);
+});
+
+/* ============================================================
+   CAROUSEL UI
+   ============================================================ */
+let currentSlide     = 0;
+let currentShoeIndex = 0;
+
+const carouselInner = document.getElementById('carouselInner');
+const arrowLeft     = document.getElementById('arrowLeft');
+const arrowRight    = document.getElementById('arrowRight');
+
+function buildCarousel(shoeIndex) {
+  currentSlide = 0;
+  const configs = shoeColorConfigs[shoeIndex].colorConfigs;
+  carouselInner.innerHTML = '';
+
+  configs.forEach((config, i) => {
+    const slide = document.createElement('div');
+    slide.className = 'carousel-slide';
+
+    const card = document.createElement('div');
+    card.className = 'zone-card';
+    card.innerHTML = `
+      <div class="zone-label">Zone ${i + 1}/${configs.length}</div>
+      <div class="zone-title">${config.title}</div>
+    `;
+
+    const dots = document.createElement('div');
+    dots.className = 'color-dots';
+    config.colors.forEach((color, ci) => {
+      const btn = document.createElement('button');
+      btn.className = 'color-dot';
+      btn.style.background = color;
+      btn.title = color;
+      btn.addEventListener('click', () => {
+        // highlight selected dot
+        dots.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+        btn.classList.add('selected');
+        // apply color to Three.js model
+        changeColor(color, config.types);
+      });
+      dots.appendChild(btn);
+    });
+
+    card.appendChild(dots);
+    slide.appendChild(card);
+    carouselInner.appendChild(slide);
+  });
+
+  updateCarouselPosition();
+  updateArrows();
+}
+
+function updateCarouselPosition() {
+  carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+
+function updateArrows() {
+  const len = shoeColorConfigs[currentShoeIndex].colorConfigs.length;
+  arrowLeft.disabled  = currentSlide === 0;
+  arrowRight.disabled = currentSlide >= len - 1;
+}
+
+arrowLeft.addEventListener('click', () => {
+  if (currentSlide > 0) {
+    currentSlide--;
+    updateCarouselPosition();
+    updateArrows();
+    onSlideChange(currentSlide);
+  }
+});
+
+arrowRight.addEventListener('click', () => {
+  const len = shoeColorConfigs[currentShoeIndex].colorConfigs.length;
+  if (currentSlide < len - 1) {
+    currentSlide++;
+    updateCarouselPosition();
+    updateArrows();
+    onSlideChange(currentSlide);
+  }
+});
+
+/* When you swipe to a new zone: blink that zone + move camera to it */
+function onSlideChange(index) {
+  const config = shoeColorConfigs[currentShoeIndex].colorConfigs[index];
+  if (!config) return;
+  // camera focus
+  focusZone(config.modelPosition);
+  // blink each mesh in this zone
+  config.types.forEach(type => blinkAnimation(type));
+}
+
+/* ============================================================
+   SHOE SWITCHER (thumbnail sidebar)
+   ============================================================ */
+const switcherEl = document.getElementById('switcher');
+const titleEl    = document.getElementById('shoeTitle');
+
+function buildSwitcher() {
+  switcherEl.innerHTML = '';
+  shoeColorConfigs.forEach((shoe, i) => {
+    const img = document.createElement('img');
+    img.className = 'switcher-image';
+    img.src    = shoe.src;
+    img.alt    = shoe.id;
+    img.width  = 64;
+    img.height = 64;
+    if (i === 0) img.classList.add('selected');
+    img.addEventListener('click', () => selectShoe(i));
+    switcherEl.appendChild(img);
+  });
+}
+
+function selectShoe(index) {
+  currentShoeIndex = index;
+  currentSlide     = 0;
+
+  // update switcher highlight
+  switcherEl.querySelectorAll('.switcher-image').forEach((img, i) => {
+    img.classList.toggle('selected', i === index);
+  });
+
+  titleEl.textContent = shoeColorConfigs[index].name;
+  buildCarousel(index);
+  loadShoe(index);
+}
+
+/* ============================================================
+   HEADER BUTTONS
+   ============================================================ */
+document.getElementById('btnMagic').addEventListener('click', () => {
+  applyRandomPalette(currentShoeIndex);
+});
+
+document.getElementById('btnDownload').addEventListener('click', () => {
+  downloadScreenshot();
+});
+
+document.getElementById('btnApplyColor').addEventListener('click', () => {
+  const color  = document.getElementById('colorPicker').value;
+  const config = shoeColorConfigs[currentShoeIndex].colorConfigs[currentSlide];
+  if (config) changeColor(color, config.types);
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+/* Pick the initial shoe from ?shoe=<id> in the URL (e.g. the Air
+   Runner "Customize" button links to ?shoe=air-runner). If the
+   param is missing or doesn't match any config, default to index 0
+   — i.e. the exact same Converse-first behavior as before this
+   feature was added. */
+const requestedShoeId = new URLSearchParams(window.location.search).get('shoe');
+const initialShoeIndex = Math.max(
+  0,
+  shoeColorConfigs.findIndex(shoe => shoe.id === requestedShoeId)
+);
+currentShoeIndex = initialShoeIndex;
+
+buildSwitcher();
+switcherEl.querySelectorAll('.switcher-image').forEach((img, i) => {
+  img.classList.toggle('selected', i === initialShoeIndex);
+});
+buildCarousel(initialShoeIndex);
+titleEl.textContent = shoeColorConfigs[initialShoeIndex].name;
+loadShoe(initialShoeIndex);
+</script>
+{% endblock %}

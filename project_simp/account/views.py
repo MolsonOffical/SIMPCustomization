@@ -76,7 +76,10 @@ class LoginUser(View):
             messages.error(request, 'Username or Password is invalid.')
         return render(request, 'login/login.html', {'form': form})
 
-
+class ConverseCustomizePage(View):
+    def get(self, request):
+        return render(request, 'Converse/converse_customizer.html')
+    
 class DesignPage(LoginRequiredMixin, View):
     def get(self, request):
         context = {

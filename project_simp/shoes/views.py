@@ -103,3 +103,8 @@ class ShoeDetailView(View):
 
 def test(request):
     return render(request, "D:/projects/intern-codeit/SIMPCustomization\project_simp/templates/layout.html")
+class CartView(View):
+    def get(self, request):
+        # Cart contents are rendered client-side from localStorage by cart.js,
+        # this view just needs to serve the template shell.
+        return render(request, 'shoes/cart.html')

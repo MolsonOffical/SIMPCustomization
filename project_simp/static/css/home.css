@@ -274,3 +274,12 @@
       .how-section, .shoes-section, .customer-section, .faq-section, footer { padding-left: 20px; padding-right: 20px; }
       .hero-left { padding: 80px 24px 40px; }
     }
+
+    /* ── Shoe card thumbnail image (for cards that use a real photo instead of an emoji) ── */
+    .shoe-img-wrap img.shoe-img-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }

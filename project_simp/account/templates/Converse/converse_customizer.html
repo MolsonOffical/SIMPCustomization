@@ -36,11 +36,32 @@
                title="Pick a custom color">
         <button class="menu-button" id="btnApplyColor">Apply</button>
       </div>
+      <!-- Upload / add custom design -->
+      <button class="apply-button" id="btnAddDesign" title="Upload a design image">🖼️</button>
+      <input type="file" id="designFileInput" accept="image/*" style="display:none" />
     </div>
   </div>
 
   <!-- 3D Canvas -->
   <canvas class="webgl" id="canvas"></canvas>
+
+  <!-- Drag-and-drop overlay for the canvas -->
+  <div class="decal-dropzone" id="decalDropzone">
+    <div class="decal-dropzone-text">Drop your image here</div>
+  </div>
+
+  <!-- Hint shown while the user is placing a design -->
+  <div class="decal-hint hidden" id="decalHint">Click anywhere on the shoe to place your design</div>
+
+  <!-- Controls shown once at least one design is placed -->
+  <div class="decal-controls hidden" id="decalControls">
+    <label class="decal-controls-label" for="decalSizeSlider">Design size</label>
+    <input type="range" id="decalSizeSlider" min="0.05" max="0.9" step="0.01" value="0.28" />
+    <label class="decal-controls-label" for="decalRotationSlider">Rotation</label>
+    <input type="range" id="decalRotationSlider" min="-180" max="180" step="1" value="0" />
+    <button class="menu-button" id="btnUndoDecal">Undo</button>
+    <button class="menu-button" id="btnClearDecals">Clear all</button>
+  </div>
 
   <!-- Spinner -->
   <div class="loader" id="loader"></div>
@@ -79,6 +100,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
 import { gsap } from 'gsap';
 
 /* Base path for Converse customizer static assets (Django static files) */
@@ -470,6 +492,7 @@ function handleLoad(gltf, cfg) {
 function loadShoe(index) {
   loaderEl.classList.remove('hidden');
   if (modelRef) scene.remove(modelRef);
+  clearAllDecals(); // designs are tied to the previous model, so drop them on switch
   const cfg    = shoeColorConfigs[index];
   const loader = buildLoader();
   loader.load(cfg.modelUrl, gltf => handleLoad(gltf, cfg));
@@ -554,6 +577,173 @@ function focusZone(position) {
     ...position, duration: 1, ease: 'power3.inOut',
   });
 }
+
+/* ============================================================
+   CUSTOM DESIGN UPLOAD  (upload / drag-drop an image, click the
+   shoe to stick it on as a decal, tweak size, undo / clear)
+   ============================================================ */
+const decalDropzone   = document.getElementById('decalDropzone');
+const decalHint       = document.getElementById('decalHint');
+const decalControls   = document.getElementById('decalControls');
+const decalSizeSlider = document.getElementById('decalSizeSlider');
+const decalRotationSlider = document.getElementById('decalRotationSlider');
+const designFileInput = document.getElementById('designFileInput');
+
+const raycaster = new THREE.Raycaster();
+const pointerNDC = new THREE.Vector2();
+
+let pendingDecalTexture = null;  // texture waiting to be placed on next click
+let placedDecals = [];           // { mesh, point, normal, targetMesh, texture }
+
+/* Read a File (image) into a THREE.Texture and enter "placement mode" */
+function beginDecalPlacement(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    textureLoader.load(e.target.result, (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      pendingDecalTexture = texture;
+      canvas.classList.add('placing-decal');
+      decalHint.classList.remove('hidden');
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Build (or rebuild) a decal mesh from stored hit data + current size/rotation */
+function buildDecalMesh(entry, size, rotationDeg) {
+  if (entry.mesh) scene.remove(entry.mesh);
+  if (rotationDeg === undefined) rotationDeg = entry.rotationDeg || 0;
+  entry.rotationDeg = rotationDeg;
+
+  const dummy = new THREE.Object3D();
+  dummy.position.copy(entry.point);
+  dummy.lookAt(entry.point.clone().add(entry.normal));
+  dummy.rotateZ(THREE.MathUtils.degToRad(rotationDeg)); // spin in-plane, stays flush with the surface
+
+  const geometry = new DecalGeometry(
+    entry.targetMesh,
+    entry.point,
+    dummy.rotation,
+    new THREE.Vector3(size, size, size * 0.5)
+  );
+  const material = new THREE.MeshStandardMaterial({
+    map: entry.texture,
+    transparent: true,
+    depthTest: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    envMapIntensity: debugObject.envMapIntensity,
+  });
+  entry.mesh = new THREE.Mesh(geometry, material);
+  scene.add(entry.mesh);
+}
+
+/* Place the pending design at a raycast hit point on the shoe */
+function placeDecalAt(clientX, clientY) {
+  if (!pendingDecalTexture || !modelRef) return;
+
+  const rect = canvas.getBoundingClientRect();
+  pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+  scene.updateMatrixWorld(true);
+  raycaster.setFromCamera(pointerNDC, camera);
+  const hits = raycaster.intersectObject(modelRef, true).filter(hit => {
+    const obj = hit.object;
+    return obj.visible && obj.name !== 'shadow_plane';
+  });
+  if (hits.length === 0) return;
+
+  const hit = hits[0];
+  const normalMatrix = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
+  const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
+
+  const entry = {
+    mesh: null,
+    point: hit.point.clone(),
+    normal: worldNormal,
+    targetMesh: hit.object,
+    texture: pendingDecalTexture,
+    rotationDeg: 0,
+  };
+  buildDecalMesh(entry, parseFloat(decalSizeSlider.value), 0);
+  placedDecals.push(entry);
+  decalRotationSlider.value = 0;
+
+  pendingDecalTexture = null;
+  canvas.classList.remove('placing-decal');
+  decalHint.classList.add('hidden');
+  decalControls.classList.remove('hidden');
+}
+
+/* Resize the most recently placed decal (live, as the slider moves) */
+function resizeLastDecal(size) {
+  if (placedDecals.length === 0) return;
+  const entry = placedDecals[placedDecals.length - 1];
+  buildDecalMesh(entry, size, entry.rotationDeg);
+}
+
+/* Rotate the most recently placed decal in-plane (live, as the slider moves) */
+function rotateLastDecal(rotationDeg) {
+  if (placedDecals.length === 0) return;
+  const entry = placedDecals[placedDecals.length - 1];
+  buildDecalMesh(entry, parseFloat(decalSizeSlider.value), rotationDeg);
+}
+
+function undoLastDecal() {
+  const entry = placedDecals.pop();
+  if (entry && entry.mesh) scene.remove(entry.mesh);
+  if (placedDecals.length === 0) decalControls.classList.add('hidden');
+}
+
+function clearAllDecals() {
+  placedDecals.forEach(entry => { if (entry.mesh) scene.remove(entry.mesh); });
+  placedDecals = [];
+  pendingDecalTexture = null;
+  canvas.classList.remove('placing-decal');
+  decalHint.classList.add('hidden');
+  decalControls.classList.add('hidden');
+}
+
+/* -- Wire up UI -- */
+document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
+designFileInput.addEventListener('change', (e) => {
+  beginDecalPlacement(e.target.files[0]);
+  designFileInput.value = ''; // allow re-selecting the same file later
+});
+
+canvas.addEventListener('click', (e) => {
+  if (pendingDecalTexture) placeDecalAt(e.clientX, e.clientY);
+});
+
+decalSizeSlider.addEventListener('input', (e) => {
+  resizeLastDecal(parseFloat(e.target.value));
+});
+decalRotationSlider.addEventListener('input', (e) => {
+  rotateLastDecal(parseFloat(e.target.value));
+});
+document.getElementById('btnUndoDecal').addEventListener('click', undoLastDecal);
+document.getElementById('btnClearDecals').addEventListener('click', clearAllDecals);
+
+/* Drag-and-drop straight onto the canvas */
+['dragenter', 'dragover'].forEach(evt => {
+  canvas.addEventListener(evt, (e) => {
+    e.preventDefault();
+    decalDropzone.classList.add('active');
+  });
+});
+['dragleave', 'drop'].forEach(evt => {
+  canvas.addEventListener(evt, (e) => {
+    e.preventDefault();
+    decalDropzone.classList.remove('active');
+  });
+});
+canvas.addEventListener('drop', (e) => {
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  beginDecalPlacement(file);
+});
 
 /* ============================================================
    CAROUSEL UI

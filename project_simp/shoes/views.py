@@ -100,3 +100,6 @@ class ShoeDetailView(View):
             'similar_shoes': similar_shoes,
         }
         return render(request, 'shoes/shoe_detail.html', context)
+
+def test(request):
+    return render(request, "D:/projects/intern-codeit/SIMPCustomization\project_simp/templates/layout.html")

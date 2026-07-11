@@ -9,5 +9,6 @@ urlpatterns = [
     path('category/<int:category_id>/', views.ShoesListView.as_view(), name='category'),
     path('parash/', views.test, name='test'),
 	path('cart/', views.CartView.as_view(), name='cart_view'),
+	path('history/', views.History.as_view(), name='history'),
 
 ]

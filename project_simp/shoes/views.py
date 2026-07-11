@@ -108,3 +108,8 @@ class CartView(View):
         # Cart contents are rendered client-side from localStorage by cart.js,
         # this view just needs to serve the template shell.
         return render(request, 'shoes/cart.html')
+
+class History(View):
+    def get(self, request, category_id=None):
+
+        return render(request, 'history/history.html')

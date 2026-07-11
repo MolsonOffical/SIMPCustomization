@@ -50,3 +50,14 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"OTP for {self.user} - {self.otp}"
+    
+class Address(models.Model):
+    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name="addresses")
+    province = models.CharField(max_length=100)
+    district = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    street_address = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.fullname

@@ -1,0 +1,157 @@
+{% extends "layout.html" %} 
+{% load static %}
+
+{% block title %}UPDATE FORM{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/updateprofile.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="container-cart">
+    <div class="box-left">
+      <h2 class="card-title">Form Update</h2>
+
+      {% if messages %}
+      <div class="messages-wrap">
+        {% for message in messages %}
+          <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" enctype="multipart/form-data" action="{% url 'account:update_profile' %}">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {% for error in form.non_field_errors %}
+            <strong>{{ error }}</strong>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% for field in form %}
+          {% if field.name not in address_fields %}
+          <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+            {% if field.name == "profile" %}
+              {% if user.profile %}
+              <div class="image-preview">
+                <img src="{{ user.profile.url }}" class="preview-img" alt="Profile"/>
+              </div>
+              {% endif %}
+            {% endif %}
+
+            {% if field.name == "banner" %}
+            <div class="image-preview">
+              <img src="{% if user.banner %}{{ user.banner.url }}{% else %}{% static 'images/banner_default.jpg' %}{% endif %}" class="preview-img" alt="Banner"/>
+            </div>
+            {% endif %}
+
+            {{ field }}
+
+            {% if field.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in field.errors %}
+                <span class="text-danger">{{ error }}</span><br>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text }}</small>
+            {% endif %}
+          </div>
+          {% endif %}
+        {% endfor %}
+
+        <h3 class="section-subtitle">Address</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.street_address.id_for_label }}">{{ form.street_address.label }}</label>
+            {{ form.street_address }}
+            {% for error in form.street_address.errors %}
+              <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.city.id_for_label }}">{{ form.city.label }}</label>
+            {{ form.city }}
+            {% for error in form.city.errors %}
+              <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="{{ form.district.id_for_label }}">{{ form.district.label }}</label>
+            {{ form.district }}
+            {% for error in form.district.errors %}
+              <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.province.id_for_label }}">{{ form.province.label }}</label>
+            {{ form.province }}
+            {% for error in form.province.errors %}
+              <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Update</button>
+          <a href="{% url 'account:profile' %}" class="btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const previewImage = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let previewContainer = input.closest(".form-group").querySelector(".image-preview");
+
+      if (!previewContainer) {
+        previewContainer = document.createElement("div");
+        previewContainer.classList.add("image-preview");
+
+        const img = document.createElement("img");
+        img.classList.add("preview-img");
+
+        previewContainer.appendChild(img);
+
+        input.closest(".form-group").prepend(previewContainer);
+      }
+
+      const img = previewContainer.querySelector("img");
+      img.src = e.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  document.querySelectorAll("input[type='file']").forEach((input) => {
+    input.addEventListener("change", () => previewImage(input));
+  });
+});
+</script>
+{% endblock %}

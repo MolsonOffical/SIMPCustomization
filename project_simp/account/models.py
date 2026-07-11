@@ -51,13 +51,43 @@ class EmailOTP(models.Model):
     def __str__(self):
         return f"OTP for {self.user} - {self.otp}"
     
-class Address(models.Model):
-    user = models.ForeignKey(CustomUser,on_delete=models.CASCADE,related_name="addresses")
-    province = models.CharField(max_length=100)
-    district = models.CharField(max_length=100)
-    city = models.CharField(max_length=100)
-    street_address = models.CharField(max_length=255)
+#add to cart model
+
+class CartItem(models.Model):
+    """
+    A single customized shoe sitting in a user's cart.
+
+    Colors and pattern describe the customization the person made on the
+    designer page. Price is stored per-item (not looked up live) so that if
+    you change prices later, items already in someone's cart don't shift
+    under them.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='cart_items',
+    )
+
+    name = models.CharField(max_length=100, default='Custom Shoe')
+    size = models.CharField(max_length=10)
+    pattern = models.CharField(max_length=20, blank=True)
+
+    # Stores something like {"upper": "#1a7a4a", "sole": "#333333", ...}
+    colors = models.JSONField(default=dict, blank=True)
+
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.fullname
+        return f"{self.name} ({self.size}) x{self.quantity} — {self.user}"
+
+    @property
+    def line_total(self):
+        return self.unit_price * self.quantity

@@ -203,12 +203,12 @@ class VerifyOTPView(View):
     
 
 class ProfileView(LoginRequiredMixin, View):
-    login_url = 'accounts:login'
+    login_url = 'account:login'
  
     def get(self, request):
         if request.user.is_superuser:
             messages.error(request, "Admins are not allowed to access this page.")
-            return redirect('accounts:login')
+            return redirect('account:login')
  
         return render(request, 'profile/profile.html')
  

@@ -35,7 +35,7 @@
       height: 64px;
       gap: 40px;
     }
-    /* .nav-logo {
+    .nav-logo {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 24px; font-weight: 900;
       letter-spacing: 0.12em;
@@ -61,7 +61,7 @@
     .nav-icon-btn:hover { color: var(--green); }
     .nav-icon-btn svg { width: 20px; height: 20px; }
     .nav-rating { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-text); border-left: 1px solid var(--border); padding-left: 20px; }
-    .nav-stars { color: #f4a600; font-size: 13px; } */
+    .nav-stars { color: #f4a600; font-size: 13px; }
 
     /* ── HERO ── */
     .hero {
@@ -121,7 +121,92 @@
       position: relative; overflow: hidden;
       padding: 60px 40px;
     }
-    .hero-shoe-display { font-size: 220px; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5)); transform: rotate(-15deg); }
+
+    /* ── Hero shoe display: now a real image, not an emoji ── */
+    .hero-shoe-display {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      aspect-ratio: 1.1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-shoe-glow {
+      position: absolute;
+      width: 75%; height: 75%;
+      background: radial-gradient(circle at 50% 45%, rgba(46,168,101,0.30), rgba(46,168,101,0.06) 55%, transparent 75%);
+      filter: blur(6px);
+      z-index: 0;
+    }
+    .hero-shoe-floor {
+      position: absolute;
+      bottom: 8%;
+      width: 55%; height: 12%;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 72%);
+      border-radius: 50%;
+      z-index: 1;
+    }
+.hero-shoe-img{
+    position: relative;
+    z-index: 2;
+
+    width: 120%;
+    max-width: 650px;
+
+    object-fit: contain;
+
+    transform: rotate(-18deg) translateX(20px);
+
+    filter: drop-shadow(0 35px 60px rgba(0,0,0,.45));
+
+    transition: transform .4s ease;
+}
+
+.hero-shoe-display:hover .hero-shoe-img{
+    transform: rotate(-14deg) translateX(20px) scale(1.05);
+}
+.hero-shoe-glow{
+    position:absolute;
+    width:500px;
+    height:500px;
+    border-radius:50%;
+
+    background:radial-gradient(circle,
+        rgba(46,168,101,.25),
+        rgba(46,168,101,.08) 45%,
+        transparent 75%);
+
+    filter:blur(40px);
+
+    z-index:1;
+}
+.hero-shoe-floor{
+    position:absolute;
+    bottom:70px;
+
+    width:320px;
+    height:45px;
+
+    background:rgba(0,0,0,.55);
+
+    border-radius:50%;
+
+    filter:blur(20px);
+
+    z-index:0;
+}
+    .hero-shoe-display:hover .hero-shoe-img { transform: rotate(-11deg) scale(1.03); }
+    /* Fallback emoji only shows if the real photo fails to load */
+    .hero-shoe-fallback {
+      display: none;
+      position: relative;
+      z-index: 2;
+      font-size: 220px;
+      filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));
+      transform: rotate(-15deg);
+    }
+
     .hero-badge {
       position: absolute; bottom: 40px; left: 40px;
       background: rgba(255,255,255,0.08);
@@ -129,6 +214,7 @@
       backdrop-filter: blur(10px);
       border-radius: 10px;
       padding: 14px 20px;
+      z-index: 3;
     }
     .badge-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; }
     .badge-val { font-size: 16px; font-weight: 600; color: var(--white); margin-top: 2px; }
@@ -136,6 +222,7 @@
       position: absolute; top: 40px; right: 40px;
       background: var(--green-mid);
       border-radius: 10px; padding: 14px 20px;
+      z-index: 3;
     }
     .badge2-val { font-size: 28px; font-weight: 700; color: var(--white); line-height: 1; }
     .badge2-label { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 2px; }
@@ -165,50 +252,160 @@
     .step-card { padding: 40px; border-right: 1px solid var(--border); }
     .step-card:last-child { border-right: none; }
     .step-num-big { font-family: 'Barlow Condensed', sans-serif; font-size: 80px; font-weight: 900; color: var(--green-light); line-height: 1; margin-bottom: 16px; }
-    .step-icon { font-size: 36px; margin-bottom: 14px; }
+
+    /* ── Step icon: now a small SVG badge instead of a raw emoji ── */
+    .step-icon {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--green-light);
+      color: var(--green);
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+    .step-icon svg { width: 24px; height: 24px; }
+    .step-icon-fallback { display: none; font-size: 36px; margin-bottom: 14px; }
+
     .step-title { font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
     .step-desc { font-size: 14px; color: var(--gray-text); line-height: 1.7; }
     .step-cta { display: inline-flex; align-items: center; gap: 6px; margin-top: 20px; font-size: 13px; font-weight: 600; color: var(--green); text-decoration: none; }
     .step-cta:hover { color: var(--green); text-decoration: underline; }
 
     /* ── BEST SELLERS ── */
-    .shoes-section { background: var(--gray-light); padding: 80px 60px; }
-    .section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; }
-    .view-all { font-size: 13px; font-weight: 600; color: var(--green); text-decoration: none; display: flex; align-items: center; gap: 4px; }
-    .view-all:hover { color: var(--green); text-decoration: underline; }
-    .shoes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-    .shoe-card {
-      background: var(--white);
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
-    }
-    .shoe-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
-    .shoe-img-wrap { position: relative; background: #f0f0f0; height: 200px; display: flex; align-items: center; justify-content: center; font-size: 90px; }
-    .customizable-badge {
-      position: absolute; top: 12px; right: 12px;
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: 20px; font-size: 10px; font-weight: 500;
-      padding: 4px 10px; display: flex; align-items: center; gap: 4px;
-      color: var(--ink); letter-spacing: 0.03em;
-    }
-    .color-dot { width: 10px; height: 10px; border-radius: 50%; background: conic-gradient(red,yellow,green,blue,red); }
-    .shoe-body { padding: 16px 20px 8px; }
-    .shoe-name { font-size: 15px; font-weight: 600; color: var(--ink); }
-    .shoe-price { font-size: 14px; color: var(--gray-text); margin-top: 4px; }
-    .shoe-footer { padding: 12px 20px 20px; }
-    .btn-customize-card {
-      width: 100%; background: var(--ink); color: var(--white);
-      font-size: 12px; font-weight: 600; padding: 10px;
-      border-radius: 6px; border: none; cursor: pointer;
-      text-decoration: none; display: block; text-align: center;
-      letter-spacing: 0.04em; text-transform: uppercase;
-      transition: background 0.2s;
-    }
-    .btn-customize-card:hover { background: var(--green); color: var(--white); }
+   /* ============================= */
+/* Product Grid */
+/* ============================= */
 
+.shoes-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:30px;
+}
+
+/* ============================= */
+/* Card */
+/* ============================= */
+
+.shoe-card{
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    transition:.3s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+.shoe-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 16px 35px rgba(0,0,0,.15);
+}
+
+/* ============================= */
+/* Image */
+/* ============================= */
+
+.shoe-img-wrap{
+    position:relative;
+    height:280px;
+    background:#f5f5f5;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+}
+
+.shoe-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:.35s;
+}
+
+.shoe-card:hover .shoe-img{
+    transform:scale(1.05);
+}
+
+.shoe-img-fallback{
+    display:none;
+    justify-content:center;
+    align-items:center;
+    width:100%;
+    height:100%;
+    font-size:80px;
+}
+
+/* ============================= */
+/* Badge */
+/* ============================= */
+
+.customizable-badge{
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:#fff;
+    border-radius:20px;
+    padding:6px 12px;
+    font-size:11px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    box-shadow:0 4px 10px rgba(0,0,0,.12);
+}
+
+.color-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:conic-gradient(red,yellow,lime,dodgerblue,purple,red);
+}
+
+/* ============================= */
+/* Body */
+/* ============================= */
+
+.shoe-body{
+    padding:20px;
+    flex:1;
+}
+
+.shoe-name{
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.shoe-price{
+    font-size:16px;
+    color:#666;
+}
+
+/* ============================= */
+/* Footer */
+/* ============================= */
+
+.shoe-footer{
+    padding:0 20px 20px;
+}
+
+.btn-customize-card{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    width:100%;
+    height:48px;
+    background:#111;
+    color:#fff;
+    text-decoration:none;
+    border-radius:8px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-customize-card:hover{
+    background:var(--green);
+}
     /* ── ABOUT / STATS ── */
     .about-section {
       background: var(--white);
@@ -226,15 +423,36 @@
     .stat-label { font-size: 13px; color: var(--gray-text); margin-top: 6px; }
     .about-right { background: var(--green-light); padding: 80px 60px; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
     .feature-row { display: flex; gap: 20px; align-items: flex-start; background: var(--white); border-radius: 12px; padding: 24px; }
-    .feature-icon { font-size: 28px; flex-shrink: 0; }
+
+    /* ── Feature icon: SVG badge instead of raw emoji ── */
+    .feature-icon {
+      width: 44px; height: 44px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--green-light);
+      color: var(--green);
+      border-radius: 10px;
+    }
+    .feature-icon svg { width: 22px; height: 22px; }
+    .feature-icon-fallback { display: none; font-size: 28px; flex-shrink: 0; }
+
     .feature-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
     .feature-desc { font-size: 13px; color: var(--gray-text); line-height: 1.6; }
 
     /* ── CUSTOMER WALL ── */
     .customer-section { background: var(--white); padding: 80px 60px; }
     .customer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 40px; }
-    .customer-tile { border-radius: 12px; overflow: hidden; background: var(--gray-light); height: 220px; display: flex; align-items: center; justify-content: center; font-size: 60px; border: 1px solid var(--border); transition: transform 0.2s; }
+    .customer-tile {
+      border-radius: 12px; overflow: hidden;
+      background: var(--gray-light);
+      height: 220px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+      transition: transform 0.2s;
+    }
     .customer-tile:hover { transform: scale(1.03); }
+    .customer-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s ease; }
+    .customer-tile:hover img { transform: scale(1.08); }
+    .customer-tile-fallback { display: none; font-size: 60px; }
 
     /* ── FAQ ── */
     .faq-section { background: var(--gray-light); padding: 80px 60px; }

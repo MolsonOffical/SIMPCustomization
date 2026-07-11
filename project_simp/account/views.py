@@ -441,3 +441,51 @@ def remove_from_cart(request):
 #       'cart_item_count': cart_item_count,
 #   })
 # ---------------------------------------------------------------------------
+
+
+class ProfileView(LoginRequiredMixin, View):
+    login_url = 'account:login'
+
+    def get(self, request):
+        if request.user.is_superuser:
+            messages.error(request, "Admins are not allowed to access this page.")
+            return redirect('account:login')
+
+        return render(request, 'profile/profile.html')
+
+
+class UpdateProfileView(LoginRequiredMixin, View):
+    login_url = 'account:login'
+
+    def get(self, request):
+        form = ProfileUpdateForm(instance=request.user)
+        return render(
+            request,
+            'profile/update_profile.html',
+            {'form': form, 'address_fields': ProfileUpdateForm.ADDRESS_FIELD_NAMES},
+        )
+
+    def post(self, request):
+        form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('account:profile')
+
+        messages.error(request, "Please correct the errors below.")
+        return render(
+            request,
+            'profile/update_profile.html',
+            {'form': form, 'address_fields': ProfileUpdateForm.ADDRESS_FIELD_NAMES},
+        )
+
+
+class DeleteProfileView(LoginRequiredMixin, View):
+    login_url = 'account:login'
+
+    def post(self, request):
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "Your account has been permanently deleted.")
+        return redirect('account:login')

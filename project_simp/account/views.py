@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import RegistrationForms, LoginForm
+from .forms import RegistrationForms, LoginForm, ProfileUpdateForm
 from django.contrib import messages
 from .models import CustomUser
 from django.contrib.auth import login, logout, authenticate
@@ -82,7 +82,10 @@ class LoginUser(View):
             messages.error(request, 'Username or Password is invalid.')
         return render(request, 'login/login.html', {'form': form})
 
-
+class ConverseCustomizePage(View):
+    def get(self, request):
+        return render(request, 'Converse/converse_customizer.html')
+    
 class DesignPage(LoginRequiredMixin, View):
     def get(self, request):
         context = {

@@ -12,6 +12,10 @@ urlpatterns = [
     path('register/', RegisterUser.as_view(), name='register'),
     path('login/', LoginUser.as_view(), name='login'),
     path('logout/', LogoutUser, name='logout'),
+    
+     path('profile/', ProfileView.as_view(), name='profile'),
+    path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
+    path('profile/delete/', DeleteProfileView.as_view(), name='delete_profile'),
 
     path('verify-email/', SendOTPView.as_view(), name='send_otp'),
     path('verify-email/confirm/', VerifyOTPView.as_view(), name='verify_otp'),

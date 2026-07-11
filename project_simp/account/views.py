@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import RegistrationForms, LoginForm
+from .forms import RegistrationForms, LoginForm, ProfileUpdateForm
 from django.contrib import messages
 from .models import CustomUser
 from django.contrib.auth import login, logout, authenticate
@@ -200,3 +200,52 @@ class VerifyOTPView(View):
             messages.error(request, "Invalid code. Please try again.")
 
         return render(request, 'email/verify_email.html', { 'pending_user': user })
+    
+
+class ProfileView(LoginRequiredMixin, View):
+    login_url = 'accounts:login'
+ 
+    def get(self, request):
+        if request.user.is_superuser:
+            messages.error(request, "Admins are not allowed to access this page.")
+            return redirect('accounts:login')
+ 
+        return render(request, 'profile/profile.html')
+ 
+ 
+class UpdateProfileView(LoginRequiredMixin, View):
+    login_url = 'account:login'
+ 
+    def get(self, request):
+        form = ProfileUpdateForm(instance=request.user)
+        return render(
+            request,
+            'profile/update_profile.html',
+            {'form': form, 'address_fields': ProfileUpdateForm.ADDRESS_FIELD_NAMES},
+        )
+ 
+    def post(self, request):
+        form = ProfileUpdateForm(request.POST,request.FILES,instance=request.user,)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('account:profile')
+ 
+        messages.error(request, "Please correct the errors below.")
+        return render(
+            request,
+            'profile/update_profile.html',
+            {'form': form, 'address_fields': ProfileUpdateForm.ADDRESS_FIELD_NAMES},
+        )
+ 
+ 
+class DeleteProfileView(LoginRequiredMixin, View):
+    login_url = 'account:login'
+ 
+    def post(self, request):
+        user = request.user
+        logout(request)
+        user.delete()
+        messages.success(request, "Your account has been permanently deleted.")
+        return redirect('account:login')
+ 

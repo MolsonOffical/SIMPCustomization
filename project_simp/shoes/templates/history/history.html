@@ -1,0 +1,211 @@
+{% extends "layout.html" %}
+{% load static %}
+{% block title %}My Order History{% endblock %}
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/history.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="history-container">
+
+    <h1 class="page-title">
+        <i class="fas fa-clock-rotate-left"></i> Order History
+        <span class="order-count">(3 orders)</span>
+    </h1>
+    <hr>
+
+    <div class="filter-tabs">
+        <span class="tab active">All</span>
+        <span class="tab">Pending</span>
+        <span class="tab">Processing</span>
+        <span class="tab">Shipped</span>
+        <span class="tab">Delivered</span>
+        <span class="tab">Cancelled</span>
+    </div>
+
+    <div class="order-card">
+        <div class="order-header">
+            <div>
+                <span class="order-id">Order #<span>ORD-1001</span></span>
+                <span class="order-date" style="margin-left: 1rem;">
+                    <i class="fas fa-calendar-day"></i> Jun 28, 2026
+                </span>
+            </div>
+            <span class="status-badge pending">Pending</span>
+        </div>
+
+        <div class="order-body">
+            <!-- Tracking Steps -->
+            <div class="tracking">
+                <span class="track-step current">
+                    <span class="icon">✓</span> Ordered
+                </span>
+                <span class="track-line"></span>
+                <span class="track-step">
+                    <span class="icon">⏳</span> Process
+                </span>
+                <span class="track-line"></span>
+                <span class="track-step">
+                    <span class="icon">📦</span> Ship
+                </span>
+                <span class="track-line"></span>
+                <span class="track-step">
+                    <span class="icon">✅</span> Deliver
+                </span>
+            </div>
+
+            <!-- Items -->
+            <div class="item-list">
+                <div class="item-row">
+                    <div class="item-thumb">
+                        <!-- FUTURE: <img src="{{ item.shoe.thumbnail.url }}" alt="..."> -->
+                        🥾
+                    </div>
+                    <div class="item-info">
+                        <p class="item-name">Urban Runner Pro</p>
+                        <div class="item-meta">
+                            <span><i class="fas fa-palette"></i> Black</span>
+                            <span><i class="fas fa-ruler"></i> US 10</span>
+                            <span><i class="fas fa-hashtag"></i> Qty: 1</span>
+                        </div>
+                    </div>
+                    <span class="item-price">NPR. 129.99</span>
+                </div>
+                <div class="item-row">
+                    <div class="item-thumb">
+                        <!-- FUTURE: <img src="{{ item.shoe.thumbnail.url }}" alt="..."> -->
+                        👟
+                    </div>
+                    <div class="item-info">
+                        <p class="item-name">Air Cushion Zoom</p>
+                        <div class="item-meta">
+                            <span><i class="fas fa-palette"></i> White</span>
+                            <span><i class="fas fa-ruler"></i> US 9.5</span>
+                            <span><i class="fas fa-hashtag"></i> Qty: 2</span>
+                        </div>
+                    </div>
+                    <span class="item-price">NPR. 89.50</span>
+                </div>
+            </div>
+
+            <div class="order-footer">
+                <span class="total-label">Total: <strong>NPR. 308.99</strong></span>
+                <a href="#" class="detail-link">View Details →</a>
+               
+            </div>
+        </div>
+    </div>
+
+    <div class="order-card">
+        <div class="order-header">
+            <div>
+                <span class="order-id">Order #<span>ORD-0987</span></span>
+                <span class="order-date" style="margin-left: 1rem;">
+                    <i class="fas fa-calendar-day"></i> Jun 20, 2026
+                </span>
+            </div>
+            <span class="status-badge shipped">Shipped</span>
+        </div>
+
+        <div class="order-body">
+            <!-- Tracking -->
+            <div class="tracking">
+                <span class="track-step done">
+                    <span class="icon">✓</span> Ordered
+                </span>
+                <span class="track-line done"></span>
+                <span class="track-step done">
+                    <span class="icon">✓</span> Process
+                </span>
+                <span class="track-line done"></span>
+                <span class="track-step current">
+                    <span class="icon">📦</span> Ship
+                </span>
+                <span class="track-line"></span>
+                <span class="track-step">
+                    <span class="icon">✅</span> Deliver
+                </span>
+            </div>
+
+            <!-- Items -->
+            <div class="item-list">
+                <div class="item-row">
+                    <div class="item-thumb">👞</div>
+                    <div class="item-info">
+                        <p class="item-name">Classic Leather Oxford</p>
+                        <div class="item-meta">
+                            <span><i class="fas fa-palette"></i> Brown</span>
+                            <span><i class="fas fa-ruler"></i> US 11</span>
+                            <span><i class="fas fa-hashtag"></i> Qty: 1</span>
+                        </div>
+                    </div>
+                    <span class="item-price">NPR. 159.00</span>
+                </div>
+            </div>
+
+            <div class="order-footer">
+                <span class="total-label">Total: <strong>NPR. 159.00</strong></span>
+                <a href="#" class="detail-link">View Details →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-card">
+        <div class="order-header">
+            <div>
+                <span class="order-id">Order #<span>ORD-0912</span></span>
+                <span class="order-date" style="margin-left: 1rem;">
+                    <i class="fas fa-calendar-day"></i> Jun 05, 2026
+                </span>
+            </div>
+            <span class="status-badge delivered">Delivered</span>
+        </div>
+
+        <div class="order-body">
+            <!-- Tracking -->
+            <div class="tracking">
+                <span class="track-step done">
+                    <span class="icon">✓</span> Ordered
+                </span>
+                <span class="track-line done"></span>
+                <span class="track-step done">
+                    <span class="icon">✓</span> Process
+                </span>
+                <span class="track-line done"></span>
+                <span class="track-step done">
+                    <span class="icon">✓</span> Ship
+                </span>
+                <span class="track-line done"></span>
+                <span class="track-step done">
+                    <span class="icon">✅</span> Deliver
+                </span>
+            </div>
+
+            <!-- Items -->
+            <div class="item-list">
+                <div class="item-row">
+                    <div class="item-thumb">👟</div>
+                    <div class="item-info">
+                        <p class="item-name">Trail Runner GTX</p>
+                        <div class="item-meta">
+                            <span><i class="fas fa-palette"></i> Olive</span>
+                            <span><i class="fas fa-ruler"></i> US 10.5</span>
+                            <span><i class="fas fa-hashtag"></i> Qty: 1</span>
+                        </div>
+                    </div>
+                    <span class="item-price">NPR. 144.99</span>
+                </div>
+            </div>
+
+            <div class="order-footer">
+                <span class="total-label">Total: <strong>NPR. 144.99</strong></span>
+                <a href="#" class="detail-link">View Details →</a>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+{% endblock %}

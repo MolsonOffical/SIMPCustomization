@@ -22,9 +22,9 @@
 
     <section class="control-group">
       <h3 class="control-group__label">Size</h3>
-      <div class="size-options">
+      <div class="size-options" id="size-options">
         {% for s in sizes %}
-        <button class="size-pill {% if forloop.first %}size-pill--active{% endif %}" type="button">{{ s }}</button>
+        <button class="size-pill {% if forloop.first %}size-pill--active{% endif %}" type="button" data-size="{{ s }}">{{ s }}</button>
         {% endfor %}
       </div>
     </section>
@@ -52,12 +52,303 @@
     </section>
 
     <button class="btn-add-cart" id="btn-add-cart" type="button">Add to Cart</button>
+    {% csrf_token %}
   </aside>
 
   <div class="preview-panel" id="preview-container"></div>
+
+  <!--
+    Added-to-cart panel — lives on THIS page, not a separate URL.
+    Hidden by default; JS reveals it after a successful AJAX add.
+  -->
+  <div id="cart-panel" class="cm-panel" hidden>
+    <div class="cm-panel-inner">
+      <header class="cm-header">
+        <div class="cm-header-title">
+          <span class="cm-check" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <h2 id="cm-title">Added to Cart</h2>
+        </div>
+        <button type="button" class="cm-close" id="cm-close-btn" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="cm-item">
+        <div id="cm-item-image-wrap" class="cm-item-thumb cm-item-thumb--placeholder" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 15l3.5-4.5a1.5 1.5 0 0 1 2.3-.1L11 13l3-4a1.5 1.5 0 0 1 2.4.1L21 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/>
+            <circle cx="8.5" cy="9" r="1.3" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="cm-item-info">
+          <p id="cm-item-name" class="cm-item-name">Custom Shoe</p>
+          <p id="cm-item-size" class="cm-item-size">EU 44</p>
+        </div>
+        <p id="cm-item-price" class="cm-item-price" data-unit-price="0">NPR 0</p>
+      </div>
+
+      <div class="cm-quantity-row">
+        <span class="cm-quantity-label">Quantity</span>
+        <div class="cm-quantity-stepper">
+          <button type="button" id="cm-qty-decrease" class="cm-qty-btn" aria-label="Decrease quantity">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <input type="number" id="cm-qty-input" class="cm-qty-input" value="1" min="1" max="10" readonly>
+          <button type="button" id="cm-qty-increase" class="cm-qty-btn" aria-label="Increase quantity">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="cm-summary">
+        <p class="cm-summary-title">Cart Summary</p>
+        <div class="cm-row">
+          <span>Items (<span id="cm-item-count">1</span>)</span>
+          <span id="cm-items-total">NPR 0</span>
+        </div>
+        <div class="cm-row">
+          <span>Subtotal</span>
+          <span id="cm-subtotal">NPR 0</span>
+        </div>
+        <div class="cm-row cm-row-muted">
+          <span>Shipping</span>
+          <span>Calculated at checkout</span>
+        </div>
+        <div class="cm-divider"></div>
+        <div class="cm-row cm-row-total">
+          <span>Total</span>
+          <span id="cm-total">NPR 0</span>
+        </div>
+      </div>
+
+      <div class="cm-actions">
+        <!-- Was "View Cart" — now actually saves the current quantity to
+             the CartItem that was created when the panel first opened. -->
+        <button type="button" id="cm-save-qty-btn" class="cm-btn cm-btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="cm-btn-icon">
+            <path d="M3 3h2l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L20 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="20" r="1.4" fill="currentColor"/>
+            <circle cx="17" cy="20" r="1.4" fill="currentColor"/>
+          </svg>
+          <span id="cm-save-qty-btn-label">Add to Cart</span>
+        </button>
+        <button type="button" id="cm-continue-btn" class="cm-btn cm-btn-secondary">
+          Continue Customizing
+        </button>
+      </div>
+
+      <p id="cm-save-success" class="cm-save-success" hidden>✓ Saved to your cart</p>
+
+      <a id="cm-view-cart-link" href="{% url 'account:view_cart' %}" class="cm-view-cart-link" hidden>
+       <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> View Cart
+      </a>
+
+      <div class="cm-notice">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="cm-notice-icon">
+          <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M9.5 12l1.8 1.8L14.5 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p>Your custom design is saved in your cart. Complete your order anytime.</p>
+      </div>
+    </div>
+  </div>
+
 </main>
 {% endblock %}
 
 {% block script %}
 <script type="module" src="{% static 'js/designer.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var addToCartBtn = document.getElementById('btn-add-cart');
+    var panel = document.getElementById('cart-panel');
+    var closeBtn = document.getElementById('cm-close-btn');
+    var continueBtn = document.getElementById('cm-continue-btn');
+    var qtyInput = document.getElementById('cm-qty-input');
+    var decreaseBtn = document.getElementById('cm-qty-decrease');
+    var increaseBtn = document.getElementById('cm-qty-increase');
+    var unitPriceEl = document.getElementById('cm-item-price');
+
+    var saveQtyBtn = document.getElementById('cm-save-qty-btn');
+    var saveQtyBtnLabel = document.getElementById('cm-save-qty-btn-label');
+    var saveSuccessMsg = document.getElementById('cm-save-success');
+    var viewCartLink = document.getElementById('cm-view-cart-link');
+
+    // Set once the initial Add to Cart click succeeds — needed so the
+    // "Add to Cart" button in the panel knows which CartItem to update.
+    var currentCartItemId = null;
+
+    function getCsrfToken() {
+      var el = document.querySelector('[name=csrfmiddlewaretoken]');
+      return el ? el.value : '';
+    }
+
+    function formatNPR(amount) {
+      return 'NPR ' + Math.round(amount).toLocaleString('en-IN');
+    }
+
+    function recalcTotals() {
+      var qty = parseInt(qtyInput.value, 10) || 1;
+      var unitPrice = parseFloat(unitPriceEl.getAttribute('data-unit-price')) || 0;
+      var lineTotal = unitPrice * qty;
+
+      document.getElementById('cm-item-count').textContent = qty;
+      document.getElementById('cm-items-total').textContent = formatNPR(lineTotal);
+      document.getElementById('cm-subtotal').textContent = formatNPR(lineTotal);
+      document.getElementById('cm-total').textContent = formatNPR(lineTotal);
+
+      decreaseBtn.disabled = qty <= 1;
+      increaseBtn.disabled = qty >= 10;
+    }
+
+    function updateNavCartBadge(count) {
+      var badge = document.getElementById('nav-cart-count');
+      if (!badge) return;
+      badge.textContent = count;
+      badge.hidden = count <= 0;
+    }
+
+    decreaseBtn.addEventListener('click', function () {
+      var qty = parseInt(qtyInput.value, 10) || 1;
+      if (qty > 1) {
+        qtyInput.value = qty - 1;
+        recalcTotals();
+        saveSuccessMsg.hidden = true; // quantity changed since last save
+      }
+    });
+
+    increaseBtn.addEventListener('click', function () {
+      var qty = parseInt(qtyInput.value, 10) || 1;
+      if (qty < 10) {
+        qtyInput.value = qty + 1;
+        recalcTotals();
+        saveSuccessMsg.hidden = true; // quantity changed since last save
+      }
+    });
+
+    closeBtn.addEventListener('click', function () { panel.hidden = true; });
+    continueBtn.addEventListener('click', function () { panel.hidden = true; });
+
+    // Initial Add to Cart click — creates the CartItem with quantity 1
+    addToCartBtn.addEventListener('click', function () {
+      var activeSize = document.querySelector('.size-pill--active');
+      var size = activeSize ? activeSize.dataset.size : '';
+
+      var activePattern = document.querySelector('.pattern-swatch--active');
+      var pattern = activePattern ? activePattern.dataset.pattern : '';
+
+      var colors = {};
+      document.querySelectorAll('.color-picker').forEach(function (input) {
+        colors[input.dataset.part] = input.value;
+      });
+
+      if (!size) {
+        alert('Please select a size before adding to cart.');
+        return;
+      }
+
+      addToCartBtn.disabled = true;
+      addToCartBtn.textContent = 'Adding...';
+
+      fetch('{% url "account:add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ size: size, pattern: pattern, colors: colors, quantity: 1 })
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            return res.json().then(function (errData) {
+              throw new Error(errData.error || 'Request failed with status ' + res.status);
+            });
+          }
+          return res.json();
+        })
+        .then(function (data) {
+          // Expected JSON shape from the view:
+          // { id, name, size, unit_price, quantity, cart_item_count, image_url (optional) }
+          currentCartItemId = data.id;
+
+          document.getElementById('cm-item-name').textContent = data.name || 'Custom Shoe';
+          document.getElementById('cm-item-size').textContent = data.size || size;
+          unitPriceEl.setAttribute('data-unit-price', data.unit_price || 0);
+          unitPriceEl.textContent = formatNPR(data.unit_price || 0);
+          qtyInput.value = data.quantity || 1;
+
+          recalcTotals();
+          updateNavCartBadge(data.cart_item_count || 1);
+
+          saveSuccessMsg.hidden = true;
+          viewCartLink.hidden = true;
+          saveQtyBtnLabel.textContent = 'Add to Cart';
+
+          panel.hidden = false;
+        })
+        .catch(function (err) {
+          console.error('Add to cart failed:', err);
+          alert(err.message || 'Something went wrong adding this to your cart. Please try again.');
+        })
+        .finally(function () {
+          addToCartBtn.disabled = false;
+          addToCartBtn.textContent = 'Add to Cart';
+        });
+    });
+
+    // Panel's "Add to Cart" button — saves whatever quantity is currently
+    // shown in the stepper to the CartItem created above.
+    saveQtyBtn.addEventListener('click', function () {
+      if (!currentCartItemId) {
+        alert('Add an item to the cart first.');
+        return;
+      }
+
+      var qty = parseInt(qtyInput.value, 10) || 1;
+
+      saveQtyBtn.disabled = true;
+      saveQtyBtnLabel.textContent = 'Saving...';
+      saveSuccessMsg.hidden = true;
+
+      fetch('{% url "account:update_cart_quantity" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ item_id: currentCartItemId, quantity: qty })
+      })
+        .then(function (res) {
+          if (!res.ok) {
+            return res.json().then(function (errData) {
+              throw new Error(errData.error || 'Request failed with status ' + res.status);
+            });
+          }
+          return res.json();
+        })
+        .then(function (data) {
+          updateNavCartBadge(data.cart_item_count);
+          saveSuccessMsg.hidden = false;
+          viewCartLink.hidden = false;
+        })
+        .catch(function (err) {
+          console.error('Save quantity failed:', err);
+          alert(err.message || 'Could not save quantity. Please try again.');
+        })
+        .finally(function () {
+          saveQtyBtn.disabled = false;
+          saveQtyBtnLabel.textContent = 'Add to Cart';
+        });
+    });
+  });
+</script>
 {% endblock %}

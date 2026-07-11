@@ -94,6 +94,7 @@
 {% endblock %}
 
 {% block script %}
+{{ block.super }}
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';

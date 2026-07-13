@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Order | SIMP</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/navbar.css">
+  <style>
+    .track-page { max-width: 800px; margin: 30px auto; padding: 0 16px; }
+    .order-id { color: #777; font-size: 14px; margin-bottom: 24px; }
+
+    .track-card { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+
+    .stepper { display: flex; justify-content: space-between; position: relative; margin: 30px 0 10px; }
+    .stepper::before {
+      content: ""; position: absolute; top: 16px; left: 0; right: 0; height: 3px; background: #eee; z-index: 0;
+    }
+    .stepper .progress-line {
+      content: ""; position: absolute; top: 16px; left: 0; height: 3px; background: #111; z-index: 1;
+      transition: width .3s;
+    }
+    .step { position: relative; z-index: 2; text-align: center; flex: 1; }
+    .step .dot {
+      width: 34px; height: 34px; border-radius: 50%; background: #eee; color: #999;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 14px;
+    }
+    .step.done .dot { background: #111; color: #fff; }
+    .step.current .dot { background: #111; color: #fff; box-shadow: 0 0 0 4px rgba(0,0,0,0.1); }
+    .step .label { font-size: 12px; color: #666; }
+    .step.done .label, .step.current .label { color: #111; font-weight: 600; }
+
+    .status-banner {
+      background: #f4f4f4; border-radius: 8px; padding: 14px 16px; font-size: 14px; margin-bottom: 20px;
+    }
+    .status-banner.paid { background: #e8f8ee; color: #1e7a3d; }
+    .status-banner.pending { background: #fff6e5; color: #a15c00; }
+
+    .detail-row { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid #f2f2f2; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row span:first-child { color: #777; }
+  </style>
+</head>
+<body>
+
+  <!-- Reuse your existing navbar include here -->
+
+  <div class="track-page">
+    <h1>Track Your Order</h1>
+    <div class="order-id">Order ID: <span id="order-id-display">—</span></div>
+
+    <div class="track-card">
+      <div class="status-banner" id="status-banner"></div>
+
+      <div class="stepper" id="stepper">
+        <div class="progress-line" id="progress-line" style="width:0%"></div>
+        <div class="step" data-step="placed">
+          <div class="dot"><i class="fa-solid fa-file-lines"></i></div>
+          <div class="label">Order Placed</div>
+        </div>
+        <div class="step" data-step="paid">
+          <div class="dot"><i class="fa-solid fa-credit-card"></i></div>
+          <div class="label">Payment Confirmed</div>
+        </div>
+        <div class="step" data-step="processing">
+          <div class="dot"><i class="fa-solid fa-box-open"></i></div>
+          <div class="label">Processing</div>
+        </div>
+        <div class="step" data-step="shipped">
+          <div class="dot"><i class="fa-solid fa-truck"></i></div>
+          <div class="label">Shipped</div>
+        </div>
+        <div class="step" data-step="delivered">
+          <div class="dot"><i class="fa-solid fa-house"></i></div>
+          <div class="label">Delivered</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="track-card">
+      <h2 style="font-size:16px; margin-bottom:10px;">Order Details</h2>
+      <div class="detail-row"><span>Payment Method</span><span id="detail-payment">—</span></div>
+      <div class="detail-row"><span>Total Amount</span><span id="detail-total">—</span></div>
+      <div class="detail-row"><span>Shipping Address</span><span id="detail-address">—</span></div>
+    </div>
+  </div>
+
+  <script>
+    // TODO (backend): replace this with a real fetch:
+    // fetch(`/orders/${orderId}/status/`).then(r => r.json()).then(data => renderOrder(data))
+    // Expected `data` shape: { order_id, status, payment_method, total, address }
+    // status is one of: "placed" | "paid" | "processing" | "shipped" | "delivered"
+
+    const STEPS = ["placed", "paid", "processing", "shipped", "delivered"];
+
+    function getFakeOrder() {
+        return {
+          order_id: "{{ order_id }}",
+          status: "{{ status }}",
+          payment_method: "eSewa",
+          total: "NPR.4,500",
+          address: "Lokanthali-1, Bhaktapur",
+        };
+      }
+
+    function renderOrder(data) {
+      document.querySelector("#order-id-display").textContent = data.order_id;
+      document.querySelector("#detail-payment").textContent = data.payment_method;
+      document.querySelector("#detail-total").textContent = data.total;
+      document.querySelector("#detail-address").textContent = data.address;
+
+      const banner = document.querySelector("#status-banner");
+      if (data.status === "placed") {
+        banner.textContent = "Order placed — waiting for payment confirmation.";
+        banner.className = "status-banner pending";
+      } else if (data.status === "paid" || data.status === "processing") {
+        banner.textContent = "Payment confirmed. Your order is being processed.";
+        banner.className = "status-banner paid";
+      } else if (data.status === "shipped") {
+        banner.textContent = "Your order is on its way!";
+        banner.className = "status-banner paid";
+      } else if (data.status === "delivered") {
+        banner.textContent = "Delivered. Thank you for shopping with SIMP!";
+        banner.className = "status-banner paid";
+      }
+
+      const currentIndex = STEPS.indexOf(data.status);
+      document.querySelectorAll(".step").forEach((el, i) => {
+        el.classList.remove("done", "current");
+        if (i < currentIndex) el.classList.add("done");
+        else if (i === currentIndex) el.classList.add("current");
+      });
+
+      const progressPct = (currentIndex / (STEPS.length - 1)) * 100;
+      document.querySelector("#progress-line").style.width = progressPct + "%";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderOrder(getFakeOrder());
+    });
+  </script>
+</body>
+</html>

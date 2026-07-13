@@ -1,8 +1,16 @@
-from django.shortcuts import render, get_object_or_404
+import json
+import hmac
+import hashlib
+import base64
+import requests
+
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.core.paginator import Paginator
 from django.db.models import Min, Sum, Prefetch
-from .models import Shoes, ShoesVariant
+from .models import Shoes, ShoesVariant, Order, OrderItem
 
 
 class ShoesListView(View):
@@ -101,15 +109,191 @@ class ShoeDetailView(View):
         }
         return render(request, 'shoes/shoe_detail.html', context)
 
+
 def test(request):
-    return render(request, "D:/projects/intern-codeit/SIMPCustomization\project_simp/templates/layout.html")
+    return render(request, "D:/projects/intern-codeit/SIMPCustomization\\project_simp/templates/layout.html")
+
+
 class CartView(View):
     def get(self, request):
         # Cart contents are rendered client-side from localStorage by cart.js,
         # this view just needs to serve the template shell.
         return render(request, 'shoes/cart.html')
 
+
 class History(View):
     def get(self, request, category_id=None):
-
         return render(request, 'history/history.html')
+
+
+def checkout_view(request):
+    return render(request, 'shoes/checkout.html')
+
+
+def order_tracking_view(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+    context = {
+        'order_id': order.order_id,
+        'status': order.status,
+        'payment_method': order.get_payment_method_display(),
+        'total_amount': order.total_amount,
+        'address': f"{order.address}, {order.city}",
+    }
+    return render(request, 'shoes/order_tracking.html', context)
+
+
+# ---------------------------------------------------------------
+# Order creation
+# ---------------------------------------------------------------
+
+def create_order(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    data = json.loads(request.body)
+    address = data['address']
+    items = data['items']  # [{variant_id, quantity}, ...]
+    payment_method = data['payment_method']
+
+    order_items = []
+    total_amount = 0
+    for item in items:
+        variant = get_object_or_404(ShoesVariant, id=item['variant_id'])
+        quantity = int(item['quantity'])
+        if quantity > variant.stock_quantity:
+            return JsonResponse({'error': f'{variant} is out of stock'}, status=400)
+        total_amount += float(variant.price) * quantity
+        order_items.append((variant, quantity))
+
+    order = Order.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        full_name=address['full_name'],
+        phone=address['phone'],
+        address=address['address'],
+        city=address['city'],
+        landmark=address.get('landmark', ''),
+        payment_method=payment_method,
+        total_amount=total_amount,
+    )
+    for variant, quantity in order_items:
+        OrderItem.objects.create(order=order, variant=variant, price=variant.price, quantity=quantity)
+
+    return JsonResponse({'order_id': order.order_id, 'total_amount': str(total_amount)})
+
+
+# ---------------------------------------------------------------
+# eSewa (ePay v2) — UAT/test credentials, see settings.py
+# ---------------------------------------------------------------
+
+def esewa_initiate(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+    total_amount = str(order.total_amount)
+    transaction_uuid = order.order_id
+    product_code = settings.ESEWA_PRODUCT_CODE
+
+    message = f"total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code}"
+    signature = base64.b64encode(
+        hmac.new(settings.ESEWA_SECRET_KEY.encode(), message.encode(), hashlib.sha256).digest()
+    ).decode()
+
+    context = {
+        'amount': total_amount,
+        'tax_amount': '0',
+        'total_amount': total_amount,
+        'transaction_uuid': transaction_uuid,
+        'product_code': product_code,
+        'product_service_charge': '0',
+        'product_delivery_charge': '0',
+        'success_url': request.build_absolute_uri(f'/shoes/payments/esewa/verify/{order.order_id}/'),
+        'failure_url': request.build_absolute_uri('/shoes/checkout/'),
+        'signed_field_names': 'total_amount,transaction_uuid,product_code',
+        'signature': signature,
+        'esewa_form_url': settings.ESEWA_FORM_URL,
+    }
+    return render(request, 'shoes/esewa_redirect.html', context)
+
+
+def esewa_verify(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+    encoded = request.GET.get('data')
+    if not encoded:
+        order.status = 'failed'
+        order.save()
+        return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
+
+    decoded = json.loads(base64.b64decode(encoded))
+    if decoded.get('status') != 'COMPLETE':
+        order.status = 'failed'
+        order.save()
+        return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
+
+    # Defense in depth: re-check with eSewa's status API before trusting the callback
+    params = {
+        'product_code': settings.ESEWA_PRODUCT_CODE,
+        'total_amount': str(order.total_amount),
+        'transaction_uuid': order.order_id,
+    }
+    result = requests.get(settings.ESEWA_STATUS_URL, params=params).json()
+
+    if result.get('status') == 'COMPLETE':
+        order.status = 'paid'
+        order.transaction_id = decoded.get('transaction_code', '')
+        order.save()
+        return redirect(f'/shoes/orders/{order.order_id}/track/?status=paid')
+
+    order.status = 'failed'
+    order.save()
+    return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
+
+
+# ---------------------------------------------------------------
+# Khalti (KPG v2) — sandbox test key, see settings.py
+# ---------------------------------------------------------------
+
+def khalti_initiate(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+    payload = {
+        "return_url": request.build_absolute_uri(f'/shoes/payments/khalti/verify/{order.order_id}/'),
+        "website_url": request.build_absolute_uri('/'),
+        "amount": int(order.total_amount * 100),  # Khalti expects paisa
+        "purchase_order_id": order.order_id,
+        "purchase_order_name": f"SIMP Order {order.order_id}",
+        "customer_info": {
+            "name": order.full_name,
+            "phone": order.phone,
+        },
+    }
+    headers = {
+        "Authorization": f"key {settings.KHALTI_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+    resp = requests.post(settings.KHALTI_INITIATE_URL, json=payload, headers=headers)
+    result = resp.json()
+
+    if resp.status_code == 200 and 'payment_url' in result:
+        return redirect(result['payment_url'])
+
+    order.status = 'failed'
+    order.save()
+    return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
+
+
+def khalti_verify(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+    pidx = request.GET.get('pidx')
+
+    headers = {
+        "Authorization": f"key {settings.KHALTI_SECRET_KEY}",
+        "Content-Type": "application/json",
+    }
+    result = requests.post(settings.KHALTI_LOOKUP_URL, json={"pidx": pidx}, headers=headers).json()
+
+    if result.get('status') == 'Completed':
+        order.status = 'paid'
+        order.transaction_id = result.get('transaction_id', '')
+        order.save()
+        return redirect(f'/shoes/orders/{order.order_id}/track/?status=paid')
+
+    order.status = 'failed'
+    order.save()
+    return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')

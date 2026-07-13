@@ -1,7 +1,9 @@
 from django.urls import path
 from .views import (
     HomePage, AboutPage, RegisterUser, LoginUser, LogoutUser,
-    SendOTPView, VerifyOTPView, DesignPage,add_to_cart,update_cart_quantity,view_cart,remove_from_cart,
+    SendOTPView, VerifyOTPView, DesignPage, ConverseCustomizePage,
+    ProfileView, UpdateProfileView, DeleteProfileView,
+    add_to_cart, update_cart_quantity, cart_view, remove_cart_item,
 )
 
 app_name = 'account'
@@ -12,35 +14,20 @@ urlpatterns = [
     path('register/', RegisterUser.as_view(), name='register'),
     path('login/', LoginUser.as_view(), name='login'),
     path('logout/', LogoutUser, name='logout'),
-    
-     path('profile/', ProfileView.as_view(), name='profile'),
+
+    path('profile/', ProfileView.as_view(), name='profile'),
     path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
     path('profile/delete/', DeleteProfileView.as_view(), name='delete_profile'),
 
     path('verify-email/', SendOTPView.as_view(), name='send_otp'),
     path('verify-email/confirm/', VerifyOTPView.as_view(), name='verify_otp'),
+
     path('design/', DesignPage.as_view(), name='design'),
-    path('add-to-cart/', add_to_cart, name='add_to_cart'),
-    # ---------------------------------------------------------------------------
-# Add these three paths to your existing urls.py, inside the account app's
-# urlpatterns list (same file/app namespace as add_to_cart).
-# ---------------------------------------------------------------------------
+    path('converse-customize/', ConverseCustomizePage.as_view(), name='converse_customize'),
 
-    path('cart/', view_cart, name='view_cart'),
-    path('cart/update-quantity/', update_cart_quantity, name='update_cart_quantity'),
-    path('cart/remove/',remove_from_cart, name='remove_from_cart'),
-
-# ---------------------------------------------------------------------------
-# One more fix needed in designer.html: the "View Cart" link currently
-# points at the add-to-cart POST endpoint, which is wrong — it should point
-# at the new view_cart page. Change this line:
-#
-#   <a id="cm-view-cart" href="{% url 'account:add_to_cart' %}" ...>
-#
-# to:
-#
-#   <a id="cm-view-cart" href="{% url 'account:view_cart' %}" ...>
-# ---------------------------------------------------------------------------
-
-    
+    # --- cart ---
+    path('cart/', cart_view, name='cart_view'),
+    path('cart/add/', add_to_cart, name='add_to_cart'),
+    path('cart/update/', update_cart_quantity, name='update_cart_quantity'),
+    path('cart/remove/<int:item_id>/', remove_cart_item, name='remove_cart_item'),
 ]

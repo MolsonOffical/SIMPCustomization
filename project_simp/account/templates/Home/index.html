@@ -106,20 +106,20 @@
     </div>
     <div class="shoe-card">
       <div class="shoe-img-wrap" >
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTRSgpaRKjSPS-qK3-umau_5eCwkUrKuVmizDWIg3wHA&s=10" alt="Core Low Top">
+        <img src="{% static 'air-jordan/images/air_jordan1.jpg' %}" alt="Air Jordan 1">
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
       </div>
       <div class="shoe-body">
-        <div class="shoe-name">Core Low Top</div>
+        <div class="shoe-name">Air Jordan 1</div>
         <div class="shoe-price">Rs. 5,200</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/2" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=air-jordan-1" class="btn-customize-card">Customize →</a>
       </div>
     </div>
     <div class="shoe-card">
       <div class="shoe-img-wrap">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRwfrHTKfdYLtaoeCnqTApIRvNpauwZB3V-1HDpOSSeLg&s" alt="urban canvas" >
+        <img src="{% static 'urban-canvas/images/urban-canvas-thumb.jpg' %}" alt="Urban Canvas">
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
       </div>
       <div class="shoe-body">
@@ -127,20 +127,20 @@
         <div class="shoe-price">Rs. 3,800</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/3" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=urban-canvas" class="btn-customize-card">Customize →</a>
       </div>
     </div>
     <div class="shoe-card">
      <div class="shoe-img-wrap" >
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJswjdM-8zGA58T4TwayOOcfYHp86Y7w08osXAMyc-qA&s=10" alt="street runner" >
+        <img src="{% static 'boots/images/boot.jpg' %}" alt="Low Poly Boot" >
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
       </div>
       <div class="shoe-body">
-        <div class="shoe-name">Street Runner</div>
+        <div class="shoe-name">Low Poly Boot</div>
         <div class="shoe-price">Rs. 4,100</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/4" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=low-poly-boot" class="btn-customize-card">Customize →</a>
       </div>
     </div>
     <div class="shoe-card">

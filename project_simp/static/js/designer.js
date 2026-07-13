@@ -334,9 +334,7 @@ document.querySelectorAll('.pattern-swatch').forEach((swatch) => {
   });
 });
 
-document.getElementById('btn-add-cart').addEventListener('click', () => {
-  alert('Cart coming soon — your design is saved for now.');
-});
+
 
 function animate() {
   requestAnimationFrame(animate);

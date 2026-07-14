@@ -131,5 +131,7 @@ class CartItem(models.Model):
     def subtotal(self):
         return self.unit_price * self.quantity
 
+
     def __str__(self):
         return f"{self.user} — {self.pattern_display_name} (size {self.size}) x{self.quantity}"
+

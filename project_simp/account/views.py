@@ -350,11 +350,6 @@ def remove_cart_item(request, item_id):
 
 # ---------------------------------------------------------------------------
 
-
-
-
-
-# ---------------------------------------------------------------------------
 class ProfileView(LoginRequiredMixin, View):
     login_url = 'account:login'
 

@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Category(models.Model):
@@ -58,4 +60,19 @@ class ShoesVariant(models.Model):
         unique_together = ("shoe", "color", "size")
 
     def __str__(self):
-        return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"
+        return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"    
+class Review(models.Model):
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("shoe", "user")
+
+    def __str__(self):
+        return f"{self.user} → {self.shoe} ({self.rating}★)"

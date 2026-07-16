@@ -127,23 +127,23 @@
     </div>
  
     <div class="shoe-card">
-      <div class="shoe-img-wrap">
-        <img src="{% static 'images/core.webp' %}" alt="Core Low Top" class="shoe-img"
+<div class="shoe-img-wrap">
+        <img src="{% static 'air-jordan/images/air_jordan1.jpg' %}" alt="Air Jordan 1" class="shoe-img"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
       </div>
       <div class="shoe-body">
-        <div class="shoe-name">Core Low Top</div>
+        <div class="shoe-name">Air Jordan 1</div>
         <div class="shoe-price">Rs. 5,200</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/2" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=air-jordan-1" class="btn-customize-card">Customize →</a>
       </div>
     </div>
  
     <div class="shoe-card">
       <div class="shoe-img-wrap">
-        <img src="{% static 'images/urban.jpg' %}" alt="Urban Canvas" class="shoe-img"
+<img src="{% static 'urban-canvas/images/urban-canvas-thumb.jpg' %}" alt="Urban Canvas" class="shoe-img"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
       </div>
@@ -152,22 +152,22 @@
         <div class="shoe-price">Rs. 3,800</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/3" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=urban-canvas" class="btn-customize-card">Customize →</a>
       </div>
     </div>
  
     <div class="shoe-card">
-      <div class="shoe-img-wrap">
-        <img src="{% static 'images/street.jpeg' %}" alt="Street Runner" class="shoe-img"
+<div class="shoe-img-wrap">
+        <img src="{% static 'boots/images/boot.jpg' %}" alt="Low Poly Boot" class="shoe-img"
              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
       </div>
       <div class="shoe-body">
-        <div class="shoe-name">Street Runner</div>
+        <div class="shoe-name">Low Poly Boot</div>
         <div class="shoe-price">Rs. 4,100</div>
       </div>
       <div class="shoe-footer">
-        <a href="/product/4" class="btn-customize-card">Customize →</a>
+        <a href="{% url 'account:converse_customize' %}?shoe=low-poly-boot" class="btn-customize-card">Customize →</a>
       </div>
     </div>
  

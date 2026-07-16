@@ -39,6 +39,9 @@
       <!-- Upload / add custom design -->
       <button class="apply-button" id="btnAddDesign" title="Upload a design image">🖼️</button>
       <input type="file" id="designFileInput" accept="image/*" style="display:none" />
+      <!-- Full print: apply an image across an entire zone -->
+<button class="apply-button" id="btnFullPrint" title="Apply Full Print to Current Zone">🧵</button>
+<input type="file" id="fullPrintFileInput" accept="image/*" style="display:none" />
     </div>
   </div>
 
@@ -54,14 +57,28 @@
   <div class="decal-hint hidden" id="decalHint">Click anywhere on the shoe to place your design</div>
 
   <!-- Controls shown once at least one design is placed -->
+  <!-- Controls shown once at least one design is placed -->
   <div class="decal-controls hidden" id="decalControls">
     <label class="decal-controls-label" for="decalSizeSlider">Design size</label>
     <input type="range" id="decalSizeSlider" min="0.05" max="0.9" step="0.01" value="0.28" />
     <label class="decal-controls-label" for="decalRotationSlider">Rotation</label>
     <input type="range" id="decalRotationSlider" min="-180" max="180" step="1" value="0" />
-    <button class="menu-button" id="btnUndoDecal">Undo</button>
+    <button class="menu-button" id="btnDeleteDecal">Delete Selected</button>
     <button class="menu-button" id="btnClearDecals">Clear all</button>
   </div>
+
+  <!-- Layers list: every placed design, click to select, ✕ to delete -->
+  <div class="decal-layers hidden" id="decalLayers"></div>
+  <div class="full-print-controls hidden" id="fullPrintControls">
+  <div id="fullPrintZoneLabel" style="font-weight:600; margin-bottom:8px;">Zone: —</div>
+  <label class="decal-controls-label" for="printRepeatXSlider">Repeat (horizontal)</label>
+  <input type="range" id="printRepeatXSlider" min="1" max="6" step="1" value="1" />
+  <label class="decal-controls-label" for="printRepeatYSlider">Repeat (vertical)</label>
+  <input type="range" id="printRepeatYSlider" min="1" max="6" step="1" value="1" />
+  <label class="decal-controls-label" for="printRotationSlider">Pattern rotation</label>
+  <input type="range" id="printRotationSlider" min="-180" max="180" step="1" value="0" />
+  <button class="menu-button" id="btnRemovePrint">Remove Print</button>
+</div>
 
   <!-- Spinner -->
   <div class="loader" id="loader"></div>
@@ -110,7 +127,16 @@ const ASSET_BASE = "{% static 'converse/' %}";
 /* Base path for Air Runner static assets (Django static files) */
 const AIR_RUNNER_ASSET_BASE = "{% static 'air-runner/' %}";
 
-/* ============================================================
+/* Base path for Urban Canvas static assets (Django static files) */
+const URBAN_CANVAS_ASSET_BASE = "{% static 'urban-canvas/' %}";
+/* Base path for Boots static assets (Django static files) */
+const BOOTS_ASSET_BASE = "{% static 'boots/' %}";
+/* Base path for Air Jordan static assets (Django static files) */
+const AIR_JORDAN_ASSET_BASE = "{% static 'air-jordan/' %}";
+
+/* 
+
+============================================================
    SHOE CONFIGURATION  (ported 1-to-1 from ShoeConfig.js)
    ============================================================ */
 const shoeColorConfigs = [
@@ -118,6 +144,7 @@ const shoeColorConfigs = [
     modelUrl: ASSET_BASE + 'model/nike-converse-low-top.gltf',
     name: 'Converse Custom Chuck Taylor — Low Top',
     id: 'nike-converse-low-top',
+    group: 'converse',
     src: ASSET_BASE + 'images/shoes/nike-converse-low-top.jpeg',
     colorConfigs: [
       {
@@ -188,6 +215,7 @@ const shoeColorConfigs = [
     modelUrl: ASSET_BASE + 'model/nike-converse-high-top.gltf',
     name: 'Converse Custom Chuck Taylor — High Top',
     id: 'nike-converse-high-top',
+    group: 'converse',
     src: ASSET_BASE + 'images/shoes/nike-converse-high-top.jpeg',
     colorConfigs: [
       {
@@ -262,7 +290,8 @@ const shoeColorConfigs = [
     modelUrl: AIR_RUNNER_ASSET_BASE + 'model/air_force1.glb',
     name: 'Air Runner',
     id: 'air-runner',
-    src: AIR_RUNNER_ASSET_BASE + 'images/air-runner-thumb.svg',
+    group: 'air-runner',
+    src: AIR_RUNNER_ASSET_BASE + 'images/air-runner-thumb.jpg',
     /* Air Runner's raw bounding box is a similar order of magnitude
        to the Converse models, so it starts at the same scale/offset.
        Tune these two numbers if the model looks too big/small or
@@ -272,41 +301,41 @@ const shoeColorConfigs = [
     colorConfigs: [
       {
         title: 'Upper (Leather)',
-        types: ['Plane.001_Fine leather black_0'],
+        types: ['Plane001_Fine_leather_black_0'],
         colors: ['#FFFFFF','#F5F0E6','#111111','#8B0000','#0B3D91','#1B5E20','#3E3E3E','#C9A227'],
         modelPosition: { x:1.38, y:2.1, z:-0.10 },
       },
       {
         title: 'Upper (Fabric)',
-        types: ['Plane.001_Fabric_0'],
+        types: ['Plane001_Fabric_0'],
         colors: ['#F4F6EF','#D9CBB8','#7596A4','#B50024','#34394B','#9A9B9D','#221E1F'],
         modelPosition: { x:2.26, y:2.4, z:-0.07 },
       },
       {
         title: 'Side Mesh Panel',
-        types: ['Plane.002_Hex fabric Cloth_0'],
+        types: ['Plane002_Hex_fabric_Cloth_0'],
         colors: ['#88CCEE','#44AA99','#117733','#DDCC77','#CC6677','#AA4499','#F2F2F2'],
         modelPosition: { x:1.36, y:2.4, z:-0.11 },
       },
       {
         title: 'Eyelets & Metal',
-        types: ['Plane.002_Degradable Metal_0', 'Plane.002_Metal_0'],
+        types: ['Plane002_Degradable_Metal_0', 'Plane002_Metal_0'],
         colors: ['#C0C0C0','#D4AF37','#B87333','#3B3B3B','#E5E4E2'],
         modelPosition: { x:0.97, y:2.2, z:-0.11 },
       },
       {
         title: 'Swoosh / Side Stripe',
-        types: ['Plane.004_Fabric Pattern 06_0', 'Plane.019_Fabric Pattern 06_0'],
+        types: ['Plane004_Fabric_Pattern_06_0', 'Plane019_Fabric_Pattern_06_0'],
         colors: ['#111111','#FFFFFF','#B50024','#008FD2','#F1C40F','#2ECC71'],
         modelPosition: { x:2.90, y:2.3, z:-1.14 },
       },
       {
         title: 'Outsole',
         types: [
-          'Plane.005_Material.004_0','Plane.006_Material.004_0','Plane.007_Material.004_0',
-          'Plane.008_Material.004_0','Plane.009_Material.004_0','Plane.010_Material.004_0',
-          'Plane.011_Material.004_0','Plane.012_Material.004_0','Plane.013_Material.004_0',
-          'Plane.014_Material.004_0',
+          'Plane005_Material004_0','Plane006_Material004_0','Plane007_Material004_0',
+          'Plane008_Material004_0','Plane009_Material004_0','Plane010_Material004_0',
+          'Plane011_Material004_0','Plane012_Material004_0','Plane013_Material004_0',
+          'Plane014_Material004_0',
         ],
         colors: ['#FFFFFF','#F5F0DC','#C9A66B','#3E3E3E','#111111'],
         modelPosition: { x:1.48, y:1.0, z:-2.4 },
@@ -314,16 +343,154 @@ const shoeColorConfigs = [
       {
         title: 'Sole Base',
         types: [
-          'Plane_Material.001_0','Plane_Material.006_0','Plane_Material.010_0',
-          'Plane_Material.002_0','Plane.003__0',
+          'Plane_Material001_0','Plane_Material006_0','Plane_Material010_0',
+          'Plane_Material002_0','Plane003__0',
         ],
         colors: ['#FFFFFF','#EDE6D6','#B0B0B0','#222222'],
         modelPosition: { x:1.49, y:0.6, z:-2.4 },
       },
     ],
   },
-];
-
+  {
+   modelUrl: AIR_JORDAN_ASSET_BASE + 'model/air_jordan.glb',
+    name: 'Air Jordan 1',
+    id: 'air-jordan-1',
+    group: 'air-jordan',
+    src: AIR_JORDAN_ASSET_BASE + 'images/air_jordan1.jpg',
+    scale: 0.75,
+    offsetX: 2.0,
+    colorConfigs: [
+      {
+        title: 'Toe',
+        types: ['Object_4','Object_6','Object_34','Object_52','Object_54','Object_82'],
+        colors: ['#FFFFFF','#B50024','#111111','#0B3D91'],
+        modelPosition: { x: 1.4, y: 2.0, z: -0.1 },
+      },
+      {
+        title: 'Tongue / Front Upper',
+        types: ['Object_8','Object_10','Object_28','Object_44','Object_56','Object_58','Object_76','Object_92'],
+        colors: ['#FFFFFF','#F5F0E6','#B50024','#111111'],
+        modelPosition: { x: 1.0, y: 2.2, z: -0.1 },
+      },
+      {
+        title: 'Main Body / Swoosh',
+        types: ['Object_32','Object_40','Object_42','Object_80','Object_88','Object_90'],
+        colors: ['#B50024','#FFFFFF','#111111','#0B3D91','#1B5E20'],
+        modelPosition: { x: 1.4, y: 1.8, z: -0.3 },
+      },
+      {
+        title: 'Ankle Patch / Logo',
+        types: ['Object_24','Object_26','Object_72','Object_74'],
+        colors: ['#111111','#FFFFFF','#B50024','#D4AF37'],
+        modelPosition: { x: 1.4, y: 2.4, z: -0.1 },
+      },
+      {
+        title: 'Heel',
+        types: ['Object_14','Object_16','Object_18','Object_20','Object_46','Object_62','Object_64','Object_66','Object_68','Object_94'],
+        colors: ['#111111','#B50024','#FFFFFF','#0B3D91'],
+        modelPosition: { x: -1.0, y: 2.0, z: -0.1 },
+      },
+      {
+        title: 'Sole',
+        types: ['Object_12','Object_30','Object_36','Object_38','Object_48','Object_50','Object_60','Object_78','Object_84','Object_86','Object_96','Object_98'],
+        colors: ['#FFFFFF','#F5F0DC','#111111','#3E3E3E'],
+        modelPosition: { x: 1.4, y: 0.8, z: -1.5 },
+      },
+    ],
+  },
+  {
+    modelUrl: BOOTS_ASSET_BASE + 'model/low_poly_boot.glb',
+    name: 'Low Poly Boot',
+    id: 'low-poly-boot',
+    group: 'boots',
+    src: BOOTS_ASSET_BASE + 'images/boot.jpg',
+    /* Boot's raw bounding box/proportions are different from the sneaker
+       models — start here and tune once you preview it. */
+    scale: 5.5,
+    offsetX: 1.4,
+    offsetY: -1.3,
+    rotationY: 1.5708,  // 90° — rotates the boot's long axis (Z) onto X, matching the other shoes
+    colorConfigs: [
+      {
+        title: 'Boot Body',
+        types: ['Boots_Standardmaterial_0'],
+        colors: ['#3E2723','#5D4037','#111111','#FFFFFF','#8B0000','#0B3D91','#1B5E20','#C9A227'],
+        modelPosition: { x: 1.4, y: 2.0, z: -0.1 },
+      },
+      {
+        title: 'Eyelets / Bolts',
+        types: ['Bolts_bolts_0'],
+        colors: ['#C0C0C0','#D4AF37','#B87333','#3B3B3B','#E5E4E2'],
+        modelPosition: { x: 1.0, y: 2.2, z: -0.1 },
+      },
+      {
+        title: 'Laces',
+        types: ['Shnurki_shnurki_0'],
+        colors: ['#111111','#FFFFFF','#3E2723','#8B0000','#0B3D91','#C9A227'],
+        modelPosition: { x: 1.4, y: 1.8, z: -0.3 },
+      },
+    ],
+  },
+  {
+    modelUrl: URBAN_CANVAS_ASSET_BASE + 'model/shoe.glb',
+    name: 'Urban Canvas',
+    id: 'urban-canvas',
+    group: 'urban-canvas',
+    src: URBAN_CANVAS_ASSET_BASE + 'images/urban-canvas-thumb.jpg',
+    scale: 1.78,
+    offsetX: 1.4,
+    colorConfigs: [
+      {
+        title: 'Upper',
+        types: ['shoe_1'],
+        colors: ['#FFFFFF','#F4F6EF','#B50024','#127048','#008FD2','#34394B','#9A9B9D','#221E1F'],
+        modelPosition: { x:1.38, y:2.1, z:-0.10 },
+      },
+      {
+        title: 'Toe Caps',
+        types: ['shoe_2'],
+        colors: ['#FFFFFF','#F5F0E6','#111111','#8B0000','#3E3E3E'],
+        modelPosition: { x:2.26, y:2.4, z:-0.07 },
+      },
+      {
+        title: 'Inner Lining',
+        types: ['shoe_3'],
+        colors: ['#88CCEE','#44AA99','#DDCC77','#CC6677','#F2F2F2'],
+        modelPosition: { x:1.36, y:2.4, z:-0.11 },
+      },
+      {
+        title: 'Sole',
+        types: ['shoe_4'],
+        colors: ['#FFFFFF','#F5F0DC','#C9A66B','#3E3E3E','#111111'],
+        modelPosition: { x:1.48, y:1.0, z:-2.4 },
+      },
+      {
+        title: 'Side Stripes',
+        types: ['shoe_5'],
+        colors: ['#111111','#FFFFFF','#B50024','#008FD2','#F1C40F','#2ECC71'],
+        modelPosition: { x:2.90, y:2.3, z:-1.14 },
+      },
+      {
+        title: 'Heel Band',
+        types: ['shoe_6'],
+        colors: ['#7596A4','#F9B7AB','#BEE2D4','#5480A3','#111111'],
+        modelPosition: { x:-1.03, y:2.12, z:-0.002 },
+      },
+      {
+        title: 'Logo Patch',
+        types: ['shoe_7'],
+        colors: ['#FFFFFF','#111111','#B50024','#D4AF37'],
+        modelPosition: { x:0.97, y:2.2, z:-0.11 },
+      },
+      {
+        title: 'Laces',
+        types: ['shoe'],
+        colors: ['#FFFFFF','#111111','#B50024','#008FD2','#F1C40F'],
+        modelPosition: { x:3.05, y:2.00, z:-0.021 },
+      },
+    ],
+  },
+ ];
 /* Meshes that should be kept white / excluded from normal coloring */
 const excludedMesh = {
   rt_midsole_tape_a:true, rt_midsole_tape_b:true, rt_midsole_tape_c:true,
@@ -466,8 +633,14 @@ function handleLoad(gltf, cfg) {
      is completely unchanged. Other shoes can override these in
      their config entry (see Air Runner above) without touching
      any of this shared loading logic. */
-  const shoeScale   = (cfg && cfg.scale   !== undefined) ? cfg.scale   : 1;
-  const shoeOffsetX = (cfg && cfg.offsetX !== undefined) ? cfg.offsetX : 1.4;
+  const shoeScale    = (cfg && cfg.scale     !== undefined) ? cfg.scale     : 1;
+  const shoeOffsetX  = (cfg && cfg.offsetX   !== undefined) ? cfg.offsetX   : 1.4;
+  const shoeOffsetY  = (cfg && cfg.offsetY   !== undefined) ? cfg.offsetY   : 0;
+  const shoeRotY     = (cfg && cfg.rotationY !== undefined) ? cfg.rotationY : 0;
+
+  model.scale.set(shoeScale, shoeScale, shoeScale);
+  model.position.set(0, 0, 0);
+  model.rotation.y = shoeRotY;
 
   model.scale.set(shoeScale, shoeScale, shoeScale);
   model.position.set(0, 0, 0);
@@ -483,8 +656,9 @@ function handleLoad(gltf, cfg) {
     }
   });
 
-  removeObjects(model);
+removeObjects(model);
   model.position.x = shoeOffsetX;
+  model.position.y = shoeOffsetY;
   addShadow(model);
   scene.add(model);
   loaderEl.classList.add('hidden');
@@ -493,10 +667,20 @@ function handleLoad(gltf, cfg) {
 function loadShoe(index) {
   loaderEl.classList.remove('hidden');
   if (modelRef) scene.remove(modelRef);
-  clearAllDecals(); // designs are tied to the previous model, so drop them on switch
+  clearAllDecals();
+  clearAllZonePrints();
   const cfg    = shoeColorConfigs[index];
   const loader = buildLoader();
-  loader.load(cfg.modelUrl, gltf => handleLoad(gltf, cfg));
+  loader.load(
+    cfg.modelUrl,
+    gltf => handleLoad(gltf, cfg),
+    undefined,
+    (error) => {
+      console.error('Failed to load model:', cfg.modelUrl, error);
+      loaderEl.classList.add('hidden');
+      titleEl.textContent = `Failed to load: ${cfg.name}`;
+    }
+  );
 }
 
 /* ============================================================
@@ -514,6 +698,7 @@ function changeColor(color, types) {
     const obj = modelRef.getObjectByName(type);
     if (obj && obj.material) {
       obj.material = obj.material.clone();
+      obj.material.map = null;
       const c = new THREE.Color(color);
       gsap.to(obj.material.color, { r: c.r, g: c.g, b: c.b, duration: 0.3 });
     }
@@ -583,27 +768,42 @@ function focusZone(position) {
    CUSTOM DESIGN UPLOAD  (upload / drag-drop an image, click the
    shoe to stick it on as a decal, tweak size, undo / clear)
    ============================================================ */
+/* ============================================================
+   CUSTOM DESIGN UPLOAD  (multi-decal: place, select, resize,
+   rotate, drag-to-reposition, delete a specific one, layers list)
+   ============================================================ */
 const decalDropzone   = document.getElementById('decalDropzone');
 const decalHint       = document.getElementById('decalHint');
 const decalControls   = document.getElementById('decalControls');
 const decalSizeSlider = document.getElementById('decalSizeSlider');
 const decalRotationSlider = document.getElementById('decalRotationSlider');
 const designFileInput = document.getElementById('designFileInput');
+const decalLayers     = document.getElementById('decalLayers');
+
+decalLayers.style.cssText = `
+  position:fixed; top:70px; left:16px; width:200px; max-height:260px;
+  overflow-y:auto; background:#fff; border:1px solid #e5e5e5; border-radius:12px;
+  padding:6px; box-shadow:0 2px 8px rgba(0,0,0,0.08); z-index:20;
+`;
 
 const raycaster = new THREE.Raycaster();
 const pointerNDC = new THREE.Vector2();
 
-let pendingDecalTexture = null;  // texture waiting to be placed on next click
-let placedDecals = [];           // { mesh, point, normal, targetMesh, texture }
+let pendingDesign = null;        // { texture, thumbDataUrl } waiting to be placed on next click
+let placedDecals = [];           // { id, mesh, point, normal, targetMesh, texture, thumbDataUrl, size, rotationDeg }
+let selectedDecalIndex = -1;     // which decal the size/rotation sliders currently control
+let dragIndex = -1;              // which decal is being dragged right now (-1 = none)
+let decalIdCounter = 0;
 
 /* Read a File (image) into a THREE.Texture and enter "placement mode" */
 function beginDecalPlacement(file) {
   if (!file || !file.type.startsWith('image/')) return;
   const reader = new FileReader();
   reader.onload = (e) => {
-    textureLoader.load(e.target.result, (texture) => {
+    const dataUrl = e.target.result;
+    textureLoader.load(dataUrl, (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
-      pendingDecalTexture = texture;
+      pendingDesign = { texture, thumbDataUrl: dataUrl };
       canvas.classList.add('placing-decal');
       decalHint.classList.remove('hidden');
     });
@@ -616,11 +816,12 @@ function buildDecalMesh(entry, size, rotationDeg) {
   if (entry.mesh) scene.remove(entry.mesh);
   if (rotationDeg === undefined) rotationDeg = entry.rotationDeg || 0;
   entry.rotationDeg = rotationDeg;
+  entry.size = size;
 
   const dummy = new THREE.Object3D();
   dummy.position.copy(entry.point);
   dummy.lookAt(entry.point.clone().add(entry.normal));
-  dummy.rotateZ(THREE.MathUtils.degToRad(rotationDeg)); // spin in-plane, stays flush with the surface
+  dummy.rotateZ(THREE.MathUtils.degToRad(rotationDeg));
 
   const geometry = new DecalGeometry(
     entry.targetMesh,
@@ -643,7 +844,7 @@ function buildDecalMesh(entry, size, rotationDeg) {
 
 /* Place the pending design at a raycast hit point on the shoe */
 function placeDecalAt(clientX, clientY) {
-  if (!pendingDecalTexture || !modelRef) return;
+  if (!pendingDesign || !modelRef) return;
 
   const rect = canvas.getBoundingClientRect();
   pointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
@@ -662,73 +863,197 @@ function placeDecalAt(clientX, clientY) {
   const worldNormal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
 
   const entry = {
+    id: decalIdCounter++,
     mesh: null,
     point: hit.point.clone(),
     normal: worldNormal,
     targetMesh: hit.object,
-    texture: pendingDecalTexture,
+    texture: pendingDesign.texture,
+    thumbDataUrl: pendingDesign.thumbDataUrl,
     rotationDeg: 0,
+    size: parseFloat(decalSizeSlider.value),
   };
-  buildDecalMesh(entry, parseFloat(decalSizeSlider.value), 0);
+  buildDecalMesh(entry, entry.size, 0);
   placedDecals.push(entry);
-  decalRotationSlider.value = 0;
+  selectDecal(placedDecals.length - 1);
 
-  pendingDecalTexture = null;
+  pendingDesign = null;
   canvas.classList.remove('placing-decal');
   decalHint.classList.add('hidden');
-  decalControls.classList.remove('hidden');
 }
 
-/* Resize the most recently placed decal (live, as the slider moves) */
-function resizeLastDecal(size) {
-  if (placedDecals.length === 0) return;
-  const entry = placedDecals[placedDecals.length - 1];
+/* Make a specific decal the "active" one — sliders + delete button act on it */
+function selectDecal(index) {
+  selectedDecalIndex = index;
+  if (index === -1 || !placedDecals[index]) {
+    decalControls.classList.add('hidden');
+  } else {
+    const entry = placedDecals[index];
+    decalSizeSlider.value = entry.size;
+    decalRotationSlider.value = entry.rotationDeg;
+    decalControls.classList.remove('hidden');
+  }
+  renderLayersList();
+}
+
+/* Resize/rotate whichever decal is currently SELECTED (not always the last one) */
+function resizeSelectedDecal(size) {
+  if (selectedDecalIndex === -1) return;
+  const entry = placedDecals[selectedDecalIndex];
   buildDecalMesh(entry, size, entry.rotationDeg);
 }
-
-/* Rotate the most recently placed decal in-plane (live, as the slider moves) */
-function rotateLastDecal(rotationDeg) {
-  if (placedDecals.length === 0) return;
-  const entry = placedDecals[placedDecals.length - 1];
-  buildDecalMesh(entry, parseFloat(decalSizeSlider.value), rotationDeg);
+function rotateSelectedDecal(rotationDeg) {
+  if (selectedDecalIndex === -1) return;
+  const entry = placedDecals[selectedDecalIndex];
+  buildDecalMesh(entry, entry.size, rotationDeg);
 }
 
-function undoLastDecal() {
-  const entry = placedDecals.pop();
-  if (entry && entry.mesh) scene.remove(entry.mesh);
-  if (placedDecals.length === 0) decalControls.classList.add('hidden');
+/* Delete one specific decal by index (this is the actual fix for
+   "can only undo the most recent one") */
+function deleteDecal(index) {
+  const entry = placedDecals[index];
+  if (!entry) return;
+  if (entry.mesh) scene.remove(entry.mesh);
+  placedDecals.splice(index, 1);
+
+  if (selectedDecalIndex === index) {
+    selectedDecalIndex = -1;
+  } else if (selectedDecalIndex > index) {
+    selectedDecalIndex -= 1;
+  }
+  decalControls.classList.toggle('hidden', selectedDecalIndex === -1);
+  renderLayersList();
 }
 
 function clearAllDecals() {
   placedDecals.forEach(entry => { if (entry.mesh) scene.remove(entry.mesh); });
   placedDecals = [];
-  pendingDecalTexture = null;
+  selectedDecalIndex = -1;
+  dragIndex = -1;
+  pendingDesign = null;
   canvas.classList.remove('placing-decal');
   decalHint.classList.add('hidden');
   decalControls.classList.add('hidden');
+  renderLayersList();
+}
+
+/* Rebuild the little "Layers" list of every placed design */
+function renderLayersList() {
+  decalLayers.innerHTML = '';
+  if (placedDecals.length === 0) {
+    decalLayers.classList.add('hidden');
+    return;
+  }
+  decalLayers.classList.remove('hidden');
+
+  placedDecals.forEach((entry, index) => {
+    const row = document.createElement('div');
+    row.style.cssText = `
+      display:flex; align-items:center; gap:8px; padding:6px 8px;
+      border-radius:8px; cursor:pointer;
+      background:${index === selectedDecalIndex ? 'rgba(0,0,0,0.08)' : 'transparent'};
+    `;
+    row.addEventListener('click', () => selectDecal(index));
+
+    const thumb = document.createElement('img');
+    thumb.src = entry.thumbDataUrl;
+    thumb.style.cssText = 'width:32px; height:32px; object-fit:cover; border-radius:4px; border:1px solid #ddd;';
+
+    const label = document.createElement('span');
+    label.textContent = `Design ${index + 1}`;
+    label.style.cssText = 'flex:1; font-size:13px;';
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '✕';
+    delBtn.title = 'Delete this design';
+    delBtn.style.cssText = 'border:none; background:none; cursor:pointer; font-size:14px; color:#999;';
+    delBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteDecal(index);
+    });
+
+    row.appendChild(thumb);
+    row.appendChild(label);
+    row.appendChild(delBtn);
+    decalLayers.appendChild(row);
+  });
 }
 
 /* -- Wire up UI -- */
 document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
 designFileInput.addEventListener('change', (e) => {
   beginDecalPlacement(e.target.files[0]);
-  designFileInput.value = ''; // allow re-selecting the same file later
+  designFileInput.value = '';
 });
 
+/* Click on empty shoe surface while a NEW design is pending -> place it */
 canvas.addEventListener('click', (e) => {
-  if (pendingDecalTexture) placeDecalAt(e.clientX, e.clientY);
+  if (pendingDesign) placeDecalAt(e.clientX, e.clientY);
+});
+
+/* Pointer down on an EXISTING decal -> select it, and start a possible drag */
+canvas.addEventListener('pointerdown', (e) => {
+  if (pendingDesign) return; // placing a brand-new design takes priority
+  const rect = canvas.getBoundingClientRect();
+  pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointerNDC, camera);
+  const decalMeshes = placedDecals.map(d => d.mesh).filter(Boolean);
+  const hits = raycaster.intersectObjects(decalMeshes, false);
+  if (hits.length === 0) return;
+
+  const idx = placedDecals.findIndex(d => d.mesh === hits[0].object);
+  if (idx === -1) return;
+  selectDecal(idx);
+  dragIndex = idx;
+  controls.enabled = false; // pause orbit while dragging a design
+});
+
+/* Dragging: re-raycast against the shoe (not other decals) and move the decal there */
+canvas.addEventListener('pointermove', (e) => {
+  if (dragIndex === -1 || !modelRef) return;
+  const rect = canvas.getBoundingClientRect();
+  pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointerNDC, camera);
+
+  const decalMeshSet = new Set(placedDecals.map(d => d.mesh));
+  const hits = raycaster.intersectObject(modelRef, true).filter(hit => {
+    const obj = hit.object;
+    return obj.visible && obj.name !== 'shadow_plane' && !decalMeshSet.has(obj);
+  });
+  if (hits.length === 0) return;
+
+  const hit = hits[0];
+  const entry = placedDecals[dragIndex];
+  const normalMatrix = new THREE.Matrix3().getNormalMatrix(hit.object.matrixWorld);
+  entry.point = hit.point.clone();
+  entry.normal = hit.face.normal.clone().applyMatrix3(normalMatrix).normalize();
+  entry.targetMesh = hit.object;
+  buildDecalMesh(entry, entry.size, entry.rotationDeg);
+});
+
+canvas.addEventListener('pointerup', () => {
+  dragIndex = -1;
+  controls.enabled = true;
+});
+canvas.addEventListener('pointerleave', () => {
+  dragIndex = -1;
+  controls.enabled = true;
 });
 
 decalSizeSlider.addEventListener('input', (e) => {
-  resizeLastDecal(parseFloat(e.target.value));
+  resizeSelectedDecal(parseFloat(e.target.value));
 });
 decalRotationSlider.addEventListener('input', (e) => {
-  rotateLastDecal(parseFloat(e.target.value));
+  rotateSelectedDecal(parseFloat(e.target.value));
 });
-document.getElementById('btnUndoDecal').addEventListener('click', undoLastDecal);
+document.getElementById('btnDeleteDecal').addEventListener('click', () => {
+  if (selectedDecalIndex !== -1) deleteDecal(selectedDecalIndex);
+});
 document.getElementById('btnClearDecals').addEventListener('click', clearAllDecals);
 
-/* Drag-and-drop straight onto the canvas */
+/* Drag-and-drop a file straight onto the canvas (uploading, not moving a decal) */
 ['dragenter', 'dragover'].forEach(evt => {
   canvas.addEventListener(evt, (e) => {
     e.preventDefault();
@@ -745,7 +1070,136 @@ canvas.addEventListener('drop', (e) => {
   const file = e.dataTransfer.files && e.dataTransfer.files[0];
   beginDecalPlacement(file);
 });
+/* ============================================================
+   FULL PRINT MODE — apply an uploaded image across an ENTIRE
+   zone (e.g. the whole Upper) as a real tileable texture, instead
+   of a small decal sticker. State is per zone-slide-index for the
+   CURRENT shoe; resets when you switch shoes (same as decals).
+   ============================================================ */
+const fullPrintFileInput  = document.getElementById('fullPrintFileInput');
+const fullPrintControls   = document.getElementById('fullPrintControls');
+const fullPrintZoneLabel  = document.getElementById('fullPrintZoneLabel');
+const printRepeatXSlider  = document.getElementById('printRepeatXSlider');
+const printRepeatYSlider  = document.getElementById('printRepeatYSlider');
+const printRotationSlider = document.getElementById('printRotationSlider');
 
+fullPrintControls.style.cssText = `
+  position:fixed; top:70px; left:16px; width:220px;
+  background:#fff; border:1px solid #e5e5e5; border-radius:12px;
+  padding:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); z-index:20;
+`;
+
+let zonePrintState = {}; // key: slide index (within current shoe) -> { texture, repeatX, repeatY, rotationDeg }
+
+function currentZoneKey() {
+  return String(currentSlide);
+}
+function currentZoneConfig() {
+  return shoeColorConfigs[currentShoeIndex].colorConfigs[currentSlide];
+}
+
+function applyPrintTexture(texture) {
+  const config = currentZoneConfig();
+  if (!config || !modelRef) return;
+
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.center.set(0.5, 0.5);
+
+  const key = currentZoneKey();
+  const state = zonePrintState[key] || { repeatX: 1, repeatY: 1, rotationDeg: 0 };
+  state.texture = texture;
+  zonePrintState[key] = state;
+
+  applyPrintStateToMeshes(config, state);
+  showFullPrintPanel(config, state);
+}
+
+function applyPrintStateToMeshes(config, state) {
+  config.types.forEach(type => {
+    const obj = modelRef.getObjectByName(type);
+    if (!obj || !obj.material) return;
+    obj.material = obj.material.clone();
+    obj.material.map = state.texture;
+    obj.material.color.set(0xffffff); // show the print's true colors, not tinted
+    obj.material.map.repeat.set(state.repeatX, state.repeatY);
+    obj.material.map.rotation = THREE.MathUtils.degToRad(state.rotationDeg);
+    obj.material.needsUpdate = true;
+  });
+}
+
+function showFullPrintPanel(config, state) {
+  fullPrintZoneLabel.textContent = `Zone: ${config.title}`;
+  printRepeatXSlider.value = state.repeatX;
+  printRepeatYSlider.value = state.repeatY;
+  printRotationSlider.value = state.rotationDeg;
+  fullPrintControls.classList.remove('hidden');
+}
+
+function refreshFullPrintPanel() {
+  const config = currentZoneConfig();
+  const key = currentZoneKey();
+  const state = zonePrintState[key];
+  if (!config) { fullPrintControls.classList.add('hidden'); return; }
+  if (state && state.texture) {
+    showFullPrintPanel(config, state);
+  } else {
+    fullPrintControls.classList.add('hidden');
+  }
+}
+
+function updateCurrentPrintRepeat() {
+  const state = zonePrintState[currentZoneKey()];
+  if (!state || !state.texture) return;
+  state.repeatX = parseFloat(printRepeatXSlider.value);
+  state.repeatY = parseFloat(printRepeatYSlider.value);
+  applyPrintStateToMeshes(currentZoneConfig(), state);
+}
+
+function updateCurrentPrintRotation() {
+  const state = zonePrintState[currentZoneKey()];
+  if (!state || !state.texture) return;
+  state.rotationDeg = parseFloat(printRotationSlider.value);
+  applyPrintStateToMeshes(currentZoneConfig(), state);
+}
+
+function removeCurrentPrint() {
+  const key = currentZoneKey();
+  const config = currentZoneConfig();
+  if (!config) return;
+  config.types.forEach(type => {
+    const obj = modelRef.getObjectByName(type);
+    if (!obj || !obj.material) return;
+    obj.material = obj.material.clone();
+    obj.material.map = null;
+    obj.material.needsUpdate = true;
+  });
+  delete zonePrintState[key];
+  fullPrintControls.classList.add('hidden');
+}
+
+function clearAllZonePrints() {
+  zonePrintState = {};
+  fullPrintControls.classList.add('hidden');
+}
+
+document.getElementById('btnFullPrint').addEventListener('click', () => fullPrintFileInput.click());
+fullPrintFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    textureLoader.load(ev.target.result, (texture) => applyPrintTexture(texture));
+  };
+  reader.readAsDataURL(file);
+  fullPrintFileInput.value = '';
+});
+
+printRepeatXSlider.addEventListener('input', updateCurrentPrintRepeat);
+printRepeatYSlider.addEventListener('input', updateCurrentPrintRepeat);
+printRotationSlider.addEventListener('input', updateCurrentPrintRotation);
+document.getElementById('btnRemovePrint').addEventListener('click', removeCurrentPrint);
 /* ============================================================
    CAROUSEL UI
    ============================================================ */
@@ -785,6 +1239,8 @@ function buildCarousel(shoeIndex) {
         btn.classList.add('selected');
         // apply color to Three.js model
         changeColor(color, config.types);
+        delete zonePrintState[String(i)];
+  if (i === currentSlide) fullPrintControls.classList.add('hidden');
       });
       dots.appendChild(btn);
     });
@@ -835,6 +1291,7 @@ function onSlideChange(index) {
   focusZone(config.modelPosition);
   // blink each mesh in this zone
   config.types.forEach(type => blinkAnimation(type));
+  refreshFullPrintPanel();
 }
 
 /* ============================================================
@@ -845,14 +1302,17 @@ const titleEl    = document.getElementById('shoeTitle');
 
 function buildSwitcher() {
   switcherEl.innerHTML = '';
+  const currentGroup = shoeColorConfigs[currentShoeIndex].group;
   shoeColorConfigs.forEach((shoe, i) => {
+    if (shoe.group !== currentGroup) return; // only show shoes from the same product family
     const img = document.createElement('img');
     img.className = 'switcher-image';
     img.src    = shoe.src;
     img.alt    = shoe.id;
     img.width  = 64;
     img.height = 64;
-    if (i === 0) img.classList.add('selected');
+    img.dataset.shoeIndex = i;
+    if (i === currentShoeIndex) img.classList.add('selected');
     img.addEventListener('click', () => selectShoe(i));
     switcherEl.appendChild(img);
   });
@@ -862,9 +1322,8 @@ function selectShoe(index) {
   currentShoeIndex = index;
   currentSlide     = 0;
 
-  // update switcher highlight
-  switcherEl.querySelectorAll('.switcher-image').forEach((img, i) => {
-    img.classList.toggle('selected', i === index);
+  switcherEl.querySelectorAll('.switcher-image').forEach((img) => {
+    img.classList.toggle('selected', Number(img.dataset.shoeIndex) === index);
   });
 
   titleEl.textContent = shoeColorConfigs[index].name;
@@ -905,8 +1364,8 @@ const initialShoeIndex = Math.max(
 currentShoeIndex = initialShoeIndex;
 
 buildSwitcher();
-switcherEl.querySelectorAll('.switcher-image').forEach((img, i) => {
-  img.classList.toggle('selected', i === initialShoeIndex);
+switcherEl.querySelectorAll('.switcher-image').forEach((img) => {
+  img.classList.toggle('selected', Number(img.dataset.shoeIndex) === initialShoeIndex);
 });
 buildCarousel(initialShoeIndex);
 titleEl.textContent = shoeColorConfigs[initialShoeIndex].name;

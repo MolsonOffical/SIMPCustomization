@@ -13,6 +13,12 @@ from .models import CartItem
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods, require_POST
+from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
+import base64
+from django.core.files.base import ContentFile
+# Matches the prices set in shoeColorConfigs in converse_customizer.html.
+# Keep these two in sync until you have a real Shoe/Product model with price.
+
 
 # Create your views here.
 class HomePage(View):
@@ -211,237 +217,145 @@ class VerifyOTPView(View):
 #add to cart view
 
 
+
+VALID_SIZES = {choice[0] for choice in SIZE_CHOICES}
+
+
+def _cart_item_count(user):
+    return CartItem.objects.filter(user=user).count()
+
+
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_http_methods(['GET', 'POST'])
 def add_to_cart(request):
+    """
+    POST (AJAX/JSON — customizer's "Add to Cart" button):
+        body: {"pattern": "...", "size": "...", "colors": {...}, "quantity": 1}
+        -> {"id": <cart_item_id>, "cart_item_count": <int>}
+
+    GET (customizer's "Buy Now" — plain navigation, query params):
+        ?pattern=...&size=...&colors=<json string>&quantity=1
+        -> saves/updates the item, then redirects to the cart page
+    """
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            payload = json.loads(request.body or '{}')
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
- 
-        size = data.get('size', '').strip()
-        pattern = data.get('pattern', '')
-        colors = data.get('colors', {})
- 
-        if not size:
-            return JsonResponse({'error': 'Size is required'}, status=400)
- 
+            return JsonResponse({'error': 'Malformed request body.'}, status=400)
+        pattern = payload.get('pattern')
+        size = str(payload.get('size', ''))
+        colors = payload.get('colors', {})
+        quantity = payload.get('quantity', 1)
+        photo_data_url = payload.get('photo') 
+    else:
+        pattern = request.GET.get('pattern')
+        size = request.GET.get('size', '')
         try:
-            quantity = int(data.get('quantity', 1))
-        except (TypeError, ValueError):
-            return JsonResponse({'error': 'Quantity must be a number'}, status=400)
- 
-        if quantity < 1:
-            return JsonResponse({'error': 'Quantity must be at least 1'}, status=400)
- 
-        # TODO: replace with a real price lookup once you have one
-        unit_price = 5499
- 
-        item, created = CartItem.objects.get_or_create(
-            user=request.user,
-            size=size,
-            pattern=pattern,
-            colors=colors,
-            defaults={'unit_price': unit_price, 'quantity': quantity},
-        )
-        if not created:
-            item.quantity += quantity
-            item.save()
- 
-        cart_item_count = CartItem.objects.filter(user=request.user).aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
- 
-        return JsonResponse({
-            'id': item.id,
-            'name': item.name,
-            'size': item.size,
-            'unit_price': str(item.unit_price),
-            'quantity': item.quantity,
-            'cart_item_count': cart_item_count,
-        })
- 
-    # GET: someone navigating here directly, e.g. from a "Review Order"
-    # link on the designer page. Pull the design out of the query string
-    # and use it to pre-fill the confirmation page.
-    size = request.GET.get('size', '')
-    pattern = request.GET.get('pattern', '')
-    quantity_raw = request.GET.get('quantity', '1')
- 
+            colors = json.loads(request.GET.get('colors', '{}'))
+        except json.JSONDecodeError:
+            colors = {}
+        quantity = request.GET.get('quantity', 1)
+        photo_data_url = None   
+
     try:
-        quantity = max(1, int(quantity_raw))
+        quantity = max(1, min(int(quantity), 10))
     except (TypeError, ValueError):
         quantity = 1
- 
-    colors_raw = request.GET.get('colors', '{}')
-    try:
-        colors = json.loads(colors_raw)
-    except json.JSONDecodeError:
+
+    if pattern not in PATTERN_PRICES:
+        error = 'Please choose a valid shoe pattern.'
+        if request.method == 'POST':
+            return JsonResponse({'error': error}, status=400)
+        messages.error(request, error)
+        return redirect(request.META.get('HTTP_REFERER', 'account:cart_view'))
+
+    if size not in VALID_SIZES:
+        error = 'Please select a size first.'
+        if request.method == 'POST':
+            return JsonResponse({'error': error}, status=400)
+        messages.error(request, error)
+        return redirect(request.META.get('HTTP_REFERER', 'account:cart_view'))
+
+    if not isinstance(colors, dict):
         colors = {}
- 
-    # TODO: replace with a real price lookup once you have one
-    unit_price = 5499
-    line_total = unit_price * quantity
- 
-    context = {
-        'item_name': 'Custom Shoe',
-        'item_size': f'EU {size}' if size else 'EU 44',
-        'item_price': unit_price,
-        'item_count': quantity,
-        'items_total': line_total,
-        'subtotal': line_total,
-        'total': line_total,
- 
-        'raw_size': size,
-        'raw_pattern': pattern,
-        'raw_colors_json': json.dumps(colors),
-    }
-    return render(request, 'add_to_cart/add_to_cart.html', context)
- 
-# views.py
-@login_required
-@require_http_methods(["POST"])
-def update_cart_quantity(request):
-    try:
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-        quantity = int(data.get('quantity', 1))
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return JsonResponse({'error': 'Invalid request'}, status=400)
 
-    if quantity < 1:
-        return JsonResponse({'error': 'Quantity must be at least 1'}, status=400)
+    # Same user + pattern + size + colors already in cart -> bump quantity
+    # instead of creating a duplicate row.
+    existing = CartItem.objects.filter(
+        user=request.user, pattern=pattern, size=size, colors=colors,
+    ).first()
 
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
-    item.quantity = quantity
-    item.save()
+    if existing:
+        existing.quantity = max(1, min(existing.quantity + quantity, 10))
+        existing.save()
+        item = existing
+    else:
+        item = CartItem.objects.create(
+            user=request.user, pattern=pattern, size=size,
+            colors=colors, quantity=quantity,
+        )
+        photo_file = _decode_photo(photo_data_url, pattern)   # NEW
+        if photo_file:
+            item.photo.save(photo_file.name, photo_file, save=True)
 
-    cart_item_count = CartItem.objects.filter(user=request.user).aggregate(
-        total=Sum('quantity')
-    )['total'] or 0
+    if request.method == 'POST':
+        return JsonResponse({
+            'id': item.id,
+            'cart_item_count': _cart_item_count(request.user),
+        })
 
-    return JsonResponse({'cart_item_count': cart_item_count})
-
-# ---------------------------------------------------------------------------
-# Add these to your existing views.py (in the same app as add_to_cart).
-# Make sure these imports are present at the top of that file:
-#
-#   import json
-#   from django.contrib.auth.decorators import login_required
-#   from django.views.decorators.http import require_POST, require_http_methods
-#   from django.shortcuts import render, get_object_or_404
-#   from django.http import JsonResponse
-#   from django.db.models import Sum
-#   from .models import CartItem
-# ---------------------------------------------------------------------------
+    return redirect('account:cart_view')
 
 
 @login_required
-def view_cart(request):
-    """
-    Renders the Your Cart page: every CartItem belonging to the logged-in
-    user, plus an order summary (subtotal, item count) and a placeholder
-    "You May Also Like" list.
-    """
-    cart_items = CartItem.objects.filter(user=request.user)
-
-    subtotal = sum(item.line_total for item in cart_items)
-    cart_item_count = cart_items.aggregate(total=Sum('quantity'))['total'] or 0
-
-    # TODO: replace with a real query once you have a Shoe/Product model,
-    # e.g. Shoe.objects.exclude(id__in=[...]).order_by('?')[:4]
-    # Hardcoded for now so the page renders end-to-end. Update the image
-    # paths to match whatever you actually have under static/images/.
-    recommended_products = [
-        {'name': 'Classic White', 'price': 4299, 'image': 'images/classic-white.png'},
-        {'name': 'All Black', 'price': 4799, 'image': 'images/all-black.png'},
-        {'name': 'Navy Breeze', 'price': 4599, 'image': 'images/navy-breeze.png'},
-        {'name': 'Beige Minimal', 'price': 4299, 'image': 'images/beige-minimal.png'},
-    ]
-
-    return render(request, 'view_cart/view_cart.html', {
-        'cart_items': cart_items,
-        'subtotal': subtotal,
-        'cart_item_count': cart_item_count,
-        'recommended_products': recommended_products,
-    })
-
-
-@login_required
-@require_POST
+@require_http_methods(['POST'])
 def update_cart_quantity(request):
     """
-    Called by cart.js whenever the +/- stepper on a cart card is clicked.
-    Updates one CartItem's quantity and returns fresh totals so the page
-    can update the numbers without a full reload.
+    POST (AJAX/JSON): body: {"item_id": <id>, "quantity": <int>}
+    Called once "Add to Cart" has flipped to "Update Cart" so repeat
+    clicks patch the existing row instead of creating a new one.
     """
     try:
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-        quantity = int(data.get('quantity', 1))
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return JsonResponse({'error': 'Invalid request'}, status=400)
+        payload = json.loads(request.body or '{}')
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Malformed request body.'}, status=400)
 
-    if quantity < 1:
-        return JsonResponse({'error': 'Quantity must be at least 1'}, status=400)
+    item = get_object_or_404(CartItem, id=payload.get('item_id'), user=request.user)
 
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
+    try:
+        quantity = max(1, min(int(payload.get('quantity', 1)), 10))
+    except (TypeError, ValueError):
+        quantity = 1
+
     item.quantity = quantity
     item.save()
-
-    remaining = CartItem.objects.filter(user=request.user)
-    cart_item_count = remaining.aggregate(total=Sum('quantity'))['total'] or 0
-    subtotal = sum(i.line_total for i in remaining)
 
     return JsonResponse({
-        'line_total': str(item.line_total),
-        'subtotal': str(subtotal),
-        'cart_item_count': cart_item_count,
+        'id': item.id,
+        'cart_item_count': _cart_item_count(request.user),
     })
 
 
 @login_required
-@require_POST
-def remove_from_cart(request):
-    """
-    Called by cart.js when the Remove button on a cart card is clicked.
-    Deletes the CartItem and returns fresh totals.
-    """
-    try:
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid request'}, status=400)
+def cart_view(request):
+    items = CartItem.objects.filter(user=request.user)
+    total = sum(item.subtotal for item in items)
+    return render(request, 'cart/cart.html', {'items': items, 'total': total})
 
+
+@login_required
+@require_http_methods(['POST'])
+def remove_cart_item(request, item_id):
     item = get_object_or_404(CartItem, id=item_id, user=request.user)
     item.delete()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'cart_item_count': _cart_item_count(request.user)})
+    return redirect('account:cart_view')
 
-    remaining = CartItem.objects.filter(user=request.user)
-    cart_item_count = remaining.aggregate(total=Sum('quantity'))['total'] or 0
-    subtotal = sum(i.line_total for i in remaining)
 
-    return JsonResponse({
-        'subtotal': str(subtotal),
-        'cart_item_count': cart_item_count,
-    })
 
 
 # ---------------------------------------------------------------------------
-# Also update your existing add_to_cart view to return the new item's id —
-# cart.js and designer.html's script both need it for later quantity syncs.
-# In the JsonResponse at the end of add_to_cart, add:
-#
-#   return JsonResponse({
-#       'id': item.id,          # <-- add this line
-#       'name': item.name,
-#       'size': item.size,
-#       'unit_price': str(item.unit_price),
-#       'quantity': item.quantity,
-#       'cart_item_count': cart_item_count,
-#   })
-# ---------------------------------------------------------------------------
-
 
 class ProfileView(LoginRequiredMixin, View):
     login_url = 'account:login'
@@ -489,3 +403,17 @@ class DeleteProfileView(LoginRequiredMixin, View):
         user.delete()
         messages.success(request, "Your account has been permanently deleted.")
         return redirect('account:login')
+
+
+
+def _decode_photo(data_url, pattern):
+    """Convert a 'data:image/png;base64,...' string into a Django File."""
+    if not data_url or ';base64,' not in data_url:
+        return None
+    header, encoded = data_url.split(';base64,', 1)
+    ext = header.split('/')[-1]  # e.g. 'png'
+    try:
+        decoded = base64.b64decode(encoded)
+    except (TypeError, ValueError):
+        return None
+    return ContentFile(decoded, name=f'{pattern}-{quantity if False else "snapshot"}.{ext}')

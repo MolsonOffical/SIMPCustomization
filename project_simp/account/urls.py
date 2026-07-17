@@ -3,7 +3,7 @@ from .views import (
     HomePage, AboutPage, RegisterUser, LoginUser, LogoutUser,
     SendOTPView, VerifyOTPView, DesignPage, ConverseCustomizePage,
     ProfileView, UpdateProfileView, DeleteProfileView,
-    add_to_cart, update_cart_quantity, view_cart, remove_from_cart,
+    add_to_cart, update_cart_quantity, cart_view, remove_cart_item,
 )
 
 app_name = 'account'
@@ -26,7 +26,7 @@ urlpatterns = [
     path('converse-customize/', ConverseCustomizePage.as_view(), name='converse_customize'),
 
     path('add-to-cart/', add_to_cart, name='add_to_cart'),
-    path('cart/', view_cart, name='view_cart'),
+    path('cart/', cart_view, name='view_cart'),
     path('cart/update-quantity/', update_cart_quantity, name='update_cart_quantity'),
-    path('cart/remove/', remove_from_cart, name='remove_from_cart'),
+    path('cart/remove/', remove_cart_item, name='remove_from_cart'),
 ]

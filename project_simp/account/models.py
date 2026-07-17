@@ -80,12 +80,18 @@ PATTERN_PRICES = {
     'nike-converse-low-top': 5200,
     'nike-converse-high-top': 5600,
     'air-runner': 4500,
+    'air-jordan-1': 5200,
+    'low-poly-boot': 4100,
+    'urban-canvas': 3800,
 }
 
 PATTERN_NAMES = {
     'nike-converse-low-top': 'Converse Custom Chuck Taylor — Low Top',
     'nike-converse-high-top': 'Converse Custom Chuck Taylor — High Top',
     'air-runner': 'Air Runner',
+    'air-jordan-1': 'Air Jordan 1',
+    'low-poly-boot': 'Low Poly Boot',
+    'urban-canvas': 'Urban Canvas',
 }
 
 SIZE_CHOICES = [(str(s), str(s)) for s in range(6, 12)]

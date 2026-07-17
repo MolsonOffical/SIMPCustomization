@@ -25,22 +25,7 @@ from django.core.files.base import ContentFile
 from django.utils.crypto import get_random_string
 
 
-def _decode_photo(data_url):
-    """
-    data_url looks like: "data:image/png;base64,iVBORw0KGgoAAAANS..."
-    Returns a Django ContentFile ready to assign to an ImageField, or
-    None if there's nothing usable (missing, malformed, wrong scheme).
-    """
-    if not data_url or not isinstance(data_url, str) or not data_url.startswith("data:image"):
-        return None
-    try:
-        header, encoded = data_url.split(",", 1)
-        ext = header.split("/")[1].split(";")[0]  # "png", "jpeg", etc.
-        decoded = base64.b64decode(encoded)
-        filename = f"{get_random_string(12)}.{ext}"
-        return ContentFile(decoded, name=filename)
-    except (ValueError, IndexError, binascii.Error):
-        return None
+
 
 class ShoesListView(View):
     def get(self, request, category_id=None):
@@ -258,7 +243,6 @@ def cart_add(request):
     size = str(data.get("size", ""))
     colors = data.get("colors") or {}
     quantity = int(data.get("quantity") or 1)
-    photo_file = _decode_photo(data.get("photo"))
 
     if pattern not in PATTERN_PRICES:
         return _error("Unknown shoe pattern.")
@@ -274,8 +258,6 @@ def cart_add(request):
 
     if match:
         match.quantity = min(match.quantity + quantity, MAX_QTY)
-        if photo_file:
-            match.photo = photo_file
         match.save()
     else:
         CartItem.objects.create(
@@ -284,7 +266,6 @@ def cart_add(request):
             size=size,
             colors=colors,
             quantity=min(quantity, MAX_QTY),
-            photo=photo_file,
         )
 
     return JsonResponse(_cart_payload(request.user))
@@ -513,4 +494,3 @@ def khalti_verify(request, order_id):
     order.status = 'failed'
     order.save()
     return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
-

@@ -14,6 +14,8 @@ from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods, require_POST
 from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
+import base64
+from django.core.files.base import ContentFile
 # Matches the prices set in shoeColorConfigs in converse_customizer.html.
 # Keep these two in sync until you have a real Shoe/Product model with price.
 
@@ -244,6 +246,7 @@ def add_to_cart(request):
         size = str(payload.get('size', ''))
         colors = payload.get('colors', {})
         quantity = payload.get('quantity', 1)
+        photo_data_url = payload.get('photo') 
     else:
         pattern = request.GET.get('pattern')
         size = request.GET.get('size', '')
@@ -252,6 +255,7 @@ def add_to_cart(request):
         except json.JSONDecodeError:
             colors = {}
         quantity = request.GET.get('quantity', 1)
+        photo_data_url = None   
 
     try:
         quantity = max(1, min(int(quantity), 10))
@@ -290,6 +294,9 @@ def add_to_cart(request):
             user=request.user, pattern=pattern, size=size,
             colors=colors, quantity=quantity,
         )
+        photo_file = _decode_photo(photo_data_url, pattern)   # NEW
+        if photo_file:
+            item.photo.save(photo_file.name, photo_file, save=True)
 
     if request.method == 'POST':
         return JsonResponse({
@@ -396,3 +403,17 @@ class DeleteProfileView(LoginRequiredMixin, View):
         user.delete()
         messages.success(request, "Your account has been permanently deleted.")
         return redirect('account:login')
+
+
+
+def _decode_photo(data_url, pattern):
+    """Convert a 'data:image/png;base64,...' string into a Django File."""
+    if not data_url or ';base64,' not in data_url:
+        return None
+    header, encoded = data_url.split(';base64,', 1)
+    ext = header.split('/')[-1]  # e.g. 'png'
+    try:
+        decoded = base64.b64decode(encoded)
+    except (TypeError, ValueError):
+        return None
+    return ContentFile(decoded, name=f'{pattern}-{quantity if False else "snapshot"}.{ext}')

@@ -6,15 +6,20 @@
 {% block extra_header %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/register.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/register.css' %}?v=5">
 {% endblock %}
 
-{% block content %}
-<div class="auth-wrap">
+{% block navbar %}{% endblock %}
 
-  <section class="hero-panel">
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-wrap">
+
+    <section class="hero-panel">
     <img class="hero-img" src="https://images.unsplash.com/photo-1508125673219-7cec6bc90159?w=1200&h=1600&fit=crop&auto=format" alt="White Nike Air Force shoes">
-    <a href="#" class="hero-logo">SIMP</a>
+    <a href="/" class="hero-logo">SIMP</a>
     <span class="hero-est">EST. 2018</span>
     <div class="hero-content">
       <p class="hero-eyebrow">Member Benefits</p>
@@ -30,6 +35,10 @@
 
   <section class="form-panel">
     <div class="form-inner">
+      <div class="form-top">
+        <span class="form-pill">New Member</span>
+        <p class="form-caption">Join the inner circle and unlock early drops.</p>
+      </div>
       <p class="form-eyebrow">New Member</p>
       <h2 class="form-title">Create Account</h2>
 
@@ -74,8 +83,8 @@
 
       <p class="form-footer">Already a member? <a href="{% url 'account:login' %}">Sign In</a></p>
     </div>
-  </section>
-
+    </section>
+  </div>
 </div>
 <script>
 document.querySelectorAll('.toggle-visibility').forEach(btn => {

@@ -6,13 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Django App{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="{% static 'css/site-theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
     <link rel="stylesheet" href="{% static 'css/cart.css' %}" />
     {% block extra_header %}
-
+    
     {% endblock %}
   </head>
   <body>
+    {% block navbar %}
     <nav class="navbar" role="navigation" aria-label="Main navigation">
       <div class="brand">
         <a href="/">
@@ -123,19 +125,55 @@
         </div>
       </div>
     </nav>
+    {% endblock %}
 
     {% block content %}
 hello
     {% endblock %}
-{%block footer%}
-      <div class="simple-footer">
-      <div class="container">
-        <p class="copyright">
-            © 2026 SIMP. All rights reserved .
-        </p>
+
+    {% block footer %}
+    <footer class="site-footer">
+      <div class="site-footer__top">
+        <div>
+          <div class="site-footer__logo">SIMP</div>
+          <p class="site-footer__tagline">Custom shoes crafted for your style, delivered across Nepal with a premium experience.</p>
+        </div>
+        <div>
+          <div class="site-footer__title">Custom Shoes</div>
+          <ul class="site-footer__links">
+            <li><a href="{% url 'shoes:shoes_list' %}">All Styles</a></li>
+            <li><a href="{% url 'account:converse_customize' %}">Design Your Pair</a></li>
+            <li><a href="{% url 'account:about' %}">About SIMP</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="site-footer__title">Support</div>
+          <ul class="site-footer__links">
+            <li><a href="#">Shipping Info</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="site-footer__title">Reach Us</div>
+          <ul class="site-footer__links">
+            <li><a href="mailto:simp@email.com">simp@email.com</a></li>
+            <li><a href="tel:+9779800000000">+977 9800000000</a></li>
+            <li><a href="#">Kathmandu, Nepal</a></li>
+          </ul>
+        </div>
       </div>
-    </div>
-{%endblock %}
+      <div class="site-footer__bottom">
+        <span>© 2026 SIMP. All rights reserved.</span>
+        <div class="site-footer__socials">
+          <a href="#">Instagram</a>
+          <a href="#">Facebook</a>
+          <a href="#">TikTok</a>
+        </div>
+      </div>
+    </footer>
+    {% endblock %}
+
     {% block script %}
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/cart.js' %}"></script>

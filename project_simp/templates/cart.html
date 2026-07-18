@@ -9,16 +9,17 @@
     <!-- rendered by JS below, using the shared Cart object from cart.js -->
     <div class="cart-loading">Loading your cart…</div>
   </div>
-<!-- View Details modal -->
-<div id="item-details-modal" class="modal-overlay" hidden>
-  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="item-details-title">
-    <button type="button" class="modal-close" id="item-details-close" aria-label="Close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-    <div id="item-details-content"><!-- filled by JS --></div>
+
+  <!-- View Details modal -->
+  <div id="item-details-modal" class="modal-overlay" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="item-details-title">
+      <button type="button" class="modal-close" id="item-details-close" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div id="item-details-content"><!-- filled by JS --></div>
+    </div>
   </div>
 </div>
-{% endblock %}
 
 {% block script %}
 <script>
@@ -292,4 +293,5 @@
   // any mutation (this page or elsewhere) re-renders with the fresh payload
   window.addEventListener("cart:updated", (e) => renderCartPage(e.detail));
 </script>
+
 {% endblock %}

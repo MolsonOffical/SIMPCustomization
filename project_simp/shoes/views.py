@@ -11,6 +11,7 @@ from django.views import View
 from django.core.paginator import Paginator
 from django.db.models import Min, Sum, Prefetch
 from .models import Shoes, ShoesVariant, Order, OrderItem
+from .recommendations import get_recommendation_engine
 
 
 class ShoesListView(View):
@@ -92,11 +93,12 @@ class ShoeDetailView(View):
             min_price=Min('variants__price')
         ).select_related('category', 'brand')[:4]
 
-        similar_shoes = Shoes.objects.filter(
-            category=shoe.category
-        ).exclude(pk=pk).annotate(
-            min_price=Min('variants__price')
-        ).select_related('category', 'brand')[:4]
+        engine = get_recommendation_engine(request)
+        engine.log_view(shoe)
+
+        similar_shoes = engine.get_similar_shoes(shoe, limit=4)
+
+        recommended_shoes = engine.get_recommendations(limit=4)
 
         context = {
             'shoe': shoe,
@@ -106,6 +108,7 @@ class ShoeDetailView(View):
             'selected_variant': selected_variant,
             'brand_shoes': brand_shoes,
             'similar_shoes': similar_shoes,
+            'recommended_shoes': recommended_shoes,
         }
         return render(request, 'shoes/shoe_detail.html', context)
 

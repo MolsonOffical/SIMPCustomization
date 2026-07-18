@@ -10,10 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="address",
-            name="created_at",
-        ),
         migrations.AlterField(
             model_name="address",
             name="city",

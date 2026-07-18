@@ -9,10 +9,12 @@ from .services import create_and_send_otp, verify_otp
 from shoes.models import Category
 import json
 from django.http import JsonResponse
-from .models import CartItem
-from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods, require_POST
+from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
+
+# Matches the prices set in shoeColorConfigs in converse_customizer.html.
+# Keep these two in sync until you have a real Shoe/Product model with price.
+
 
 # Create your views here.
 class HomePage(View):
@@ -211,237 +213,11 @@ class VerifyOTPView(View):
 #add to cart view
 
 
-@login_required
-@require_http_methods(["GET", "POST"])
-def add_to_cart(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
- 
-        size = data.get('size', '').strip()
-        pattern = data.get('pattern', '')
-        colors = data.get('colors', {})
- 
-        if not size:
-            return JsonResponse({'error': 'Size is required'}, status=400)
- 
-        try:
-            quantity = int(data.get('quantity', 1))
-        except (TypeError, ValueError):
-            return JsonResponse({'error': 'Quantity must be a number'}, status=400)
- 
-        if quantity < 1:
-            return JsonResponse({'error': 'Quantity must be at least 1'}, status=400)
- 
-        # TODO: replace with a real price lookup once you have one
-        unit_price = 5499
- 
-        item, created = CartItem.objects.get_or_create(
-            user=request.user,
-            size=size,
-            pattern=pattern,
-            colors=colors,
-            defaults={'unit_price': unit_price, 'quantity': quantity},
-        )
-        if not created:
-            item.quantity += quantity
-            item.save()
- 
-        cart_item_count = CartItem.objects.filter(user=request.user).aggregate(
-            total=Sum('quantity')
-        )['total'] or 0
- 
-        return JsonResponse({
-            'id': item.id,
-            'name': item.name,
-            'size': item.size,
-            'unit_price': str(item.unit_price),
-            'quantity': item.quantity,
-            'cart_item_count': cart_item_count,
-        })
- 
-    # GET: someone navigating here directly, e.g. from a "Review Order"
-    # link on the designer page. Pull the design out of the query string
-    # and use it to pre-fill the confirmation page.
-    size = request.GET.get('size', '')
-    pattern = request.GET.get('pattern', '')
-    quantity_raw = request.GET.get('quantity', '1')
- 
-    try:
-        quantity = max(1, int(quantity_raw))
-    except (TypeError, ValueError):
-        quantity = 1
- 
-    colors_raw = request.GET.get('colors', '{}')
-    try:
-        colors = json.loads(colors_raw)
-    except json.JSONDecodeError:
-        colors = {}
- 
-    # TODO: replace with a real price lookup once you have one
-    unit_price = 5499
-    line_total = unit_price * quantity
- 
-    context = {
-        'item_name': 'Custom Shoe',
-        'item_size': f'EU {size}' if size else 'EU 44',
-        'item_price': unit_price,
-        'item_count': quantity,
-        'items_total': line_total,
-        'subtotal': line_total,
-        'total': line_total,
- 
-        'raw_size': size,
-        'raw_pattern': pattern,
-        'raw_colors_json': json.dumps(colors),
-    }
-    return render(request, 'add_to_cart/add_to_cart.html', context)
- 
-# views.py
-@login_required
-@require_http_methods(["POST"])
-def update_cart_quantity(request):
-    try:
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-        quantity = int(data.get('quantity', 1))
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return JsonResponse({'error': 'Invalid request'}, status=400)
-
-    if quantity < 1:
-        return JsonResponse({'error': 'Quantity must be at least 1'}, status=400)
-
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
-    item.quantity = quantity
-    item.save()
-
-    cart_item_count = CartItem.objects.filter(user=request.user).aggregate(
-        total=Sum('quantity')
-    )['total'] or 0
-
-    return JsonResponse({'cart_item_count': cart_item_count})
-
-# ---------------------------------------------------------------------------
-# Add these to your existing views.py (in the same app as add_to_cart).
-# Make sure these imports are present at the top of that file:
-#
-#   import json
-#   from django.contrib.auth.decorators import login_required
-#   from django.views.decorators.http import require_POST, require_http_methods
-#   from django.shortcuts import render, get_object_or_404
-#   from django.http import JsonResponse
-#   from django.db.models import Sum
-#   from .models import CartItem
-# ---------------------------------------------------------------------------
 
 
-@login_required
-def view_cart(request):
-    """
-    Renders the Your Cart page: every CartItem belonging to the logged-in
-    user, plus an order summary (subtotal, item count) and a placeholder
-    "You May Also Like" list.
-    """
-    cart_items = CartItem.objects.filter(user=request.user)
-
-    subtotal = sum(item.line_total for item in cart_items)
-    cart_item_count = cart_items.aggregate(total=Sum('quantity'))['total'] or 0
-
-    # TODO: replace with a real query once you have a Shoe/Product model,
-    # e.g. Shoe.objects.exclude(id__in=[...]).order_by('?')[:4]
-    # Hardcoded for now so the page renders end-to-end. Update the image
-    # paths to match whatever you actually have under static/images/.
-    recommended_products = [
-        {'name': 'Classic White', 'price': 4299, 'image': 'images/classic-white.png'},
-        {'name': 'All Black', 'price': 4799, 'image': 'images/all-black.png'},
-        {'name': 'Navy Breeze', 'price': 4599, 'image': 'images/navy-breeze.png'},
-        {'name': 'Beige Minimal', 'price': 4299, 'image': 'images/beige-minimal.png'},
-    ]
-
-    return render(request, 'view_cart/view_cart.html', {
-        'cart_items': cart_items,
-        'subtotal': subtotal,
-        'cart_item_count': cart_item_count,
-        'recommended_products': recommended_products,
-    })
-
-
-@login_required
-@require_POST
-def update_cart_quantity(request):
-    """
-    Called by cart.js whenever the +/- stepper on a cart card is clicked.
-    Updates one CartItem's quantity and returns fresh totals so the page
-    can update the numbers without a full reload.
-    """
-    try:
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-        quantity = int(data.get('quantity', 1))
-    except (json.JSONDecodeError, TypeError, ValueError):
-        return JsonResponse({'error': 'Invalid request'}, status=400)
-
-    if quantity < 1:
-        return JsonResponse({'error': 'Quantity must be at least 1'}, status=400)
-
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
-    item.quantity = quantity
-    item.save()
-
-    remaining = CartItem.objects.filter(user=request.user)
-    cart_item_count = remaining.aggregate(total=Sum('quantity'))['total'] or 0
-    subtotal = sum(i.line_total for i in remaining)
-
-    return JsonResponse({
-        'line_total': str(item.line_total),
-        'subtotal': str(subtotal),
-        'cart_item_count': cart_item_count,
-    })
-
-
-@login_required
-@require_POST
-def remove_from_cart(request):
-    """
-    Called by cart.js when the Remove button on a cart card is clicked.
-    Deletes the CartItem and returns fresh totals.
-    """
-    try:
-        data = json.loads(request.body)
-        item_id = data.get('item_id')
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid request'}, status=400)
-
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
-    item.delete()
-
-    remaining = CartItem.objects.filter(user=request.user)
-    cart_item_count = remaining.aggregate(total=Sum('quantity'))['total'] or 0
-    subtotal = sum(i.line_total for i in remaining)
-
-    return JsonResponse({
-        'subtotal': str(subtotal),
-        'cart_item_count': cart_item_count,
-    })
 
 
 # ---------------------------------------------------------------------------
-# Also update your existing add_to_cart view to return the new item's id —
-# cart.js and designer.html's script both need it for later quantity syncs.
-# In the JsonResponse at the end of add_to_cart, add:
-#
-#   return JsonResponse({
-#       'id': item.id,          # <-- add this line
-#       'name': item.name,
-#       'size': item.size,
-#       'unit_price': str(item.unit_price),
-#       'quantity': item.quantity,
-#       'cart_item_count': cart_item_count,
-#   })
-# ---------------------------------------------------------------------------
-
 
 class ProfileView(LoginRequiredMixin, View):
     login_url = 'account:login'
@@ -489,3 +265,4 @@ class DeleteProfileView(LoginRequiredMixin, View):
         user.delete()
         messages.success(request, "Your account has been permanently deleted.")
         return redirect('account:login')
+

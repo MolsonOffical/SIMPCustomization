@@ -1,0 +1,103 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Payment Successful | SIMP{% endblock %}
+
+{% block extra_header %}
+<style>
+  .success-page {
+    max-width: 480px;
+    margin: 60px auto;
+    padding: 40px 30px;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+  }
+  .success-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .success-icon svg { width: 36px; height: 36px; stroke: #fff; }
+  .success-page h1 { font-size: 22px; margin-bottom: 8px; }
+  .success-page p { color: #666; font-size: 14px; margin-bottom: 4px; }
+  .success-order-info {
+    margin: 20px 0;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 14px;
+  }
+  .success-order-info .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 6px 0;
+    color: #444;
+  }
+  .success-order-info .row span:first-child { color: #888; }
+  .btn-track-order {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 28px;
+    background: #111;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .success-redirect-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: #999;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-page">
+  <div class="success-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+  </div>
+  <h1>Payment Successful!</h1>
+  <p>Thank you — your order has been placed and payment confirmed.</p>
+
+  <div class="success-order-info">
+    <div class="row"><span>Order ID</span><span>{{ order_id }}</span></div>
+    <div class="row"><span>Amount Paid</span><span>NPR.{{ total_amount }}</span></div>
+    <div class="row"><span>Payment Method</span><span>{{ payment_method }}</span></div>
+  </div>
+
+  <a class="btn-track-order" id="track-order-link" href="{% url 'shoes:order_tracking_view' order_id=order_id %}">
+    Track Your Order
+  </a>
+  <div class="success-redirect-note" id="redirect-note">
+    Redirecting to order tracking in <span id="countdown">5</span>s...
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+  let seconds = 5;
+  const countdownEl = document.querySelector("#countdown");
+  const timer = setInterval(() => {
+    seconds -= 1;
+    if (countdownEl) countdownEl.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      window.location.href = document.querySelector("#track-order-link").href;
+    }
+  }, 1000);
+</script>
+{% endblock %}

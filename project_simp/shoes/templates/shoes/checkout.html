@@ -131,13 +131,13 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script src="{% static 'js/cart.js' %}"></script>
+{% block script %}
+{{ block.super }}
 <script>
   function formatCurrency(n) {
     const num = parseFloat(n) || 0;
     return "NPR." + num.toFixed(2).replace(/\.00$/, "");
-}
+  }
 
   function renderSummary() {
     const cartData = Cart.getCached();
@@ -169,7 +169,7 @@
     }
 
     const formData = Object.fromEntries(new FormData(form).entries());
-    delete formData.csrfmiddlewaretoken; // not part of the address payload
+    delete formData.csrfmiddlewaretoken;
 
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
     const items = (Cart.getCached().items || []).map(i => ({ item_id: i.id, quantity: i.quantity }));
@@ -200,8 +200,6 @@
       if (!res.ok) {
         throw new Error(data.error || "Could not place order. Please try again.");
       }
-
-      Cart.clear();
 
       window.location.href = paymentMethod === "esewa"
         ? `/shoes/payments/esewa/initiate/${data.order_id}/`

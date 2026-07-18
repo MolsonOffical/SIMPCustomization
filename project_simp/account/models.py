@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 import os
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.conf import settings
+from django.db.models import Q
 
 
 # Create your models here.
@@ -97,24 +98,38 @@ PATTERN_NAMES = {
 SIZE_CHOICES = [(str(s), str(s)) for s in range(6, 12)]
 
 
+
+
+
 class CartItem(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='cart_items',
     )
-    pattern = models.CharField(max_length=64)
-    size = models.CharField(max_length=8, choices=SIZE_CHOICES)
+
+    # --- Customizer-designed shoe fields (all optional now) ---
+    pattern = models.CharField(max_length=64, blank=True, null=True)
+    size = models.CharField(max_length=8, blank=True, null=True)
     # Per-zone color selections from the customizer, e.g.
     # {"Outside Body": "#B50024", "Laces": "#40E0D0", ...}
     colors = models.JSONField(default=dict, blank=True)
+
+    # --- Admin-added regular shoe field (new) ---
+    variant = models.ForeignKey(
+        'shoes.ShoesVariant',
+        on_delete=models.CASCADE,
+        related_name='cart_items',
+        null=True,
+        blank=True,
+    )
+
     quantity = models.PositiveSmallIntegerField(
         default=1,
         validators=[MinValueValidator(1), MaxValueValidator(10)],
     )
     # Snapshot of the price at the time the item was added, so later
-    # price changes in PATTERN_PRICES don't retroactively change what's
-    # already sitting in someone's cart.
+    # price changes don't retroactively change what's already in a cart.
     unit_price = models.PositiveIntegerField(editable=False)
     photo = models.ImageField(upload_to='cart_photos/', blank=True, null=True)
 
@@ -123,21 +138,40 @@ class CartItem(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(pattern__isnull=False) | Q(variant__isnull=False),
+                name='cartitem_has_pattern_or_variant',
+        )
+    ]
 
     def save(self, *args, **kwargs):
         if not self.unit_price:
-            self.unit_price = PATTERN_PRICES.get(self.pattern, 0)
+            if self.variant_id:
+                self.unit_price = int(self.variant.price)
+            else:
+                self.unit_price = PATTERN_PRICES.get(self.pattern, 0)
         super().save(*args, **kwargs)
+
+    @property
+    def is_variant_item(self):
+        return self.variant_id is not None
 
     @property
     def pattern_display_name(self):
         return PATTERN_NAMES.get(self.pattern, self.pattern)
 
     @property
+    def display_name(self):
+        if self.variant_id:
+            return self.variant.shoe.name
+        return self.pattern_display_name
+
+    @property
     def subtotal(self):
         return self.unit_price * self.quantity
 
-
     def __str__(self):
+        if self.variant_id:
+            return f"{self.user} — {self.variant} x{self.quantity}"
         return f"{self.user} — {self.pattern_display_name} (size {self.size}) x{self.quantity}"
-

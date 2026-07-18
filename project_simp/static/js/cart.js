@@ -151,29 +151,35 @@ const Cart = {
   },
 };
 
-/* ============================================================
-   Hook into the customizer's "Add to Cart" button.
-   ADAPT THIS to however your customizer page actually exposes
-   the current pattern / size / color selections — this is a
-   best-guess based on common patterns (a #cart-form with a
-   size <select> and a global object tracking chosen colors per
-   zone). Rename the selectors/variables to match your real
-   customizer markup.
-   ============================================================ */
-
-function initAddToCartForm() {
+ function initAddToCartForm() {
   const form = document.querySelector("#cart-form");
   if (!form) return;
 
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const pattern = form.dataset.pattern; // e.g. <form id="cart-form" data-pattern="nike-converse-low-top">
-    const size = document.querySelector("#size-select")?.value;
     const quantity = parseInt(document.querySelector("#quantity")?.value, 10) || 1;
+    const variantInput = document.querySelector("#selected-variant-id");
 
-    // however your customizer tracks per-zone colors — e.g. a global
-    // `window.selectedColors = { "Outside Body": "#B50024", ... }`
+    // Regular (admin-added) shoe: form carries a real ShoesVariant id.
+    if (variantInput && variantInput.value) {
+      const variantId = parseInt(variantInput.value, 10);
+      if (!variantId) {
+        Cart.toast("Please select a color and size first.");
+        return;
+      }
+      try {
+        await Cart.addItem({ variant_id: variantId, quantity });
+        Cart.toast("Added to cart");
+      } catch (err) {
+        Cart.toast(err.message || "Couldn't add that to your cart.");
+      }
+      return;
+    }
+
+    // Customizer-designed shoe: pattern + per-zone colors.
+    const pattern = form.dataset.pattern;
+    const size = document.querySelector("#size-select")?.value;
     const colors = window.selectedColors || {};
 
     if (!pattern || !size) {
@@ -182,7 +188,7 @@ function initAddToCartForm() {
     }
 
     try {
-      await Cart.addItem({ pattern, size, colors, quantity,});
+      await Cart.addItem({ pattern, size, colors, quantity });
       Cart.toast("Added to cart");
     } catch (err) {
       Cart.toast(err.message || "Couldn't add that to your cart.");

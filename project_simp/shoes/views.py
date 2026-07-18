@@ -433,7 +433,14 @@ def order_tracking_view(request, order_id):
     }
     return render(request, 'shoes/order_tracking.html', context)
 
-
+def payment_success_view(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id)
+    context = {
+        'order_id': order.order_id,
+        'total_amount': order.total_amount,
+        'payment_method': order.get_payment_method_display(),
+    }
+    return render(request, 'shoes/payment_success.html', context)
 # ---------------------------------------------------------------
 # Order creation
 # ---------------------------------------------------------------
@@ -539,7 +546,7 @@ def esewa_verify(request, order_id):
         order.status = 'paid'
         order.transaction_id = decoded.get('transaction_code', '')
         order.save()
-        return redirect(f'/shoes/orders/{order.order_id}/track/?status=paid')
+        return redirect(f'/shoes/orders/{order.order_id}/success/') 
 
     order.status = 'failed'
     order.save()
@@ -592,7 +599,7 @@ def khalti_verify(request, order_id):
         order.status = 'paid'
         order.transaction_id = result.get('transaction_id', '')
         order.save()
-        return redirect(f'/shoes/orders/{order.order_id}/track/?status=paid')
+        return redirect(f'/shoes/orders/{order.order_id}/success/') 
 
     order.status = 'failed'
     order.save()

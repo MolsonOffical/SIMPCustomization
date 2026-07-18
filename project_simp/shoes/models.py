@@ -63,6 +63,36 @@ class ShoesVariant(models.Model):
         return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"
 
 
+class ShoeView(models.Model):
+    """
+    Lightweight page-view log used as an implicit interest signal for the
+    recommendation engine (stands in for the blog app's PostView).
+    Works for both logged-in users and anonymous visitors (tracked via a
+    session-based visitor_id).
+    """
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="shoe_views")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="shoe_views",
+    )
+    visitor_id = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["shoe", "created_at"]),
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["visitor_id", "created_at"]),
+        ]
+
+    def __str__(self):
+        who = f"user:{self.user_id}" if self.user_id else f"visitor:{self.visitor_id}"
+        return f"View({self.shoe_id} by {who})"
+
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending_payment', 'Pending Payment'),

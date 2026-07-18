@@ -1,30 +1,32 @@
-import json
-import hmac
-import hashlib
-import base64
-import requests
-from django.contrib import messages
-from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from django.conf import settings
-from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.core.paginator import Paginator
-from django.db.models import Min, Sum, Prefetch
-from .models import Shoes, ShoesVariant, Order, OrderItem
-from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.templatetags.static import static
-from django.views.decorators.http import require_GET, require_POST
-
-from account.models import CartItem, PATTERN_PRICES, SIZE_CHOICES
 import base64
 import binascii
-from django.core.files.base import ContentFile
-from django.utils.crypto import get_random_string
+import hashlib
+import hmac
+import json
 
+import requests
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Min, Prefetch, Sum
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
+from django.utils.crypto import get_random_string
+from django.views import View
+from django.views.decorators.http import (
+    require_GET,
+    require_http_methods,
+    require_POST,
+)
+
+from account.models import CartItem, PATTERN_PRICES, SIZE_CHOICES
+from .models import Order, OrderItem, Shoes, ShoesVariant
+from .recommendations import get_recommendation_engine
 
 
 
@@ -107,11 +109,12 @@ class ShoeDetailView(View):
             min_price=Min('variants__price')
         ).select_related('category', 'brand')[:4]
 
-        similar_shoes = Shoes.objects.filter(
-            category=shoe.category
-        ).exclude(pk=pk).annotate(
-            min_price=Min('variants__price')
-        ).select_related('category', 'brand')[:4]
+        engine = get_recommendation_engine(request)
+        engine.log_view(shoe)
+
+        similar_shoes = engine.get_similar_shoes(shoe, limit=4)
+
+        recommended_shoes = engine.get_recommendations(limit=4)
 
         context = {
             'shoe': shoe,
@@ -121,6 +124,7 @@ class ShoeDetailView(View):
             'selected_variant': selected_variant,
             'brand_shoes': brand_shoes,
             'similar_shoes': similar_shoes,
+            'recommended_shoes': recommended_shoes,
         }
         return render(request, 'shoes/shoe_detail.html', context)
 

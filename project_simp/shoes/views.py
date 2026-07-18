@@ -438,27 +438,27 @@ def order_tracking_view(request, order_id):
 # Order creation
 # ---------------------------------------------------------------
 
+@login_required
 def create_order(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
 
     data = json.loads(request.body)
     address = data['address']
-    items = data['items']  # [{variant_id, quantity}, ...]
     payment_method = data['payment_method']
 
-    order_items = []
+    cart_items = CartItem.objects.filter(user=request.user)
+    if not cart_items.exists():
+        return JsonResponse({'error': 'Your cart is empty.'}, status=400)
+
     total_amount = 0
-    for item in items:
-        variant = get_object_or_404(ShoesVariant, id=item['variant_id'])
-        quantity = int(item['quantity'])
-        if quantity > variant.stock_quantity:
-            return JsonResponse({'error': f'{variant} is out of stock'}, status=400)
-        total_amount += float(variant.price) * quantity
-        order_items.append((variant, quantity))
+    for item in cart_items:
+        if item.variant_id and item.quantity > item.variant.stock_quantity:
+            return JsonResponse({'error': f'{item.variant} is out of stock'}, status=400)
+        total_amount += item.subtotal
 
     order = Order.objects.create(
-        user=request.user if request.user.is_authenticated else None,
+        user=request.user,
         full_name=address['full_name'],
         phone=address['phone'],
         address=address['address'],
@@ -467,12 +467,20 @@ def create_order(request):
         payment_method=payment_method,
         total_amount=total_amount,
     )
-    for variant, quantity in order_items:
-        OrderItem.objects.create(order=order, variant=variant, price=variant.price, quantity=quantity)
+
+    for item in cart_items:
+        if item.variant_id:
+            OrderItem.objects.create(
+                order=order, variant=item.variant,
+                price=item.unit_price, quantity=item.quantity,
+            )
+        # else: customizer (pattern-based) item — OrderItem currently
+        # requires a ShoesVariant FK, so these aren't recorded per-line
+        # yet. See note below.
+
+    cart_items.delete()
 
     return JsonResponse({'order_id': order.order_id, 'total_amount': str(total_amount)})
-
-
 # ---------------------------------------------------------------
 # eSewa (ePay v2) — UAT/test credentials, see settings.py
 # ---------------------------------------------------------------

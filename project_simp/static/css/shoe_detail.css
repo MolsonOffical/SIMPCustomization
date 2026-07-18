@@ -381,12 +381,6 @@ body {
   border-bottom: none;
 }
 
-/* FIXED: background-image was being set inline per-shoe, but this rule never told
-   the browser how to size/position it, so it rendered at native resolution and
-   only a cropped corner showed inside the small box. background-size/position/
-   repeat below make the photo fill the thumbnail properly. The gradient is kept
-   as a fallback behind the photo (visible only while loading or if a shoe has
-   no image). */
 .rec-image {
   width: clamp(60px, 10vw, 80px);
   height: clamp(60px, 10vw, 80px);

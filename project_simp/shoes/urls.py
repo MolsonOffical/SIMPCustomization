@@ -10,7 +10,7 @@ urlpatterns = [
 
     path('parash/', views.test, name='test'),
 	path('cart/', views.CartView.as_view(), name='cart_view'),
-	path('history/', views.History.as_view(), name='history'),
+	path('history/', views.order_history_view, name='history'),
     path('checkout/', views.checkout_view, name='checkout_view'),
     path('orders/<str:order_id>/track/', views.order_tracking_view, name='order_tracking_view'),
     path('orders/<str:order_id>/success/', views.payment_success_view, name='payment_success_view'),
@@ -28,5 +28,5 @@ urlpatterns = [
     path("cart/api/remove/", views.cart_remove, name="cart_remove"),
     path("cart/api/clear/", views.cart_clear, name="cart_clear"),
 
-    path('history/', views.History.as_view(), name='history'),
+
 ]

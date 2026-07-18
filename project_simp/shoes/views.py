@@ -441,6 +441,60 @@ def payment_success_view(request, order_id):
         'payment_method': order.get_payment_method_display(),
     }
     return render(request, 'shoes/payment_success.html', context)
+    # ---------------------------------------------------------------
+# Order history
+# ---------------------------------------------------------------
+
+STATUS_STEP = {
+    'pending_payment': 0,
+    'paid': 1,
+    'processing': 1,
+    'shipped': 2,
+    'delivered': 3,
+}
+
+STATUS_BADGE_CLASS = {
+    'pending_payment': 'pending',
+    'paid': 'processing',
+    'processing': 'processing',
+    'shipped': 'shipped',
+    'delivered': 'delivered',
+    'failed': 'cancelled',
+}
+
+
+@login_required
+def order_history_view(request):
+    status_filter = request.GET.get('status', 'all')
+
+    orders_qs = Order.objects.filter(user=request.user).prefetch_related(
+        'items__variant__shoe',
+        'items__variant__color',
+        'items__variant__size',
+    ).order_by('-created_at')
+
+    total_count = orders_qs.count()
+
+    if status_filter != 'all':
+        orders_qs = orders_qs.filter(status=status_filter)
+
+    order_rows = []
+    for order in orders_qs:
+        order_rows.append({
+            'order': order,
+            'items': order.items.all(),
+            'step_index': STATUS_STEP.get(order.status, 0),
+            'is_failed': order.status == 'failed',
+            'badge_class': STATUS_BADGE_CLASS.get(order.status, 'pending'),
+        })
+
+    context = {
+        'order_rows': order_rows,
+        'total_count': total_count,
+        'status_filter': status_filter,
+    }
+    return render(request, 'history/history.html', context)
+ 
 # ---------------------------------------------------------------
 # Order creation
 # ---------------------------------------------------------------

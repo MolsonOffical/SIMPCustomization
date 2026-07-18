@@ -9,13 +9,9 @@ from .services import create_and_send_otp, verify_otp
 from shoes.models import Category
 import json
 from django.http import JsonResponse
-from .models import CartItem
-from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods, require_POST
 from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
-import base64
-from django.core.files.base import ContentFile
+
 # Matches the prices set in shoeColorConfigs in converse_customizer.html.
 # Keep these two in sync until you have a real Shoe/Product model with price.
 
@@ -218,140 +214,6 @@ class VerifyOTPView(View):
 
 
 
-VALID_SIZES = {choice[0] for choice in SIZE_CHOICES}
-
-
-def _cart_item_count(user):
-    return CartItem.objects.filter(user=user).count()
-
-
-@login_required
-@require_http_methods(['GET', 'POST'])
-def add_to_cart(request):
-    """
-    POST (AJAX/JSON — customizer's "Add to Cart" button):
-        body: {"pattern": "...", "size": "...", "colors": {...}, "quantity": 1}
-        -> {"id": <cart_item_id>, "cart_item_count": <int>}
-
-    GET (customizer's "Buy Now" — plain navigation, query params):
-        ?pattern=...&size=...&colors=<json string>&quantity=1
-        -> saves/updates the item, then redirects to the cart page
-    """
-    if request.method == 'POST':
-        try:
-            payload = json.loads(request.body or '{}')
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Malformed request body.'}, status=400)
-        pattern = payload.get('pattern')
-        size = str(payload.get('size', ''))
-        colors = payload.get('colors', {})
-        quantity = payload.get('quantity', 1)
-        photo_data_url = payload.get('photo') 
-    else:
-        pattern = request.GET.get('pattern')
-        size = request.GET.get('size', '')
-        try:
-            colors = json.loads(request.GET.get('colors', '{}'))
-        except json.JSONDecodeError:
-            colors = {}
-        quantity = request.GET.get('quantity', 1)
-        photo_data_url = None   
-
-    try:
-        quantity = max(1, min(int(quantity), 10))
-    except (TypeError, ValueError):
-        quantity = 1
-
-    if pattern not in PATTERN_PRICES:
-        error = 'Please choose a valid shoe pattern.'
-        if request.method == 'POST':
-            return JsonResponse({'error': error}, status=400)
-        messages.error(request, error)
-        return redirect(request.META.get('HTTP_REFERER', 'account:cart_view'))
-
-    if size not in VALID_SIZES:
-        error = 'Please select a size first.'
-        if request.method == 'POST':
-            return JsonResponse({'error': error}, status=400)
-        messages.error(request, error)
-        return redirect(request.META.get('HTTP_REFERER', 'account:cart_view'))
-
-    if not isinstance(colors, dict):
-        colors = {}
-
-    # Same user + pattern + size + colors already in cart -> bump quantity
-    # instead of creating a duplicate row.
-    existing = CartItem.objects.filter(
-        user=request.user, pattern=pattern, size=size, colors=colors,
-    ).first()
-
-    if existing:
-        existing.quantity = max(1, min(existing.quantity + quantity, 10))
-        existing.save()
-        item = existing
-    else:
-        item = CartItem.objects.create(
-            user=request.user, pattern=pattern, size=size,
-            colors=colors, quantity=quantity,
-        )
-        photo_file = _decode_photo(photo_data_url, pattern)   # NEW
-        if photo_file:
-            item.photo.save(photo_file.name, photo_file, save=True)
-
-    if request.method == 'POST':
-        return JsonResponse({
-            'id': item.id,
-            'cart_item_count': _cart_item_count(request.user),
-        })
-
-    return redirect('account:cart_view')
-
-
-@login_required
-@require_http_methods(['POST'])
-def update_cart_quantity(request):
-    """
-    POST (AJAX/JSON): body: {"item_id": <id>, "quantity": <int>}
-    Called once "Add to Cart" has flipped to "Update Cart" so repeat
-    clicks patch the existing row instead of creating a new one.
-    """
-    try:
-        payload = json.loads(request.body or '{}')
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Malformed request body.'}, status=400)
-
-    item = get_object_or_404(CartItem, id=payload.get('item_id'), user=request.user)
-
-    try:
-        quantity = max(1, min(int(payload.get('quantity', 1)), 10))
-    except (TypeError, ValueError):
-        quantity = 1
-
-    item.quantity = quantity
-    item.save()
-
-    return JsonResponse({
-        'id': item.id,
-        'cart_item_count': _cart_item_count(request.user),
-    })
-
-
-@login_required
-def cart_view(request):
-    items = CartItem.objects.filter(user=request.user)
-    total = sum(item.subtotal for item in items)
-    return render(request, 'cart/cart.html', {'items': items, 'total': total})
-
-
-@login_required
-@require_http_methods(['POST'])
-def remove_cart_item(request, item_id):
-    item = get_object_or_404(CartItem, id=item_id, user=request.user)
-    item.delete()
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'cart_item_count': _cart_item_count(request.user)})
-    return redirect('account:cart_view')
-
 
 
 
@@ -404,16 +266,3 @@ class DeleteProfileView(LoginRequiredMixin, View):
         messages.success(request, "Your account has been permanently deleted.")
         return redirect('account:login')
 
-
-
-def _decode_photo(data_url, pattern):
-    """Convert a 'data:image/png;base64,...' string into a Django File."""
-    if not data_url or ';base64,' not in data_url:
-        return None
-    header, encoded = data_url.split(';base64,', 1)
-    ext = header.split('/')[-1]  # e.g. 'png'
-    try:
-        decoded = base64.b64decode(encoded)
-    except (TypeError, ValueError):
-        return None
-    return ContentFile(decoded, name=f'{pattern}-{quantity if False else "snapshot"}.{ext}')

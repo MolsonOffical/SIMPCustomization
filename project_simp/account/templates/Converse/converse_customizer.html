@@ -1516,8 +1516,8 @@ function addToCartAjax() {
 
   const isUpdate = !!ppSavedItemId;
   const url = isUpdate
-    ? "{% url 'account:update_cart_quantity' %}"
-    : "{% url 'account:add_to_cart' %}";
+    ? "{% url 'shoes:cart_update' %}"
+    : "{% url 'shoes:cart_add' %}";
   const body = isUpdate
     ? JSON.stringify({ item_id: ppSavedItemId, quantity: qty })
     : JSON.stringify({
@@ -1579,7 +1579,7 @@ function goToCartReview() {
     colors: JSON.stringify(selectedColors),
     quantity: qty
   });
-  window.location.href = "{% url 'account:add_to_cart' %}?" + params.toString();
+  window.location.href = "{% url 'shoes:cart_add' %}?" + params.toString();
 }
 
 document.getElementById('ppAddToCart').addEventListener('click', addToCartAjax);

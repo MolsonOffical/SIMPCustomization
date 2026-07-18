@@ -3,7 +3,8 @@ import hmac
 import hashlib
 import base64
 import requests
-
+from django.contrib import messages
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -179,6 +180,23 @@ def _error(message, status=400):
 
 
 def _serialize_item(item):
+    if item.variant_id:
+        v = item.variant
+        photo_url = v.shoes_photo.url if v.shoes_photo else static('images/shoe_default.jpg')
+        return {
+            "id": item.id,
+            "name": v.shoe.name,
+            "meta": "",
+            "color": v.color.name,
+            "size": v.size.size_value,
+            "price": str(item.unit_price),
+            "photo": photo_url,
+            "stock": v.stock_quantity,
+            "quantity": item.quantity,
+            "customization": [],
+            "line_total": str(item.subtotal),
+        }
+
     photo_url = (
         item.photo.url if item.photo
         else static(PATTERN_PHOTOS.get(item.pattern, "img/patterns/default.jpg"))
@@ -192,13 +210,12 @@ def _serialize_item(item):
         "photo": photo_url,
         "stock": MAX_QTY,
         "quantity": item.quantity,
-        # dict -> list so cart.html's existing renderCustomizationDots()
-        # works unchanged: [{"label": "Laces", "color": "#40E0D0"}, ...]
         "customization": [
             {"label": zone, "color": color} for zone, color in (item.colors or {}).items()
         ],
         "line_total": str(item.subtotal),
     }
+
 
 
 def _cart_payload(user):
@@ -238,7 +255,40 @@ def cart_item_list(request):
 @require_POST
 @transaction.atomic
 def cart_add(request):
+    if request.method == 'GET':
+        if not request.user.is_authenticated:
+            return redirect(f"/accounts/login/?next={request.path}")
+
+        pattern = request.GET.get('pattern')
+        size = str(request.GET.get('size', ''))
+        try:
+            colors = json.loads(request.GET.get('colors', '{}'))
+        except json.JSONDecodeError:
+            colors = {}
+        quantity = int(request.GET.get('quantity') or 1)
+
+        if pattern not in PATTERN_PRICES or size not in VALID_SIZES:
+            messages.error(request, 'Please choose a valid shoe and size.')
+            return redirect(request.META.get('HTTP_REFERER', 'shoes:cart_page'))
+
+        candidates = CartItem.objects.filter(user=request.user, pattern=pattern, size=size)
+        match = next((i for i in candidates if i.colors == colors), None)
+        if match:
+            match.quantity = min(match.quantity + quantity, MAX_QTY)
+            match.save()
+        else:
+            CartItem.objects.create(
+                user=request.user, pattern=pattern, size=size,
+                colors=colors, quantity=min(quantity, MAX_QTY),
+            )
+        return redirect('shoes:cart_page')
+
     data = _parse_body(request)
+
+    variant_id = data.get("variant_id")
+    if variant_id:
+        return _add_variant_item(request, data, variant_id)
+
     pattern = data.get("pattern")
     size = str(data.get("size", ""))
     colors = data.get("colors") or {}
@@ -251,8 +301,6 @@ def cart_add(request):
     if quantity < 1:
         return _error("Quantity must be at least 1.")
 
-    # Same pattern + size + exact same colors -> bump quantity on that
-    # line instead of creating a duplicate row.
     candidates = CartItem.objects.filter(user=request.user, pattern=pattern, size=size)
     match = next((i for i in candidates if i.colors == colors), None)
 
@@ -260,17 +308,51 @@ def cart_add(request):
         match.quantity = min(match.quantity + quantity, MAX_QTY)
         match.save()
     else:
-        CartItem.objects.create(
+        item = CartItem.objects.create(
             user=request.user,
             pattern=pattern,
             size=size,
             colors=colors,
             quantity=min(quantity, MAX_QTY),
         )
+        photo_data_url = data.get("photo")
+        photo_file = _decode_photo(photo_data_url, pattern)
+        if photo_file:
+            item.photo.save(photo_file.name, photo_file, save=True)
 
     return JsonResponse(_cart_payload(request.user))
 
 
+def _add_variant_item(request, data, variant_id):
+    try:
+        quantity = int(data.get("quantity") or 1)
+    except (TypeError, ValueError):
+        return _error("Invalid quantity.")
+    if quantity < 1:
+        return _error("Quantity must be at least 1.")
+
+    try:
+        variant = ShoesVariant.objects.select_related('shoe', 'color', 'size').get(pk=variant_id)
+    except ShoesVariant.DoesNotExist:
+        return _error("Please choose a valid shoe.", status=404)
+
+    if variant.stock_quantity < 1:
+        return _error("That size is out of stock.")
+
+    cap = min(MAX_QTY, variant.stock_quantity)
+    match = CartItem.objects.filter(user=request.user, variant=variant).first()
+
+    if match:
+        match.quantity = min(match.quantity + quantity, cap)
+        match.save()
+    else:
+        CartItem.objects.create(
+            user=request.user,
+            variant=variant,
+            quantity=min(quantity, cap),
+        )
+
+    return JsonResponse(_cart_payload(request.user))
 # ------------------------------------------------------------ update ------
 
 @login_required
@@ -321,6 +403,19 @@ def cart_remove(request):
 def cart_clear(request):
     CartItem.objects.filter(user=request.user).delete()
     return JsonResponse(_cart_payload(request.user))
+
+
+def _decode_photo(data_url, pattern):
+    """Convert a 'data:image/png;base64,...' string into a Django File."""
+    if not data_url or ';base64,' not in data_url:
+        return None
+    header, encoded = data_url.split(';base64,', 1)
+    ext = header.split('/')[-1]  # e.g. 'png'
+    try:
+        decoded = base64.b64decode(encoded)
+    except (TypeError, ValueError):
+        return None
+    return ContentFile(decoded, name=f'{pattern}-{quantity if False else "snapshot"}.{ext}')
 
 
 def checkout_view(request):

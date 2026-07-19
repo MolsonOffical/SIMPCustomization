@@ -129,24 +129,25 @@
 
         <aside>
              <section class="recommendations">
-    <h2 class="section-title">More from {{ shoe.brand.name }}</h2>
-    {% if brand_shoes %}
-        {% for s in brand_shoes %}
+    <h2 class="section-title">Recommendation</h2>
+    {% if recommended_shoes %}
+        {% for s in recommended_shoes %}
         <a href="{% url 'shoes:shoe_detail' pk=s.pk %}" class="rec-card">
             <div class="rec-image" style="background-image: url(
                 {% if s.thumbnail %}{{ s.thumbnail.url }}
                 {% else %}{% static 'images/shoe_default.jpg' %}{% endif %}
             );"></div>
             <div class="rec-info">
+                <p class="rec-brand">{{ s.brand.name }}</p>
                 <p class="rec-name">{{ s.name }}</p>
                 <p class="rec-price">
-                    {% if s.min_price %}NPR.{{ s.min_price }}{% else %}N/A{% endif %}
+                    {% if s.min_price %}NPR.{{ s.min_price|floatformat:0 }}{% else %}N/A{% endif %}
                 </p>
             </div>
         </a>
         {% endfor %}
     {% else %}
-        <p>No other shoes from this brand.</p>
+        <p>No recommendations available.</p>
     {% endif %}
 </section>
 
@@ -162,7 +163,7 @@
             <div class="rec-info">
                 <p class="rec-name">{{ s.name }}</p>
                 <p class="rec-price">
-                    {% if s.min_price %}NPR.{{ s.min_price }}{% else %}N/A{% endif %}
+                    {% if s.min_price %}NPR.{{ s.min_price|floatformat:0 }}{% else %}N/A{% endif %}
                 </p>
             </div>
         </a>
@@ -179,5 +180,6 @@
 {% endblock %}
 
 {% block script %}
+{{ block.super }}
 <script src="{% static 'js/shoe_detail.js' %}"></script>
 {% endblock %}

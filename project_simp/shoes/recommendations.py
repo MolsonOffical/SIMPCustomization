@@ -298,8 +298,6 @@ class ShoeRecommendationEngine:
 
 
 def get_recommendation_engine(request):
-    """Build an engine from a request, assigning a stable anonymous
-    visitor_id (stored in the session) if the user isn't logged in."""
     user = getattr(request, "user", None)
     visitor_id = None
 

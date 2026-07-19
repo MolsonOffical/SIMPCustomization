@@ -1,6 +1,8 @@
+import uuid
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -62,7 +64,9 @@ class ShoesVariant(models.Model):
         unique_together = ("shoe", "color", "size")
 
     def __str__(self):
-        return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"    
+        return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"
+
+
 class Review(models.Model):
     shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="reviews")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
@@ -79,9 +83,11 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.shoe} ({self.rating}★)"
-    
+
+
 def review_media_upload_path(instance, filename):
     return f"reviews/{instance.review.shoe_id}/{instance.review.user_id}/{filename}"
+
 
 class ReviewMedia(models.Model):
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="media")
@@ -92,6 +98,7 @@ class ReviewMedia(models.Model):
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
+
 class ReviewReply(models.Model):
     review = models.OneToOneField(Review, on_delete=models.CASCADE, related_name="reply")
     comment = models.TextField()
@@ -99,3 +106,82 @@ class ReviewReply(models.Model):
 
     def __str__(self):
         return f"Reply to {self.review}"
+
+
+class ShoeView(models.Model):
+    """
+    Lightweight page-view log used as an implicit interest signal for the
+    recommendation engine (stands in for the blog app's PostView).
+    Works for both logged-in users and anonymous visitors (tracked via a
+    session-based visitor_id).
+    """
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="shoe_views")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="shoe_views",
+    )
+    visitor_id = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["shoe", "created_at"]),
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["visitor_id", "created_at"]),
+        ]
+
+    def __str__(self):
+        who = f"user:{self.user_id}" if self.user_id else f"visitor:{self.visitor_id}"
+        return f"View({self.shoe_id} by {who})"
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending_payment', 'Pending Payment'),
+        ('paid', 'Paid'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('failed', 'Failed'),
+    ]
+    PAYMENT_CHOICES = [('esewa', 'eSewa'), ('khalti', 'Khalti')]
+
+    order_id = models.CharField(max_length=50, unique=True, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
+    full_name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    landmark = models.CharField(max_length=255, blank=True)
+
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = "SIMP" + uuid.uuid4().hex[:12].upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.order_id
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    variant = models.ForeignKey(ShoesVariant, on_delete=models.PROTECT, related_name='order_items')
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # snapshot at time of order
+    quantity = models.PositiveIntegerField(default=1)
+
+    def subtotal(self):
+        return self.price * self.quantity
+
+    def __str__(self):
+        return f"{self.variant} x{self.quantity}"

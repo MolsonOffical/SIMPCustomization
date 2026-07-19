@@ -1,122 +1,295 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Cart | SIMP</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <link rel="stylesheet" href="/static/css/navbar.css">
-  <link rel="stylesheet" href="/static/css/cart.css">
-</head>
-<body>
+{% extends "layout.html" %}
+{% load static %}
 
-  <!-- Reuse your existing navbar include here.
-       Make sure the cart icon link has id="cart-badge" nested inside it, e.g.:
+{% block title %}Your Cart | SIMP{% endblock %}
 
-       <a href="/cart/" class="nav-icon-btn" aria-label="Cart">
-         <i class="fa-solid fa-cart-shopping"></i>
-         <span id="cart-badge"></span>
-       </a>
-  -->
-
-  <div class="cart-page">
-    <h1>Your Cart</h1>
-    <div id="cart-root">
-      <!-- rendered by cart.js -->
-    </div>
+{% block content %}
+<div class="cart-page">
+  <div id="cart-root">
+    <!-- rendered by JS below, using the shared Cart object from cart.js -->
+    <div class="cart-loading">Loading your cart…</div>
   </div>
+<!-- View Details modal -->
+<div id="item-details-modal" class="modal-overlay" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="item-details-title">
+    <button type="button" class="modal-close" id="item-details-close" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div id="item-details-content"><!-- filled by JS --></div>
+  </div>
+</div>
+{% endblock %}
 
-  <script src="/static/js/cart.js"></script>
-  <script>
-    function formatCurrency(n) {
-      return "NPR." + n.toFixed(2).replace(/\.00$/, "");
-    }
+{% block script %}
+<script>
+  // Read by cart.js (cartEndpoint()) so it never has to hardcode where
+  // the "shoes" app is mounted.
+  window.CART_ENDPOINTS = {
+    list: "{% url 'shoes:cart_item_list' %}",
+    add: "{% url 'shoes:cart_add' %}",
+    update: "{% url 'shoes:cart_update' %}",
+    remove: "{% url 'shoes:cart_remove' %}",
+    clear: "{% url 'shoes:cart_clear' %}",
+  };
+</script>
+{{ block.super }} {# keeps cart.js loaded from base.html #}
+<script>
+  function renderCustomizationDots(customization) {
+    if (!customization || !customization.length) return "";
+    return `
+      <ul class="cart-item-parts">
+        ${customization.map(part => `
+          <li>
+            <span class="part-dot${part.outline ? " part-dot--outline" : ""}" style="background:${part.color}"></span>
+            ${part.label}
+          </li>
+        `).join("")}
+      </ul>`;
+  }
 
-    function renderCartPage() {
-      const root = document.querySelector("#cart-root");
-      const items = Cart.getItems();
+  function renderCartItem(item) {
+    // item comes straight from CartItem.to_dict() on the server:
+    // { id, name, color, size, meta, price, photo, stock, quantity, customization, line_total }
+    const isCustom = item.customization && item.customization.length > 0;
+    const meta = isCustom
+      ? (item.meta || "")
+      : [item.color, item.size].filter(Boolean).join(" &nbsp;•&nbsp; Size: ");
 
-      if (items.length === 0) {
-        root.innerHTML = `
-          <div class="cart-empty">
-            <i class="fa-solid fa-cart-shopping" style="font-size:40px;color:#ccc;"></i>
-            <p>Your cart is empty.</p>
-            <a href="/shoes/">Continue shopping</a>
-          </div>`;
-        return;
-      }
+    return `
+      <div class="cart-item" data-item-id="${item.id}">
+        <img src="${item.photo}" alt="${item.name}">
 
-      const itemsHtml = items.map(item => `
-        <div class="cart-item" data-variant-id="${item.variant_id}">
-          <img src="${item.photo}" alt="${item.name}">
-          <div>
-            <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-meta">Color: ${item.color} &nbsp;•&nbsp; Size: ${item.size}</div>
-            <div class="cart-item-price">${formatCurrency(parseFloat(item.price))}</div>
-          </div>
-          <div class="cart-item-actions">
-            <div class="cart-qty">
-              <button type="button" class="qty-decrease">-</button>
-              <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.stock}">
-              <button type="button" class="qty-increase">+</button>
-            </div>
-            <button type="button" class="cart-remove-btn">
-              <i class="fa-solid fa-trash"></i> Remove
-            </button>
-          </div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          ${meta ? `<div class="cart-item-meta">${isCustom ? meta : "Size: " + meta}</div>` : ""}
+          ${renderCustomizationDots(item.customization)}
+          <button type="button" class="cart-view-details" data-item-id="${item.id}">View Details</button>
         </div>
-      `).join("");
 
-      const subtotal = Cart.getSubtotal();
+        <div class="cart-item-actions">
+          <div class="cart-item-unit-price">${Cart.formatCurrency(item.price)}</div>
+          <div class="cart-qty">
+            <button type="button" class="qty-decrease" aria-label="Decrease quantity">−</button>
+            <input type="number" class="qty-input" value="${item.quantity}" min="1" max="${item.stock}">
+            <button type="button" class="qty-increase" aria-label="Increase quantity">+</button>
+          </div>
+          <div class="cart-item-line-total">${Cart.formatCurrency(item.line_total)}</div>
+          <button type="button" class="cart-remove-btn">
+            <i class="fa-solid fa-trash"></i> Remove
+          </button>
+        </div>
+      </div>`;
+  }
 
+  /* ---------- View Details modal ---------- */
+
+  function renderItemDetailsModal(item) {
+    const isCustom = item.customization && item.customization.length > 0;
+
+    const partsHtml = isCustom ? `
+      <div class="details-parts">
+        <h3>Customization</h3>
+        <ul class="details-parts-list">
+          ${item.customization.map(part => `
+            <li>
+              <span class="part-dot${part.outline ? " part-dot--outline" : ""}" style="background:${part.color}"></span>
+              <span class="details-part-label">${part.label}</span>
+            </li>
+          `).join("")}
+        </ul>
+      </div>` : "";
+
+    const attrsHtml = !isCustom ? `
+      <div class="details-attrs">
+        ${item.color ? `<div><span>Color</span><strong>${item.color}</strong></div>` : ""}
+        ${item.size ? `<div><span>Size</span><strong>${item.size}</strong></div>` : ""}
+      </div>` : "";
+
+    return `
+      <img class="details-photo" src="${item.photo}" alt="${item.name}">
+      <div class="details-body">
+        <h2 id="item-details-title">${item.name}</h2>
+        ${item.meta ? `<div class="details-meta">${item.meta}</div>` : ""}
+        ${attrsHtml}
+        ${partsHtml}
+
+        <div class="details-price-rows">
+          <div><span>Unit price</span><span>${Cart.formatCurrency(item.price)}</span></div>
+          <div><span>Quantity</span><span>${item.quantity}</span></div>
+          <div class="details-price-total"><span>Line total</span><span>${Cart.formatCurrency(item.line_total)}</span></div>
+        </div>
+
+        ${item.stock ? `<div class="details-stock"><i class="fa-solid fa-circle-check"></i> ${item.stock} in stock</div>` : ""}
+      </div>`;
+  }
+
+  function openItemDetails(itemId) {
+    const item = (Cart.getCached().items || []).find(i => i.id === itemId);
+    if (!item) return;
+    document.querySelector("#item-details-content").innerHTML = renderItemDetailsModal(item);
+    const overlay = document.querySelector("#item-details-modal");
+    overlay.hidden = false;
+    requestAnimationFrame(() => overlay.classList.add("modal-overlay--show"));
+  }
+
+  function closeItemDetails() {
+    const overlay = document.querySelector("#item-details-modal");
+    overlay.classList.remove("modal-overlay--show");
+    setTimeout(() => { overlay.hidden = true; }, 150);
+  }
+
+  function initItemDetailsModal() {
+    const overlay = document.querySelector("#item-details-modal");
+    document.querySelector("#item-details-close").addEventListener("click", closeItemDetails);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeItemDetails();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !overlay.hidden) closeItemDetails();
+    });
+  }
+
+  function renderCartPage(cartData) {
+    const root = document.querySelector("#cart-root");
+    const items = cartData.items || [];
+
+    if (items.length === 0) {
       root.innerHTML = `
-        <div class="cart-layout">
-          <div class="cart-items">${itemsHtml}</div>
-          <div class="cart-summary">
-            <h2>Order Summary</h2>
-            <div class="cart-summary-row">
-              <span>Subtotal (${Cart.getCount()} items)</span>
-              <span>${formatCurrency(subtotal)}</span>
-            </div>
-            <div class="cart-summary-row">
-              <span>Shipping</span>
-              <span>Calculated at checkout</span>
-            </div>
-            <div class="cart-summary-total">
-              <span>Total</span>
-              <span>${formatCurrency(subtotal)}</span>
-            </div>
-            <button class="btn-checkout" id="checkout-btn">Proceed to Checkout</button>
-          </div>
+        <div class="cart-header">
+          <h1>Your Cart</h1>
         </div>
-      `;
-
-      // wire up controls
-      root.querySelectorAll(".cart-item").forEach(row => {
-        const variantId = parseInt(row.dataset.variantId, 10);
-        const input = row.querySelector(".qty-input");
-
-        row.querySelector(".qty-decrease").addEventListener("click", () => {
-          Cart.updateQuantity(variantId, parseInt(input.value, 10) - 1);
-        });
-        row.querySelector(".qty-increase").addEventListener("click", () => {
-          Cart.updateQuantity(variantId, parseInt(input.value, 10) + 1);
-        });
-        input.addEventListener("change", () => {
-          Cart.updateQuantity(variantId, parseInt(input.value, 10) || 1);
-        });
-        row.querySelector(".cart-remove-btn").addEventListener("click", () => {
-          Cart.removeItem(variantId);
-        });
-      });
-
-      document.querySelector("#checkout-btn").addEventListener("click", () => {
-        window.location.href = "/checkout/";
-      });
+        <div class="cart-empty">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <p>Your cart is empty.</p>
+          <a href="{% url 'shoes:shoes_list' %}">Continue shopping</a>
+        </div>`;
+      return;
     }
 
-    document.addEventListener("DOMContentLoaded", renderCartPage);
-    window.addEventListener("cart:updated", renderCartPage);
-  </script>
-</body>
-</html>
+    const count = cartData.count;
+    const subtotal = cartData.subtotal;
+    const total = cartData.total;
+    const shippingLabel = cartData.shipping_label;
+
+    root.innerHTML = `
+      <div class="cart-header">
+        <div>
+          <h1>Your Cart</h1>
+          <div class="cart-item-count">${count} item${count === 1 ? "" : "s"}</div>
+        </div>
+        <a class="btn-continue" href="{% url 'shoes:shoes_list' %}">
+          <i class="fa-solid fa-arrow-left"></i> Continue Shopping
+        </a>
+      </div>
+
+      <div class="cart-layout">
+        <div class="cart-main">
+          <div class="cart-items">
+            ${items.map(renderCartItem).join("")}
+          </div>
+        </div>
+
+        <aside class="cart-summary">
+          <h2>Order Summary</h2>
+          <div class="cart-summary-row">
+            <span>Items (${count})</span>
+            <span>${Cart.formatCurrency(subtotal)}</span>
+          </div>
+          <div class="cart-summary-row">
+            <span>Subtotal</span>
+            <span>${Cart.formatCurrency(subtotal)}</span>
+          </div>
+          <div class="cart-summary-row">
+            <span>Shipping</span>
+            <span>${shippingLabel}</span>
+          </div>
+          <div class="cart-summary-total">
+            <span>Total</span>
+            <span>${Cart.formatCurrency(total)}</span>
+          </div>
+
+          <button class="btn-checkout" id="checkout-btn">
+            Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+          </button>
+          <button class="btn-checkout-khalti" id="checkout-khalti-btn">
+            Checkout with <span class="khalti-badge">K</span> khalti
+          </button>
+
+          <ul class="cart-trust-list">
+            <li>
+              <i class="fa-solid fa-lock"></i>
+              <div>
+                <div class="trust-title">Secure Payment</div>
+                <div class="trust-sub">100% secure checkout</div>
+              </div>
+            </li>
+            <li>
+              <i class="fa-solid fa-truck"></i>
+              <div>
+                <div class="trust-title">Free Shipping</div>
+                <div class="trust-sub">On orders over NPR 3,000</div>
+              </div>
+            </li>
+            <li>
+              <i class="fa-regular fa-clock"></i>
+              <div>
+                <div class="trust-title">Easy Returns</div>
+                <div class="trust-sub">Within 7 days</div>
+              </div>
+            </li>
+          </ul>
+
+          ${items.some(i => i.customization && i.customization.length) ? `
+            <div class="cart-saved-notice">
+              <i class="fa-solid fa-circle-check"></i>
+              <div>
+                <div>Your custom design is saved in your cart.</div>
+                <div class="saved-notice-sub">Complete your order anytime.</div>
+              </div>
+            </div>` : ""}
+        </aside>
+      </div>`;
+
+    // wire up per-item controls
+    root.querySelectorAll(".cart-item").forEach(row => {
+      const itemId = parseInt(row.dataset.itemId, 10);
+      const input = row.querySelector(".qty-input");
+
+      row.querySelector(".qty-decrease").addEventListener("click", () => {
+        Cart.updateQuantity(itemId, parseInt(input.value, 10) - 1)
+          .catch(err => Cart.toast(err.message));
+      });
+      row.querySelector(".qty-increase").addEventListener("click", () => {
+        Cart.updateQuantity(itemId, parseInt(input.value, 10) + 1)
+          .catch(err => Cart.toast(err.message));
+      });
+      input.addEventListener("change", () => {
+        Cart.updateQuantity(itemId, parseInt(input.value, 10) || 1)
+          .catch(err => Cart.toast(err.message));
+      });
+      row.querySelector(".cart-remove-btn").addEventListener("click", () => {
+        Cart.removeItem(itemId).catch(err => Cart.toast(err.message));
+      });
+      row.querySelector(".cart-view-details").addEventListener("click", () => {
+        openItemDetails(itemId);
+      });
+    });
+
+    document.querySelector("#checkout-btn").addEventListener("click", () => {
+      window.location.href = "/shoes/checkout/";
+    });
+    document.querySelector("#checkout-khalti-btn").addEventListener("click", () => {
+      window.location.href = "/checkout/?method=khalti";
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    initItemDetailsModal();
+    const cartData = await Cart.refresh();
+    renderCartPage(cartData);
+  });
+
+  // any mutation (this page or elsewhere) re-renders with the fresh payload
+  window.addEventListener("cart:updated", (e) => renderCartPage(e.detail));
+</script>
+{% endblock %}

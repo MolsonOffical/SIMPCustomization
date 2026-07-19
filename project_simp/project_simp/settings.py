@@ -141,3 +141,14 @@ EMAIL_HOST_USER = 'simp03944@gmail.com'
 EMAIL_HOST_PASSWORD = 'idykfzosxglbdiyy'
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# eSewa ePay v2 — UAT/test credentials (replace when going live)
+ESEWA_PRODUCT_CODE = "EPAYTEST"
+ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"
+ESEWA_FORM_URL = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+ESEWA_STATUS_URL = "https://rc.esewa.com.np/api/epay/transaction/status/"
+
+# Khalti KPG v2 — sandbox test key (get your own at https://test-admin.khalti.com)
+KHALTI_SECRET_KEY = "05bf95cc57244045b8df5fad06748dab"
+KHALTI_INITIATE_URL = "https://dev.khalti.com/api/v2/epayment/initiate/"
+KHALTI_LOOKUP_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"

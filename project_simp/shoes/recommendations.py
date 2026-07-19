@@ -198,9 +198,6 @@ class ShoeRecommendationEngine:
 
         return list(fallback[:limit])
 
-    # ------------------------------------------------------------------ #
-    # Diversity (cap how many results can share one brand)
-    # ------------------------------------------------------------------ #
     def _ensure_diversity(self, scored_shoes, limit, max_per_brand=3):
         final = []
         brand_counts = Counter()
@@ -221,9 +218,6 @@ class ShoeRecommendationEngine:
 
         return final
 
-    # ------------------------------------------------------------------ #
-    # Public: personalized "Recommended for you"
-    # ------------------------------------------------------------------ #
     def get_recommendations(self, limit=8, exclude_interacted=True):
         interacted_ids = self.get_user_interactions() if exclude_interacted else []
 

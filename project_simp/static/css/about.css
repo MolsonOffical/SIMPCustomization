@@ -1,14 +1,14 @@
 :root {
-  --ink: #111111;
-  --white: #ffffff;
-  --green: #1a7a4a;
-  --green-light: #e8f5ee;
-  --green-mid: #2ea865;
-  --gray-light: #f7f7f7;
-  --gray-mid: #e8e8e8;
-  --gray-text: #666;
-  --gray-muted: #999;
-  --border: #e2e2e2;
+  --ink: #121212;
+  --white: #fffcf7;
+  --green: #0f8a5f;
+  --green-light: #eef8f2;
+  --green-mid: #0f8a5f;
+  --gray-light: #f6efe6;
+  --gray-mid: #e8e0d3;
+  --gray-text: #5f5f5f;
+  --gray-muted: #7a7a7a;
+  --border: #e6dfd5;
 }
 
 * {
@@ -18,7 +18,7 @@
 }
 
 body {
-  background: var(--white);
+  background: linear-gradient(135deg, #f9f6f1 0%, #f4efe8 100%);
   color: var(--ink);
   font-family: 'Inter', sans-serif;
 }
@@ -78,6 +78,8 @@ body {
 .about-hero {
   position: relative;
   min-height: 65vh;
+  border-radius: 0 0 32px 32px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}{{ shoe.name }}{% endblock %}
 
@@ -7,6 +8,8 @@
 <link rel="stylesheet" href="{% static 'css/shoe_detail.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="/static/css/cart.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <script src="/static/js/cart.js"></script>
 {% endblock %}
 
@@ -124,6 +127,142 @@
                         </div>
                     </div>
                 </div>
+
+               <section class="reviews-section">
+                    <h2 class="section-title">Reviews</h2>
+
+                 <div class="reviews-summary">
+    {% if avg_rating %}
+        <div class="rating-overview">
+            <div class="rating-overview__score">
+                <span class="rating-overview__number">{{ avg_rating|floatformat:1 }}</span>
+                <span class="rating-overview__stars">★★★★★</span>
+                <span class="review-count">{{ review_count }} review{{ review_count|pluralize }}</span>
+            </div>
+            <div class="rating-overview__bars">
+                {% for row in rating_breakdown %}
+                <div class="rating-bar-row">
+                    <span class="rating-bar-row__label">{{ row.star }}★</span>
+                    <div class="rating-bar-row__track">
+                        <div class="rating-bar-row__fill" style="width: {{ row.percent }}%;"></div>
+                    </div>
+                    <span class="rating-bar-row__count">{{ row.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <span class="no-reviews">No reviews yet — be the first.</span>
+    {% endif %}
+</div>
+
+                    {% if user.is_authenticated %}
+                        {% if not user_has_reviewed %}
+                           <form method="post" action="{% url 'shoes:add_review' pk=shoe.pk %}" class="review-form" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="form-field rating-panel">
+    <label>How would you rate this shoe?</label>
+    <div class="star-picker-row">
+        <div class="star-picker">
+            {% for i in "54321" %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}"
+                       {% if review_form.rating.value|stringformat:"s" == i %}checked{% endif %} required>
+                <label for="star{{ i }}" title="{{ i }} star{{ i|pluralize }}">★</label>
+            {% endfor %}
+        </div>
+        <span class="rating-label" id="rating-label">Tap a star to rate</span>
+    </div>
+    {% if review_form.rating.errors %}
+        <p class="field-error">{{ review_form.rating.errors|join:", " }}</p>
+    {% endif %}
+</div>
+                                <div class="form-field comment-panel">
+    <label for="id_comment">Tell us about your experience</label>
+    {{ review_form.comment }}
+    <div class="char-hint" id="char-hint">0 / 30 characters</div>
+    {% if review_form.comment.errors %}
+        <p class="field-error">{{ review_form.comment.errors|join:", " }}</p>
+    {% endif %}
+
+    <div class="media-upload media-upload--inline" id="media-upload">
+        <label for="id_files" class="media-tile media-tile--add">
+            <i class="fa-solid fa-camera"></i>
+            <span>Add<br>Photo/Video</span>
+        </label>
+        <input type="file" id="id_files" name="files" accept="image/*,video/*" multiple hidden>
+    </div>
+</div>
+<div class="form-field form-field--checkbox">
+    <label>
+        {{ review_form.is_anonymous }}
+        Post anonymously
+    </label>
+</div>
+                              <button type="submit" class="btn-submit-review">Submit Review</button>
+                            </form>
+                        {% else %}
+                            <p class="review-note">You've already reviewed this shoe.</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="review-note"><a href="{% url 'account:login' %}">Log in</a> to leave a review.</p>
+                    {% endif %}
+
+                    <div class="review-list">
+                        {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="review-card__header">
+                                <span class="review-card__avatar">{{ review.user|stringformat:"s"|first|upper }}</span>
+<span class="review-card__user">{{ review.user }}</span>
+                                    <span class="review-card__stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+                                    <span class="review-card__rating-label">
+                                        {% if review.rating == 5 %}Delightful{% elif review.rating == 4 %}Very Good{% elif review.rating == 3 %}Good{% elif review.rating == 2 %}Fair{% else %}Poor{% endif %}
+                                    </span>
+                                   <span class="review-card__date">{{ review.created_at|naturaltime }}</span>
+{% if review.user == user %}
+<div class="review-menu">
+    <button type="button" class="review-menu__trigger" onclick="toggleReviewMenu(this)">
+        <i class="fa-solid fa-ellipsis-vertical"></i>
+    </button>
+    <div class="review-menu__dropdown">
+        <a href="{% url 'shoes:edit_review' pk=shoe.pk review_id=review.pk %}">
+            <i class="fa-solid fa-pen"></i> Edit
+        </a>
+        <form method="post" action="{% url 'shoes:delete_review' pk=shoe.pk review_id=review.pk %}">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('Delete this review?');">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+                                </div>
+                                <p class="review-card__comment">{{ review.comment }}</p>
+                                {% if review.media.all %}
+<div class="review-card__media">
+    {% for m in review.media.all %}
+        {% if m.media_type == 'image' %}
+            <img src="{{ m.file.url }}" class="review-card__media-thumb" alt="Review photo" onclick="openLightbox('{{ m.file.url }}')">
+        {% else %}
+            <video src="{{ m.file.url }}" class="review-card__media-thumb" controls></video>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% if review.reply %}
+<div class="review-reply">
+    <div class="review-reply__badge">
+        <i class="fa-solid fa-store"></i> Store Response
+    </div>
+    <p class="review-reply__text">{{ review.reply.comment }}</p>
+</div>
+{% endif %}
+
+                        {% empty %}
+                            <p class="review-note">Be the first to review this shoe.</p>
+                        {% endfor %}
+                    </div>
+                </section>
             </article>
         </main>
 
@@ -176,8 +315,12 @@
 </div>
 
 {{ variants_data|json_script:"variants-data" }}
+<div id="lightbox-overlay" class="lightbox-overlay" onclick="closeLightbox()">
+    <img id="lightbox-img" src="" alt="Full size review photo">
+</div>
 {% endblock %}
 
 {% block script %}
+{{ block.super }}
 <script src="{% static 'js/shoe_detail.js' %}"></script>
 {% endblock %}

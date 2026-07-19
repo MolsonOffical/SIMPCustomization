@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% load static %}
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/shoe_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="edit-review-page">
+    <div class="edit-review-card">
+        <h2>Edit Your Review</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-field rating-panel">
+                <label>How would you rate this shoe?</label>
+                <div class="star-picker-row">
+                    <div class="star-picker">
+                        {% for i in "54321" %}
+                            <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}"
+                                   {% if form.rating.value|stringformat:"s" == i %}checked{% endif %}>
+                            <label for="star{{ i }}">★</label>
+                        {% endfor %}
+                    </div>
+                    <span class="rating-label" id="rating-label"></span>
+                </div>
+            </div>
+
+            <div class="form-field comment-panel">
+                <label for="id_comment">Tell us about your experience</label>
+                {{ form.comment }}
+
+                {% if review.media.all %}
+                <div class="media-upload media-upload--inline">
+                    {% for m in review.media.all %}
+                    <div class="media-tile media-tile--preview">
+                        {% if m.media_type == 'image' %}
+                            <img src="{{ m.file.url }}">
+                        {% else %}
+                            <video src="{{ m.file.url }}"></video>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="remove-media-list">
+                    {% for m in review.media.all %}
+                    <label class="remove-checkbox">
+                        <input type="checkbox" name="remove_media" value="{{ m.id }}"> Remove photo {{ forloop.counter }}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="media-upload media-upload--inline">
+                    <label for="id_new_files" class="media-tile media-tile--add">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Add<br>Photo/Video</span>
+                    </label>
+                    <input type="file" id="id_new_files" name="new_files" accept="image/*,video/*" multiple hidden>
+                </div>
+            </div>
+
+            <div class="form-field form-field--checkbox">
+                <label>
+                    {{ form.is_anonymous }}
+                    Post anonymously
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit-review">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

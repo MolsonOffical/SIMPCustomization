@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,6 +25,9 @@ class Shoes(models.Model):
     description = models.TextField(blank=True)
     thumbnail = models.ImageField(upload_to="shoes/thumbnails/", blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Shoes"
 
     def __str__(self):
         return self.name
@@ -68,6 +70,7 @@ class Review(models.Model):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     comment = models.TextField(blank=True)
+    is_anonymous = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -76,3 +79,23 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.shoe} ({self.rating}★)"
+    
+def review_media_upload_path(instance, filename):
+    return f"reviews/{instance.review.shoe_id}/{instance.review.user_id}/{filename}"
+
+class ReviewMedia(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="media")
+    file = models.FileField(upload_to=review_media_upload_path)
+    media_type = models.CharField(
+        max_length=5,
+        choices=[('image', 'Image'), ('video', 'Video')],
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class ReviewReply(models.Model):
+    review = models.OneToOneField(Review, on_delete=models.CASCADE, related_name="reply")
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reply to {self.review}"

@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'account',
-    'shoes'
+    'shoes',
+    'chatbot',
 ]
 
 MIDDLEWARE = [
@@ -151,3 +152,10 @@ ESEWA_STATUS_URL = "https://rc.esewa.com.np/api/epay/transaction/status/"
 KHALTI_SECRET_KEY = "05bf95cc57244045b8df5fad06748dab"
 KHALTI_INITIATE_URL = "https://dev.khalti.com/api/v2/epayment/initiate/"
 KHALTI_LOOKUP_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"
+
+
+# for the chatbot env data 
+
+from decouple import config
+
+GROQ_API_KEY = config("GROQ_API_KEY")

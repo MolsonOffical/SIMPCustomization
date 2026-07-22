@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'account',
     'shoes',
-    'chatbot',,
+    'chatbot',
 ]
 
 MIDDLEWARE = [

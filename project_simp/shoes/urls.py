@@ -27,6 +27,6 @@ urlpatterns = [
     path("cart/api/update/", views.cart_update, name="cart_update"),
     path("cart/api/remove/", views.cart_remove, name="cart_remove"),
     path("cart/api/clear/", views.cart_clear, name="cart_clear"),
-
+    path('remove-background/', views.remove_background_view, name='remove_background'),
 
 ]

@@ -145,6 +145,7 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
         ('failed', 'Failed'),
     ]
     PAYMENT_CHOICES = [('esewa', 'eSewa'), ('khalti', 'Khalti')]
@@ -185,3 +186,5 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.variant} x{self.quantity}"
+    
+

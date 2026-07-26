@@ -530,10 +530,9 @@ STATUS_BADGE_CLASS = {
     'processing': 'processing',
     'shipped': 'shipped',
     'delivered': 'delivered',
+    'cancelled': 'cancelled',
     'failed': 'cancelled',
 }
-
-
 @login_required
 def order_history_view(request):
     status_filter = request.GET.get('status', 'all')
@@ -556,6 +555,8 @@ def order_history_view(request):
             'items': order.items.all(),
             'step_index': STATUS_STEP.get(order.status, 0),
             'is_failed': order.status == 'failed',
+            'is_cancelled': order.status == 'cancelled',
+            'can_cancel': order.status == 'pending_payment',
             'badge_class': STATUS_BADGE_CLASS.get(order.status, 'pending'),
         })
 
@@ -565,6 +566,21 @@ def order_history_view(request):
         'status_filter': status_filter,
     }
     return render(request, 'history/history.html', context)
+
+
+@login_required
+@require_POST
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, order_id=order_id, user=request.user)
+
+    if order.status != 'pending_payment':
+        messages.error(request, "This order can no longer be cancelled — it's already being processed.")
+    else:
+        order.status = 'cancelled'
+        order.save()
+        messages.success(request, f"Order {order.order_id} has been cancelled.")
+
+    return redirect('shoes:history')
 
 
 # ---------------------------------------------------------------

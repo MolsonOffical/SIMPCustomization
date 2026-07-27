@@ -11,6 +11,8 @@ import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
+from django.db.models import Sum, Min, F
+from shoes.models import Shoes
 
 # Matches the prices set in shoeColorConfigs in converse_customizer.html.
 # Keep these two in sync until you have a real Shoe/Product model with price.
@@ -266,3 +268,17 @@ class DeleteProfileView(LoginRequiredMixin, View):
         messages.success(request, "Your account has been permanently deleted.")
         return redirect('account:login')
 
+
+
+class HomePage(View):
+    def get(self, request):
+        best_selling_shoes = (
+            Shoes.objects
+            .annotate(
+                total_sold=Sum('variants__order_items__quantity'),
+                min_price=Min('variants__price'),
+            )
+            .filter(min_price__isnull=False)   # only show shoes that actually have a purchasable variant
+            .order_by(F('total_sold').desc(nulls_last=True), '-created_at')[:4]
+        )
+        return render(request, 'Home/index.html', {'best_selling_shoes': best_selling_shoes})

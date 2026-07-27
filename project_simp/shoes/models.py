@@ -19,12 +19,26 @@ class Brand(models.Model):
         return self.name
 
 
+CUSTOMIZER_CHOICES = [
+    ('nike-converse-low-top', 'Converse Low Top'),
+    ('nike-converse-high-top', 'Converse High Top'),
+    ('air-runner', 'Air Runner'),
+    ('air-jordan-1', 'Air Jordan 1'),
+    ('low-poly-boot', 'Low Poly Boot'),
+    ('urban-canvas', 'Urban Canvas'),
+]
+
+
 class Shoes(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="shoes")
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name="shoes")
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     thumbnail = models.ImageField(upload_to="shoes/thumbnails/", blank=True, null=True)
+    customizer_id = models.CharField(
+        max_length=64, choices=CUSTOMIZER_CHOICES, blank=True, null=True,
+        help_text="Which 3D customizer model this catalog shoe should open."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

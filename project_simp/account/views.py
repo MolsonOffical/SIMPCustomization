@@ -212,15 +212,6 @@ class VerifyOTPView(View):
         return render(request, 'email/verify_email.html', { 'pending_user': user })
     
 
-#add to cart view
-
-
-
-
-
-
-# ---------------------------------------------------------------------------
-
 class ProfileView(LoginRequiredMixin, View):
     login_url = 'account:login'
 

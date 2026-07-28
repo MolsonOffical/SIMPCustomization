@@ -50,7 +50,9 @@
   font-size: 14px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
   z-index: 999;
 }
 
@@ -68,9 +70,27 @@
 
 /* ---------- page shell ---------- */
 .cart-page {
-  max-width: 1180px;
+  width: 100%;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 20px 60px;
+  padding: 24px 20px 48px;
+  min-height: calc(100vh - 220px);
+}
+
+.cart-page ~ .site-footer {
+  margin-top: 0;
+  padding: 56px 20px 28px;
+}
+
+.cart-page ~ .site-footer .site-footer__top,
+.cart-page ~ .site-footer .site-footer__bottom {
+  max-width: 1280px;
+  padding: 0;
+}
+
+#cart-root {
+  width: 100%;
+  padding: 0;
 }
 
 .cart-header {

@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Category(models.Model):
@@ -41,6 +42,9 @@ class Shoes(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name_plural = "Shoes"
+
     def __str__(self):
         return self.name
 
@@ -77,6 +81,77 @@ class ShoesVariant(models.Model):
         return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"
 
 
+class Review(models.Model):
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True)
+    is_anonymous = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("shoe", "user")
+
+    def __str__(self):
+        return f"{self.user} → {self.shoe} ({self.rating}★)"
+
+
+def review_media_upload_path(instance, filename):
+    return f"reviews/{instance.review.shoe_id}/{instance.review.user_id}/{filename}"
+
+
+class ReviewMedia(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="media")
+    file = models.FileField(upload_to=review_media_upload_path)
+    media_type = models.CharField(
+        max_length=5,
+        choices=[('image', 'Image'), ('video', 'Video')],
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+class ReviewReply(models.Model):
+    review = models.OneToOneField(Review, on_delete=models.CASCADE, related_name="reply")
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reply to {self.review}"
+
+
+class ShoeView(models.Model):
+    """
+    Lightweight page-view log used as an implicit interest signal for the
+    recommendation engine (stands in for the blog app's PostView).
+    Works for both logged-in users and anonymous visitors (tracked via a
+    session-based visitor_id).
+    """
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="shoe_views")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="shoe_views",
+    )
+    visitor_id = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["shoe", "created_at"]),
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["visitor_id", "created_at"]),
+        ]
+
+    def __str__(self):
+        who = f"user:{self.user_id}" if self.user_id else f"visitor:{self.visitor_id}"
+        return f"View({self.shoe_id} by {who})"
+
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending_payment', 'Pending Payment'),
@@ -84,6 +159,7 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
         ('failed', 'Failed'),
     ]
     PAYMENT_CHOICES = [('esewa', 'eSewa'), ('khalti', 'Khalti')]
@@ -124,3 +200,5 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.variant} x{self.quantity}"
+    
+

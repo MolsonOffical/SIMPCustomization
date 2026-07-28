@@ -3,6 +3,20 @@
 {% block title %}My Order History{% endblock %}
 {% block extra_header %}
 <link rel="stylesheet" href="{% static 'css/history.css' %}">
+<style>
+  /* Fallback styling for statuses not covered by the original history.css badges */
+  .status-badge.processing { background: #dbeafe; color: #1d4ed8; }
+  .status-badge.cancelled { background: #fee2e2; color: #b91c1c; }
+  .order-empty { text-align: center; padding: 60px 20px; color: #888; }
+  .order-empty i { font-size: 40px; margin-bottom: 12px; display: block; }
+  .order-failed-banner {
+    background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+    border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px;
+  }
+  .item-empty-note { font-size: 13px; color: #999; padding: 10px 0; }
+  .tab { cursor: pointer; }
+  .tab.active { font-weight: 700; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -11,200 +25,114 @@
 
     <h1 class="page-title">
         <i class="fas fa-clock-rotate-left"></i> Order History
-        <span class="order-count">(3 orders)</span>
+        <span class="order-count">({{ total_count }} order{{ total_count|pluralize }})</span>
     </h1>
     <hr>
 
     <div class="filter-tabs">
-        <span class="tab active">All</span>
-        <span class="tab">Pending</span>
-        <span class="tab">Processing</span>
-        <span class="tab">Shipped</span>
-        <span class="tab">Delivered</span>
-        <span class="tab">Cancelled</span>
+        <a href="?status=all" class="tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+        <a href="?status=pending_payment" class="tab {% if status_filter == 'pending_payment' %}active{% endif %}">Pending</a>
+        <a href="?status=processing" class="tab {% if status_filter == 'processing' %}active{% endif %}">Processing</a>
+        <a href="?status=shipped" class="tab {% if status_filter == 'shipped' %}active{% endif %}">Shipped</a>
+        <a href="?status=delivered" class="tab {% if status_filter == 'delivered' %}active{% endif %}">Delivered</a>
+        <a href="?status=cancelled" class="tab {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
     </div>
 
-    <div class="order-card">
-        <div class="order-header">
-            <div>
-                <span class="order-id">Order #<span>ORD-1001</span></span>
-                <span class="order-date" style="margin-left: 1rem;">
-                    <i class="fas fa-calendar-day"></i> Jun 28, 2026
-                </span>
-            </div>
-            <span class="status-badge pending">Pending</span>
-        </div>
-
-        <div class="order-body">
-            <!-- Tracking Steps -->
-            <div class="tracking">
-                <span class="track-step current">
-                    <span class="icon">✓</span> Ordered
-                </span>
-                <span class="track-line"></span>
-                <span class="track-step">
-                    <span class="icon">⏳</span> Process
-                </span>
-                <span class="track-line"></span>
-                <span class="track-step">
-                    <span class="icon">📦</span> Ship
-                </span>
-                <span class="track-line"></span>
-                <span class="track-step">
-                    <span class="icon">✅</span> Deliver
-                </span>
-            </div>
-
-            <!-- Items -->
-            <div class="item-list">
-                <div class="item-row">
-                    <div class="item-thumb">
-                        <!-- FUTURE: <img src="{{ item.shoe.thumbnail.url }}" alt="..."> -->
-                        🥾
-                    </div>
-                    <div class="item-info">
-                        <p class="item-name">Urban Runner Pro</p>
-                        <div class="item-meta">
-                            <span><i class="fas fa-palette"></i> Black</span>
-                            <span><i class="fas fa-ruler"></i> US 10</span>
-                            <span><i class="fas fa-hashtag"></i> Qty: 1</span>
-                        </div>
-                    </div>
-                    <span class="item-price">NPR. 129.99</span>
+    {% if order_rows %}
+        {% for row in order_rows %}
+        {% with order=row.order %}
+        <div class="order-card">
+            <div class="order-header">
+                <div>
+                    <span class="order-id">Order #<span>{{ order.order_id }}</span></span>
+                    <span class="order-date" style="margin-left: 1rem;">
+                        <i class="fas fa-calendar-day"></i> {{ order.created_at|date:"M d, Y" }}
+                    </span>
                 </div>
-                <div class="item-row">
-                    <div class="item-thumb">
-                        <!-- FUTURE: <img src="{{ item.shoe.thumbnail.url }}" alt="..."> -->
-                        👟
+                <span class="status-badge {{ row.badge_class }}">{{ order.get_status_display }}</span>
+            </div>
+
+            <div class="order-body">
+                {% if row.is_failed %}
+                    <div class="order-failed-banner">
+                        <i class="fas fa-circle-exclamation"></i> This order's payment did not go through.
                     </div>
-                    <div class="item-info">
-                        <p class="item-name">Air Cushion Zoom</p>
-                        <div class="item-meta">
-                            <span><i class="fas fa-palette"></i> White</span>
-                            <span><i class="fas fa-ruler"></i> US 9.5</span>
-                            <span><i class="fas fa-hashtag"></i> Qty: 2</span>
+                {% elif row.is_cancelled %}
+                    <div class="order-failed-banner">
+                        <i class="fas fa-ban"></i> This order was cancelled.
+                    </div>
+                {% else %}
+                    <!-- Tracking Steps -->
+                    <div class="tracking">
+                        <span class="track-step {% if row.step_index == 0 %}current{% else %}done{% endif %}">
+                            <span class="icon">✓</span> Ordered
+                        </span>
+                        <span class="track-line {% if row.step_index >= 1 %}done{% endif %}"></span>
+                        <span class="track-step {% if row.step_index == 1 %}current{% elif row.step_index > 1 %}done{% endif %}">
+                            <span class="icon">⏳</span> Process
+                        </span>
+                        <span class="track-line {% if row.step_index >= 2 %}done{% endif %}"></span>
+                        <span class="track-step {% if row.step_index == 2 %}current{% elif row.step_index > 2 %}done{% endif %}">
+                            <span class="icon">📦</span> Ship
+                        </span>
+                        <span class="track-line {% if row.step_index >= 3 %}done{% endif %}"></span>
+                        <span class="track-step {% if row.step_index == 3 %}current{% endif %}">
+                            <span class="icon">✅</span> Deliver
+                        </span>
+                    </div>
+                {% endif %}
+
+                <!-- Items -->
+                <div class="item-list">
+                    {% for item in row.items %}
+                    <div class="item-row">
+                        <div class="item-thumb">
+                            {% if item.variant.shoes_photo %}
+                                <img src="{{ item.variant.shoes_photo.url }}" alt="{{ item.variant.shoe.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
+                            {% else %}
+                                👟
+                            {% endif %}
                         </div>
+                        <div class="item-info">
+                            <p class="item-name">{{ item.variant.shoe.name }}</p>
+                            <div class="item-meta">
+                                <span><i class="fas fa-palette"></i> {{ item.variant.color.name }}</span>
+                                <span><i class="fas fa-ruler"></i> {{ item.variant.size.size_value }}</span>
+                                <span><i class="fas fa-hashtag"></i> Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <span class="item-price">NPR. {{ item.price }}</span>
                     </div>
-                    <span class="item-price">NPR. 89.50</span>
+                    {% empty %}
+                    <div class="item-empty-note">No item details recorded for this order.</div>
+                    {% endfor %}
                 </div>
-            </div>
 
-            <div class="order-footer">
-                <span class="total-label">Total: <strong>NPR. 308.99</strong></span>
-                <a href="#" class="detail-link">View Details →</a>
-               
-            </div>
-        </div>
-    </div>
-
-    <div class="order-card">
-        <div class="order-header">
-            <div>
-                <span class="order-id">Order #<span>ORD-0987</span></span>
-                <span class="order-date" style="margin-left: 1rem;">
-                    <i class="fas fa-calendar-day"></i> Jun 20, 2026
-                </span>
-            </div>
-            <span class="status-badge shipped">Shipped</span>
-        </div>
-
-        <div class="order-body">
-            <!-- Tracking -->
-            <div class="tracking">
-                <span class="track-step done">
-                    <span class="icon">✓</span> Ordered
-                </span>
-                <span class="track-line done"></span>
-                <span class="track-step done">
-                    <span class="icon">✓</span> Process
-                </span>
-                <span class="track-line done"></span>
-                <span class="track-step current">
-                    <span class="icon">📦</span> Ship
-                </span>
-                <span class="track-line"></span>
-                <span class="track-step">
-                    <span class="icon">✅</span> Deliver
-                </span>
-            </div>
-
-            <!-- Items -->
-            <div class="item-list">
-                <div class="item-row">
-                    <div class="item-thumb">👞</div>
-                    <div class="item-info">
-                        <p class="item-name">Classic Leather Oxford</p>
-                        <div class="item-meta">
-                            <span><i class="fas fa-palette"></i> Brown</span>
-                            <span><i class="fas fa-ruler"></i> US 11</span>
-                            <span><i class="fas fa-hashtag"></i> Qty: 1</span>
-                        </div>
+                <div class="order-footer">
+                    <span class="total-label">Total: <strong>NPR. {{ order.total_amount }}</strong></span>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        {% if row.can_cancel %}
+                        <form method="post" action="{% url 'shoes:cancel_order' order_id=order.order_id %}"
+                              onsubmit="return confirm('Cancel this order?');" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="detail-link" style="background:none;border:none;color:#b91c1c;cursor:pointer;">
+                                Cancel Order
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{% url 'shoes:order_tracking_view' order_id=order.order_id %}" class="detail-link">View Details →</a>
                     </div>
-                    <span class="item-price">NPR. 159.00</span>
                 </div>
             </div>
-
-            <div class="order-footer">
-                <span class="total-label">Total: <strong>NPR. 159.00</strong></span>
-                <a href="#" class="detail-link">View Details →</a>
-            </div>
         </div>
-    </div>
-
-    <div class="order-card">
-        <div class="order-header">
-            <div>
-                <span class="order-id">Order #<span>ORD-0912</span></span>
-                <span class="order-date" style="margin-left: 1rem;">
-                    <i class="fas fa-calendar-day"></i> Jun 05, 2026
-                </span>
-            </div>
-            <span class="status-badge delivered">Delivered</span>
+        {% endwith %}
+        {% endfor %}
+    {% else %}
+        <div class="order-empty">
+            <i class="fas fa-box-open"></i>
+            <p>No orders found{% if status_filter != 'all' %} for this filter{% endif %}.</p>
         </div>
-
-        <div class="order-body">
-            <!-- Tracking -->
-            <div class="tracking">
-                <span class="track-step done">
-                    <span class="icon">✓</span> Ordered
-                </span>
-                <span class="track-line done"></span>
-                <span class="track-step done">
-                    <span class="icon">✓</span> Process
-                </span>
-                <span class="track-line done"></span>
-                <span class="track-step done">
-                    <span class="icon">✓</span> Ship
-                </span>
-                <span class="track-line done"></span>
-                <span class="track-step done">
-                    <span class="icon">✅</span> Deliver
-                </span>
-            </div>
-
-            <!-- Items -->
-            <div class="item-list">
-                <div class="item-row">
-                    <div class="item-thumb">👟</div>
-                    <div class="item-info">
-                        <p class="item-name">Trail Runner GTX</p>
-                        <div class="item-meta">
-                            <span><i class="fas fa-palette"></i> Olive</span>
-                            <span><i class="fas fa-ruler"></i> US 10.5</span>
-                            <span><i class="fas fa-hashtag"></i> Qty: 1</span>
-                        </div>
-                    </div>
-                    <span class="item-price">NPR. 144.99</span>
-                </div>
-            </div>
-
-            <div class="order-footer">
-                <span class="total-label">Total: <strong>NPR. 144.99</strong></span>
-                <a href="#" class="detail-link">View Details →</a>
-            </div>
-        </div>
-    </div>
-
+    {% endif %}
 
 </div>
 

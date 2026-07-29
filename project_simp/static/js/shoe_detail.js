@@ -139,3 +139,91 @@
         }
     }
 })();
+const commentField = document.getElementById('id_comment');
+const charHint = document.getElementById('char-hint');
+if (commentField && charHint) {
+  const updateHint = () => {
+    const len = commentField.value.trim().length;
+    charHint.textContent = `${len} / 30 characters`;
+    charHint.classList.toggle('char-hint--ok', len >= 30);
+  };
+  commentField.addEventListener('input', updateHint);
+  updateHint(); // handles the case where a failed submit re-renders with existing text
+}
+const fileInput = document.getElementById('id_files');
+const uploadContainer = document.getElementById('media-upload');
+const addTile = uploadContainer ? uploadContainer.querySelector('.media-tile--add') : null;
+
+if (fileInput && uploadContainer && addTile) {
+  let selectedFiles = [];
+
+  fileInput.addEventListener('change', () => {
+    selectedFiles = selectedFiles.concat(Array.from(fileInput.files));
+    renderTiles();
+  });
+
+  function renderTiles() {
+    uploadContainer.querySelectorAll('.media-tile--preview').forEach(t => t.remove());
+
+    selectedFiles.forEach((file, index) => {
+      const tile = document.createElement('div');
+      tile.className = 'media-tile media-tile--preview';
+
+      if (file.type.startsWith('image')) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        tile.appendChild(img);
+      } else {
+        const icon = document.createElement('i');
+        icon.className = 'fa-solid fa-video';
+        tile.appendChild(icon);
+      }
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'media-tile__remove';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.addEventListener('click', () => {
+        selectedFiles.splice(index, 1);
+        syncFileInput();
+        renderTiles();
+      });
+      tile.appendChild(removeBtn);
+
+      uploadContainer.insertBefore(tile, addTile);
+    });
+
+    syncFileInput();
+  }
+
+  function syncFileInput() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+  }
+}
+const ratingLabels = { 1: 'Poor', 2: 'Fair', 3: 'Good', 4: 'Very Good', 5: 'Delightful' };
+const ratingLabelEl = document.getElementById('rating-label');
+document.querySelectorAll('.star-picker input[type="radio"]').forEach(input => {
+  input.addEventListener('change', () => {
+    if (ratingLabelEl) ratingLabelEl.textContent = ratingLabels[input.value];
+  });
+});
+function openLightbox(url) {
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox-overlay').classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox-overlay').classList.remove('active');
+}
+function toggleReviewMenu(btn) {
+  const dropdown = btn.nextElementSibling;
+  const isOpen = dropdown.classList.contains('active');
+  document.querySelectorAll('.review-menu__dropdown.active').forEach(d => d.classList.remove('active'));
+  if (!isOpen) dropdown.classList.add('active');
+}
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.review-menu')) {
+    document.querySelectorAll('.review-menu__dropdown.active').forEach(d => d.classList.remove('active'));
+  }
+});

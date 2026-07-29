@@ -35,7 +35,7 @@
         <a href="?status=processing" class="tab {% if status_filter == 'processing' %}active{% endif %}">Processing</a>
         <a href="?status=shipped" class="tab {% if status_filter == 'shipped' %}active{% endif %}">Shipped</a>
         <a href="?status=delivered" class="tab {% if status_filter == 'delivered' %}active{% endif %}">Delivered</a>
-        <a href="?status=failed" class="tab {% if status_filter == 'failed' %}active{% endif %}">Cancelled</a>
+        <a href="?status=cancelled" class="tab {% if status_filter == 'cancelled' %}active{% endif %}">Cancelled</a>
     </div>
 
     {% if order_rows %}
@@ -56,6 +56,10 @@
                 {% if row.is_failed %}
                     <div class="order-failed-banner">
                         <i class="fas fa-circle-exclamation"></i> This order's payment did not go through.
+                    </div>
+                {% elif row.is_cancelled %}
+                    <div class="order-failed-banner">
+                        <i class="fas fa-ban"></i> This order was cancelled.
                     </div>
                 {% else %}
                     <!-- Tracking Steps -->
@@ -106,7 +110,18 @@
 
                 <div class="order-footer">
                     <span class="total-label">Total: <strong>NPR. {{ order.total_amount }}</strong></span>
-                    <a href="{% url 'shoes:order_tracking_view' order_id=order.order_id %}" class="detail-link">View Details →</a>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        {% if row.can_cancel %}
+                        <form method="post" action="{% url 'shoes:cancel_order' order_id=order.order_id %}"
+                              onsubmit="return confirm('Cancel this order?');" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="detail-link" style="background:none;border:none;color:#b91c1c;cursor:pointer;">
+                                Cancel Order
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{% url 'shoes:order_tracking_view' order_id=order.order_id %}" class="detail-link">View Details →</a>
+                    </div>
                 </div>
             </div>
         </div>

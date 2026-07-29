@@ -1,7 +1,7 @@
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 5px 20px 20px 20px;
+  padding: 24px 20px 40px;
 }
 
 .filter-bar {
@@ -50,10 +50,11 @@
 }
 
 .search-results-container {
-  background: #e3f2fd;
-  border-radius: 16px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid #e6dfd5;
+  border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
   margin-top: 20px;
 }
 
@@ -66,12 +67,13 @@
 
 .card-wrapper {
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  border: 1px solid #eee7df;
 }
 
 .card-wrapper:hover {
@@ -117,7 +119,7 @@
 }
 
 .category-badge {
-  background: #4a69bd;
+  background: var(--brand, #0f8a5f);
   color: #fff;
   padding: 4px 10px;
   border-radius: 20px;
@@ -218,7 +220,7 @@
 .btn {
   display: block;
   width: 100%;
-  background: #4a69bd;
+  background: var(--brand, #0f8a5f);
   color: white;
   padding: 12px 20px;
   border-radius: 6px;
@@ -230,7 +232,7 @@
 }
 
 .btn:hover {
-  background: #3c5aa8;
+  background: var(--brand-dark, #0b6b45);
 }
 
 .no-results {

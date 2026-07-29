@@ -1,11 +1,11 @@
 :root {
-  --panel-bg: #1a1a1a;
-  --panel-text: #e0e0e0;
-  --panel-text-muted: #999;
-  --preview-bg: #f0f0f0;
-  --accent: #1a7a4a;
-  --accent-hover: #2ea865;
-  --border: #333;
+  --panel-bg: #fffdf9;
+  --panel-text: #242424;
+  --panel-text-muted: #6f6f6f;
+  --preview-bg: #f3efe8;
+  --accent: #0f8a5f;
+  --accent-hover: #0b6b45;
+  --border: #e6dfd5;
   --font-label: 'Barlow Condensed', sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
 }
@@ -18,7 +18,7 @@
 }
 
 .controls-panel {
-  background: var(--panel-bg);
+  background: linear-gradient(180deg, #fffdf9 0%, #f8efe3 100%);
   color: var(--panel-text);
   padding: 28px 24px;
   overflow-y: auto;

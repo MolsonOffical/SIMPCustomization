@@ -14,6 +14,7 @@ urlpatterns = [
     path('parash/', views.test, name='test'),
 	
 	path('history/', views.order_history_view, name='history'),
+    path('orders/<str:order_id>/cancel/', views.cancel_order, name='cancel_order'),
     path('checkout/', views.checkout_view, name='checkout_view'),
     path('orders/<str:order_id>/track/', views.order_tracking_view, name='order_tracking_view'),
     path('orders/<str:order_id>/success/', views.payment_success_view, name='payment_success_view'),

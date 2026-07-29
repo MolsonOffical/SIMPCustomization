@@ -29,6 +29,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='cartitem',
-            constraint=models.CheckConstraint(condition=models.Q(('pattern__isnull', False), ('variant__isnull', False), _connector='OR'), name='cartitem_has_pattern_or_variant'),
+            constraint=models.CheckConstraint(check=models.Q(('pattern__isnull', False), ('variant__isnull', False), _connector='OR'), name='cartitem_has_pattern_or_variant'),
         ),
     ]

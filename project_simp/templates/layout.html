@@ -87,9 +87,10 @@
               <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
               <span id="cart-badge"></span>
             </a>
-            <a href="#" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications" title="Coming soon">
-              <i class="fa-solid fa-bell" aria-hidden="true"></i>
-            </a>
+            <a href="{% url 'notifications:list' %}" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications">
+  <i class="fa-solid fa-bell" aria-hidden="true"></i>
+  <span id="notif-badge"></span>
+</a>
             <div class="dropdown dropdown--profile">
               <button type="button" class="profile-trigger dropdown-toggle" aria-label="Account menu" aria-expanded="false" aria-haspopup="true">
                 {% if request.user.profile %}

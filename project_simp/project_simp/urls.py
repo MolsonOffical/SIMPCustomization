@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('account.urls', 'account'), namespace='account')),
     path('shoes/', include(('shoes.urls', 'shoes'), namespace='shoes')),
+    path('notifications/', include(('notifications.urls', 'notifications'), namespace='notifications')),
     path("chatbot/",include(('chatbot.urls','chatbot'),namespace='chatbot')),
 ]
 

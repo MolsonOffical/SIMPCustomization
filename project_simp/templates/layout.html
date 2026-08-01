@@ -214,14 +214,7 @@
         <div class="user-actions">
           {% if request.user.is_authenticated %}
           <div class="nav-icon-group">
-            <a
-              href="#"
-              class="nav-icon-btn"
-              aria-label="Your orders"
-              title="Coming soon"
-            >
-              <i class="fa-solid fa-box" aria-hidden="true"></i>
-            </a>
+           
             <a
               href="{% url 'shoes:cart_page' %}"
               class="nav-icon-btn"

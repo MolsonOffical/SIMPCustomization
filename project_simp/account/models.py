@@ -140,7 +140,7 @@ class CartItem(models.Model):
         ordering = ['-created_at']
         constraints = [
             models.CheckConstraint(
-                condition=Q(pattern__isnull=False) | Q(variant__isnull=False),
+                check=Q(pattern__isnull=False) | Q(variant__isnull=False),
                 name='cartitem_has_pattern_or_variant',
         )
     ]

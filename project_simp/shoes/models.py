@@ -123,12 +123,6 @@ class ReviewReply(models.Model):
 
 
 class ShoeView(models.Model):
-    """
-    Lightweight page-view log used as an implicit interest signal for the
-    recommendation engine (stands in for the blog app's PostView).
-    Works for both logged-in users and anonymous visitors (tracked via a
-    session-based visitor_id).
-    """
     shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="shoe_views")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

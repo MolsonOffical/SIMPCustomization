@@ -6,8 +6,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('account', '0010_cartitem_variant_alter_cartitem_pattern_and_more'),
-    ]
+    ('account', '0002_initial'),
+]
 
     operations = [
         migrations.AlterField(

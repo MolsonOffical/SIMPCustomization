@@ -6,8 +6,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("shoes", "0007_merge_0004_shoeview_0006_reviewreply"),
-    ]
+    ("shoes", "0006_reviewreply"),
+]
 
     operations = [
         migrations.AlterField(

@@ -297,6 +297,13 @@ def _serialize_item(item):
 
 
 def _cart_payload(user):
+    # NOTE: cart display is NOT filtered by the `order` reservation
+    # field. Items stay visible in the cart the whole time an order is
+    # pending_payment — they only disappear once payment actually
+    # succeeds (deleted in esewa_verify/khalti_verify), or they simply
+    # stay put if payment fails/is abandoned (order gets reset to
+    # None, but the item was never hidden from view in the first
+    # place, so there is nothing to "restore").
     items = list(CartItem.objects.filter(user=user))
     count = sum(i.quantity for i in items)
     subtotal = sum(i.subtotal for i in items)
@@ -487,7 +494,14 @@ def _decode_photo(data_url, pattern):
 
 
 def checkout_view(request):
-    return render(request, 'shoes/checkout.html')
+    payment_method = request.GET.get('method')
+    if payment_method not in ('khalti', 'esewa'):
+        payment_method = None
+
+    context = {
+        'payment_method': payment_method,
+    }
+    return render(request, 'shoes/checkout.html', context)
 
 
 def order_tracking_view(request, order_id):
@@ -578,6 +592,10 @@ def cancel_order(request, order_id):
     else:
         order.status = 'cancelled'
         order.save()
+        # release any items still reserved against this order back to
+        # the cart's "unreserved" state (they were never hidden from
+        # the UI, this just clears the bookkeeping FK)
+        order.pending_cart_items.update(order=None)
         messages.success(request, f"Order {order.order_id} has been cancelled.")
 
     return redirect('shoes:history')
@@ -620,11 +638,39 @@ def create_order(request):
     for item in cart_items:
         if item.variant_id:
             OrderItem.objects.create(
-                order=order, variant=item.variant,
-                price=item.unit_price, quantity=item.quantity,
+                order=order,
+                variant=item.variant,
+                price=item.unit_price,
+                quantity=item.quantity,
             )
+        else:
+            order_item = OrderItem.objects.create(
+                order=order,
+                variant=None,
+                pattern=item.pattern,
+                colors=item.colors,
+                size=item.size,
+                price=item.unit_price,
+                quantity=item.quantity,
+            )
+            # Copy the customer's actual custom-design snapshot over,
+            # since CartItem.photo will be gone once payment succeeds
+            # and the cart item is deleted.
+            if item.photo:
+                item.photo.open()
+                order_item.photo.save(
+                    item.photo.name.rsplit('/', 1)[-1],
+                    ContentFile(item.photo.read()),
+                    save=True,
+                )
 
-    cart_items.delete()
+    # Reserve the cart items against this order (bookkeeping only —
+    # they remain visible in the cart UI the whole time). They're
+    # only deleted once payment actually succeeds (see
+    # esewa_verify/khalti_verify below). If payment fails or the order
+    # is cancelled, the reservation is released (order set back to
+    # None) — the item was never hidden, so nothing needs restoring.
+    cart_items.update(order=order)
 
     return JsonResponse({'order_id': order.order_id, 'total_amount': str(total_amount)})
 
@@ -667,12 +713,14 @@ def esewa_verify(request, order_id):
     if not encoded:
         order.status = 'failed'
         order.save()
+        order.pending_cart_items.update(order=None)
         return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
 
     decoded = json.loads(base64.b64decode(encoded))
     if decoded.get('status') != 'COMPLETE':
         order.status = 'failed'
         order.save()
+        order.pending_cart_items.update(order=None)
         return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
 
     params = {
@@ -686,10 +734,12 @@ def esewa_verify(request, order_id):
         order.status = 'paid'
         order.transaction_id = decoded.get('transaction_code', '')
         order.save()
+        order.pending_cart_items.all().delete()
         return redirect(f'/shoes/orders/{order.order_id}/success/')
 
     order.status = 'failed'
     order.save()
+    order.pending_cart_items.update(order=None)
     return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
 
 
@@ -722,6 +772,7 @@ def khalti_initiate(request, order_id):
 
     order.status = 'failed'
     order.save()
+    order.pending_cart_items.update(order=None)
     return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
 
 
@@ -739,8 +790,10 @@ def khalti_verify(request, order_id):
         order.status = 'paid'
         order.transaction_id = result.get('transaction_id', '')
         order.save()
+        order.pending_cart_items.all().delete()
         return redirect(f'/shoes/orders/{order.order_id}/success/')
 
     order.status = 'failed'
     order.save()
+    order.pending_cart_items.update(order=None)
     return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')

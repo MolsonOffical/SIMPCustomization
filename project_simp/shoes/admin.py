@@ -30,11 +30,31 @@ class ReviewAdmin(admin.ModelAdmin):
     inlines = [ReviewMediaInline, ReviewReplyInline]
 
 
+def _order_item_thumbnail_html(obj):
+    """Shared renderer used by both the inline and the standalone
+    OrderItem admin. Relies on OrderItem.display_photo_url, which
+    returns the customer's actual custom-design snapshot for
+    customizer items (OrderItem.photo) or the catalog product photo
+    for variant-based items (variant.shoes_photo)."""
+    url = obj.display_photo_url
+    if not url:
+        return "—"
+    return format_html(
+        '<img src="{}" style="height:50px;width:50px;object-fit:cover;border-radius:6px;" />',
+        url,
+    )
+
+
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ('variant', 'price', 'quantity')
+    readonly_fields = ('thumbnail', 'variant', 'pattern', 'size', 'colors', 'price', 'quantity')
+    fields = ('thumbnail', 'variant', 'pattern', 'size', 'colors', 'price', 'quantity')
     can_delete = False
+
+    def thumbnail(self, obj):
+        return _order_item_thumbnail_html(obj)
+    thumbnail.short_description = "Photo"
 
 
 @admin.register(Order)
@@ -89,8 +109,18 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('order', 'variant', 'price', 'quantity', 'subtotal')
-    readonly_fields = ('order', 'variant', 'price', 'quantity')
+    list_display = ('order', 'thumbnail', 'item_name', 'price', 'quantity', 'subtotal')
+    readonly_fields = ('order', 'variant', 'price', 'quantity', 'thumbnail')
+
+    def thumbnail(self, obj):
+        return _order_item_thumbnail_html(obj)
+    thumbnail.short_description = "Photo"
+
+    def item_name(self, obj):
+        if obj.variant_id:
+            return str(obj.variant)
+        return f"{obj.pattern} (size {obj.size})"
+    item_name.short_description = "Item"
 
     def subtotal(self, obj):
         return obj.subtotal()

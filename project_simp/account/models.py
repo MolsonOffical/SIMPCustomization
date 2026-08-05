@@ -116,10 +116,23 @@ class CartItem(models.Model):
     colors = models.JSONField(default=dict, blank=True)
 
     # --- Admin-added regular shoe field (new) ---
+    # --- Admin-added regular shoe field (new) ---
     variant = models.ForeignKey(
         'shoes.ShoesVariant',
         on_delete=models.CASCADE,
         related_name='cart_items',
+        null=True,
+        blank=True,
+    )
+
+    # When an order is created from this cart item, it's "reserved"
+    # here instead of being deleted outright. Only a successful
+    # payment actually deletes it; a failed/abandoned payment sets
+    # this back to null so the item reappears in the cart.
+    order = models.ForeignKey(
+        'shoes.Order',
+        on_delete=models.SET_NULL,
+        related_name='pending_cart_items',
         null=True,
         blank=True,
     )
@@ -140,7 +153,7 @@ class CartItem(models.Model):
         ordering = ['-created_at']
         constraints = [
             models.CheckConstraint(
-                check=Q(pattern__isnull=False) | Q(variant__isnull=False),
+                condition=Q(pattern__isnull=False) | Q(variant__isnull=False),
                 name='cartitem_has_pattern_or_variant',
         )
     ]

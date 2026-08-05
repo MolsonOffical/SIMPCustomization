@@ -1,0 +1,68 @@
+{% load static %}
+<div class="notif-list" id="notifList">
+  {% for notification in page_obj %}
+    <article class="notif-card notif-card--{{ notification.notification_type }} {% if not notification.is_read %}is-unread{% endif %}"
+              data-id="{{ notification.pk }}">
+      <span class="notif-card__spine"></span>
+
+      <a href="{% url 'notifications:detail' notification.pk %}" class="notif-card__icon" aria-hidden="true">
+        {% if notification.notification_type == 'purchase' %}
+          <i class="fa-solid fa-bag-shopping"></i>
+        {% elif notification.notification_type == 'delivery' %}
+          <i class="fa-solid fa-truck-fast"></i>
+        {% elif notification.notification_type == 'admin' %}
+          <i class="fa-solid fa-bullhorn"></i>
+        {% else %}
+          <i class="fa-solid fa-bell"></i>
+        {% endif %}
+      </a>
+
+      <a href="{% url 'notifications:detail' notification.pk %}" class="notif-card__body">
+        <div class="notif-card__top">
+          <h3 class="notif-card__title">{{ notification.title }}</h3>
+          {% if not notification.is_read %}<span class="notif-dot" aria-label="Unread"></span>{% endif %}
+        </div>
+        <p class="notif-card__message">{{ notification.message|truncatechars:110 }}</p>
+        <time class="notif-card__time" datetime="{{ notification.created_at|date:'c' }}">
+          {{ notification.created_at|timesince }} ago
+        </time>
+      </a>
+
+      {% if not notification.is_read %}
+        <button type="button" class="notif-card__quick-read" title="Mark as read" data-mark-read="{{ notification.pk }}">
+          <i class="fa-solid fa-check"></i>
+        </button>
+      {% endif %}
+    </article>
+  {% empty %}
+    <div class="notif-empty">
+      <i class="fa-regular fa-bell-slash"></i>
+      <h3>Nothing here yet</h3>
+      <p>
+        {% if active_filter == 'unread' %}
+          You're all caught up — no unread notifications.
+        {% elif active_filter == 'read' %}
+          You haven't read any notifications yet.
+        {% else %}
+          Updates about your purchases and deliveries will show up here.
+        {% endif %}
+      </p>
+    </div>
+  {% endfor %}
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+  <nav class="notif-pagination" aria-label="Notification pages">
+    {% if page_obj.has_previous %}
+      <a href="?filter={{ active_filter }}&page={{ page_obj.previous_page_number }}" class="notif-page-link" data-page-link>
+        <i class="fa-solid fa-chevron-left"></i>
+      </a>
+    {% endif %}
+    <span class="notif-page-current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?filter={{ active_filter }}&page={{ page_obj.next_page_number }}" class="notif-page-link" data-page-link>
+        <i class="fa-solid fa-chevron-right"></i>
+      </a>
+    {% endif %}
+  </nav>
+{% endif %}

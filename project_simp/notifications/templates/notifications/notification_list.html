@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/notification/notification_list.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="notif-page">
+  {% csrf_token %}
+
+  <div class="notif-header">
+    <div>
+      <h1>Notifications</h1>
+      <p>Purchases, deliveries, and updates from SIMP land here.</p>
+    </div>
+    <button type="button" class="notif-mark-all" id="markAllReadBtn" {% if unread_count == 0 %}disabled{% endif %}>
+      Mark all as read
+    </button>
+  </div>
+
+  <div class="notif-tabs" role="tablist">
+    <button type="button" class="notif-tab {% if active_filter == 'all' %}is-active{% endif %}" data-filter="all">
+      All <span class="count">{{ total_count }}</span>
+    </button>
+    <button type="button" class="notif-tab {% if active_filter == 'unread' %}is-active{% endif %}" data-filter="unread">
+      Unread <span class="count" id="unreadTabCount">{{ unread_count }}</span>
+    </button>
+    <button type="button" class="notif-tab {% if active_filter == 'read' %}is-active{% endif %}" data-filter="read">
+      Read
+    </button>
+  </div>
+
+  <div id="notifContainer">
+    {% include "notifications/_notification_items.html" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+(function () {
+  const container   = document.getElementById('notifContainer');
+  const tabs        = document.querySelectorAll('.notif-tab');
+  const markAllBtn  = document.getElementById('markAllReadBtn');
+  const unreadTabCt = document.getElementById('unreadTabCount');
+  const csrfToken   = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+  let activeFilter = '{{ active_filter }}';
+
+  function loadNotifications(url, pushState) {
+    container.classList.add('notif-loading');
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then((res) => res.json())
+      .then((data) => {
+        container.innerHTML = data.html;
+        updateUnreadUI(data.unread_count);
+        container.classList.remove('notif-loading');
+        if (pushState) window.history.pushState({}, '', url);
+      })
+      .catch(() => { container.classList.remove('notif-loading'); });
+  }
+
+  function updateUnreadUI(count) {
+    unreadTabCt.textContent = count;
+    markAllBtn.disabled = count === 0;
+  }
+
+  function buildUrl(filterValue, page) {
+    const params = new URLSearchParams();
+    params.set('filter', filterValue);
+    if (page) params.set('page', page);
+    return window.location.pathname + '?' + params.toString();
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      activeFilter = tab.dataset.filter;
+      tabs.forEach((t) => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      loadNotifications(buildUrl(activeFilter), true);
+    });
+  });
+
+  markAllBtn.addEventListener('click', () => {
+    fetch("{% url 'notifications:mark_all_read' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+      .then((res) => res.json())
+      .then(() => loadNotifications(buildUrl(activeFilter)));
+  });
+
+  container.addEventListener('click', (e) => {
+    const quickRead = e.target.closest('[data-mark-read]');
+    if (quickRead) {
+      e.preventDefault();
+      const id = quickRead.dataset.markRead;
+      fetch(`/notifications/${id}/mark-read/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          updateUnreadUI(data.unread_count);
+          loadNotifications(buildUrl(activeFilter));
+        });
+      return;
+    }
+
+    const pageLink = e.target.closest('[data-page-link]');
+    if (pageLink) {
+      e.preventDefault();
+      loadNotifications(pageLink.getAttribute('href'), true);
+    }
+  });
+
+  window.addEventListener('popstate', () => {
+    loadNotifications(window.location.pathname + window.location.search);
+  });
+})();
+</script>
+{% endblock %}

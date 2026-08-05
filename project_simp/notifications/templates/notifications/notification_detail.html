@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block extra_header %}
+<link rel="stylesheet" href="{% static 'css/notification/notification_detail.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="nd-page">
+  {% csrf_token %}
+
+  <a href="{% url 'notifications:list' %}" class="nd-back">
+    <i class="fa-solid fa-arrow-left"></i> Back to notifications
+  </a>
+
+  <div class="nd-card nd-card--{{ notification.notification_type }}">
+    <div class="nd-card__header">
+      <div class="nd-card__icon">
+        {% if notification.notification_type == 'purchase' %}
+          <i class="fa-solid fa-bag-shopping"></i>
+        {% elif notification.notification_type == 'delivery' %}
+          <i class="fa-solid fa-truck-fast"></i>
+        {% elif notification.notification_type == 'admin' %}
+          <i class="fa-solid fa-bullhorn"></i>
+        {% else %}
+          <i class="fa-solid fa-bell"></i>
+        {% endif %}
+      </div>
+      <h1>{{ notification.title }}</h1>
+      <p class="nd-card__type-label">{{ notification.get_notification_type_display }}</p>
+    </div>
+
+    <div class="nd-card__body">
+      <p class="nd-message">{{ notification.message }}</p>
+
+      <div class="nd-meta">
+        <span class="nd-meta__chip"><i class="fa-regular fa-clock"></i> {{ notification.created_at|date:"M d, Y — H:i" }}</span>
+        <span class="nd-meta__chip">
+          {% if notification.is_read %}
+            <i class="fa-solid fa-check"></i> Read
+          {% else %}
+            <i class="fa-solid fa-circle" style="font-size:7px;color:#4f46e5;"></i> Unread
+          {% endif %}
+        </span>
+      </div>
+
+      {% if notification.order %}
+        <div class="nd-order">
+          <div class="nd-order__row">
+            <span class="nd-order__label">Order ID</span>
+            <span class="nd-order__value">{{ notification.order.order_id }}</span>
+          </div>
+          <div class="nd-order__row">
+            <span class="nd-order__label">Status</span>
+            <span class="nd-status-pill nd-status-pill--{{ notification.order.status }}">
+              {{ notification.order.get_status_display }}
+            </span>
+          </div>
+          <div class="nd-order__row">
+            <span class="nd-order__label">Total</span>
+            <span class="nd-order__value">Rs. {{ notification.order.total_amount }}</span>
+          </div>
+
+          {% if order_items %}
+            <p class="nd-items__label">Items ordered</p>
+            <table class="nd-items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Price</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order_items %}
+                <tr>
+                  <td>
+                    <span class="nd-items-table__name">{{ item.variant.shoe.name }}</span>
+                    <span class="nd-items-table__meta">{{ item.variant.color.name }} · Size {{ item.variant.size.size_value }}</span>
+                  </td>
+                  <td>{{ item.quantity }}</td>
+                  <td>Rs. {{ item.price|floatformat:2 }}</td>
+                  <td>Rs. {{ item.subtotal|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3">Overall Total</td>
+                  <td>Rs. {{ notification.order.total_amount|floatformat:2 }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      <div class="nd-actions">
+        <button type="button" class="nd-btn nd-btn--ghost" id="toggleReadBtn" data-id="{{ notification.pk }}">
+          {% if notification.is_read %}
+            <i class="fa-regular fa-envelope"></i> Mark as unread
+          {% else %}
+            <i class="fa-regular fa-envelope-open"></i> Mark as read
+          {% endif %}
+        </button>
+        <button type="button" class="nd-btn nd-btn--danger" id="deleteBtn" data-id="{{ notification.pk }}">
+          <i class="fa-regular fa-trash-can"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+{{ block.super }}
+<script>
+(function () {
+  const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+  const toggleBtn = document.getElementById('toggleReadBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+
+  toggleBtn.addEventListener('click', () => {
+    fetch(`/notifications/${toggleBtn.dataset.id}/toggle-read/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        toggleBtn.innerHTML = data.is_read
+          ? '<i class="fa-regular fa-envelope"></i> Mark as unread'
+          : '<i class="fa-regular fa-envelope-open"></i> Mark as read';
+      });
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    if (!confirm('Delete this notification? This cannot be undone.')) return;
+    fetch(`/notifications/${deleteBtn.dataset.id}/delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+      .then((res) => res.json())
+      .then(() => { window.location.href = "{% url 'notifications:list' %}"; });
+  });
+})();
+</script>
+{% endblock %}

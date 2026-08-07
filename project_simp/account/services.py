@@ -73,7 +73,6 @@ def create_and_send_otp(user):
     otp_code = generate_otp()
     expires_at = timezone.now() + timedelta(minutes=10)
 
-    # remove any old OTPs for this user before issuing a new one
     EmailOTP.objects.filter(user=user).delete()
 
     otp_instance = EmailOTP.objects.create(

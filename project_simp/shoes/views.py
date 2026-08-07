@@ -44,6 +44,10 @@ class ShoesListView(View):
         search = request.GET.get("searched", "").strip()
 
         category_ids = []
+
+        if category_id is not None:
+            category_ids.append(str(category_id))
+
         for val in request.GET.getlist("category"):
             category_ids.extend(
                 [c.strip() for c in val.split(",") if c.strip()]
@@ -688,10 +692,6 @@ def create_order(request):
     return JsonResponse({'order_id': order.order_id, 'total_amount': str(total_amount)})
 
 
-# ---------------------------------------------------------------
-# eSewa (ePay v2) — UAT/test credentials, see settings.py
-# ---------------------------------------------------------------
-
 def esewa_initiate(request, order_id):
     order = get_object_or_404(Order, order_id=order_id)
     total_amount = str(order.total_amount)
@@ -751,10 +751,6 @@ def esewa_verify(request, order_id):
     order.save()
     return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
 
-
-# ---------------------------------------------------------------
-# Khalti (KPG v2) — sandbox test key, see settings.py
-# ---------------------------------------------------------------
 
 def khalti_initiate(request, order_id):
     order = get_object_or_404(Order, order_id=order_id)

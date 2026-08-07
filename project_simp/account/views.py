@@ -13,13 +13,11 @@ from django.contrib.auth.decorators import login_required
 from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
 from django.db.models import Sum, Min, F, Avg, Count,Q,OuterRef, Subquery
 from shoes.models import Shoes, Category, Brand, Review
+from django.db.models import Min, Avg, Count, Sum, OuterRef, Subquery, IntegerField, Value, FloatField
+from django.db.models.functions import Coalesce
 
-# Matches the prices set in shoeColorConfigs in converse_customizer.html.
-# Keep these two in sync until you have a real Shoe/Product model with price.
 
-
-# Create your views here.
-
+from shoes.models import OrderItem
 
 class AboutPage(View):
     def get(self, request):
@@ -255,19 +253,34 @@ class DeleteProfileView(LoginRequiredMixin, View):
         messages.success(request, "Your account has been permanently deleted.")
         return redirect('account:login')
 
+
 class HomePage(View):
     def get(self, request):
         new_arrivals = Shoes.objects.select_related('category', 'brand').annotate(
             min_price=Min('variants__price'),
-            avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
+            avg_rating=Coalesce(Avg('reviews__rating'), Value(0.0), output_field=FloatField()),
+            review_count=Count('reviews', distinct=True),
         ).order_by('-created_at')[:9]
+
+        units_sold_sq = (
+            OrderItem.objects
+            .filter(
+                variant__shoe=OuterRef('pk'),
+                order__status__in=['paid', 'processing', 'shipped', 'delivered'],
+            )
+            .values('variant__shoe')
+            .annotate(total=Sum('quantity'))
+            .values('total')
+        )
 
         popular_shoes = Shoes.objects.select_related('category', 'brand').annotate(
             min_price=Min('variants__price'),
-            avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
-        ).order_by('-review_count', '-avg_rating')[:6]
+            avg_rating=Coalesce(Avg('reviews__rating'), Value(0.0), output_field=FloatField()),
+            review_count=Count('reviews', distinct=True),
+            units_sold=Coalesce(
+                Subquery(units_sold_sq, output_field=IntegerField()), 0
+            ),
+        ).filter(review_count__gt=0).order_by('-units_sold', '-avg_rating')[:6]
 
         categories = Category.objects.all().order_by('name')
 
@@ -296,6 +309,6 @@ class HomePage(View):
             'categories': categories,
             'brands': brands,
             'testimonials': testimonials,
-            'category_shoes': category_shoes,  
+            'category_shoes': category_shoes,
         }
         return render(request, 'Home/index.html', context)

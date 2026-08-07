@@ -13,7 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Avg, Min, Prefetch, Sum
+from django.db.models import Avg, Min, Prefetch, Sum, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -28,30 +28,104 @@ from django.views.decorators.http import (
 
 from account.models import CartItem, PATTERN_PRICES, SIZE_CHOICES
 from .forms import ReviewForm
-from .models import Order, OrderItem, Review, ReviewMedia, Shoes, ShoesVariant
+from .models import Order, OrderItem, Review, ReviewMedia, Shoes, ShoesVariant,Category,Brand
 from .recommendations import get_recommendation_engine
+
 
 
 class ShoesListView(View):
     def get(self, request, category_id=None):
-        shoes = Shoes.objects.select_related(
-            'category', 'brand'
-        ).annotate(
-            min_price=Min('variants__price'),
-            total_stock=Sum('variants__stock_quantity'),
+        shoes = Shoes.objects.select_related("category", "brand").annotate(
+            min_price=Min("variants__price"),
+            total_stock=Sum("variants__stock_quantity"),
+            avg_rating=Avg("reviews__rating"),
         )
 
-        if category_id:
-            shoes = shoes.filter(category_id=category_id)
+        search = request.GET.get("searched", "").strip()
 
-        shoes = shoes.order_by('-created_at')
+        category_ids = []
+        for val in request.GET.getlist("category"):
+            category_ids.extend(
+                [c.strip() for c in val.split(",") if c.strip()]
+            )
+
+        if category_ids:
+            shoes = shoes.filter(category_id__in=category_ids)
+
+        brand_ids = []
+        for val in request.GET.getlist("brand"):
+            brand_ids.extend(
+                [b.strip() for b in val.split(",") if b.strip()]
+            )
+
+        if brand_ids:
+            shoes = shoes.filter(brand_id__in=brand_ids)
+
+        if search:
+            shoes = shoes.filter(
+                Q(name__icontains=search)
+                | Q(description__icontains=search)
+                | Q(category__name__icontains=search)
+                | Q(brand__name__icontains=search)
+            )
+
+        stock = request.GET.get("stock")
+        if stock == "instock":
+            shoes = shoes.filter(total_stock__gt=0)
+
+        rating = request.GET.get("rating")
+        if rating and rating.isdigit():
+            rating = int(rating)
+
+            if rating == 5:
+                shoes = shoes.filter(
+                    avg_rating__gte=5,
+                    avg_rating__lte=5
+                )
+            elif 1 <= rating <= 4:
+                shoes = shoes.filter(
+                    avg_rating__gte=rating,
+                    avg_rating__lt=rating + 1
+                )
+
+        min_price = request.GET.get("min_price")
+        max_price = request.GET.get("max_price")
+
+        if min_price:
+            try:
+                shoes = shoes.filter(min_price__gte=float(min_price))
+            except ValueError:
+                pass
+
+        if max_price:
+            try:
+                shoes = shoes.filter(min_price__lte=float(max_price))
+            except ValueError:
+                pass
+
+        shoes = shoes.order_by("-created_at")
+
         paginator = Paginator(shoes, 9)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
+        page = request.GET.get("page", 1)
+        shoes_list = paginator.get_page(page)
 
-        return render(request, 'shoes/shoes_list.html', {'shoes_list': page_obj})
+        categories = Category.objects.all().order_by("name")
+        brands = Brand.objects.all().order_by("name")
 
+        context = {
+            "shoes_list": shoes_list,
+            "query": search,
+            "categories": categories,
+            "brands": brands,
+            "selected_categories": category_ids,
+            "selected_brands": brand_ids,
+            "selected_rating": rating if rating else "",
+            "min_price": min_price,
+            "max_price": max_price,
+        }
 
+        return render(request, "shoes/shoes_list.html", context)
+        
 class ShoeDetailView(View):
     def get(self, request, pk):
         variants_qs = ShoesVariant.objects.select_related(
@@ -226,16 +300,8 @@ class DeleteReviewView(LoginRequiredMixin, View):
         return redirect('shoes:shoe_detail', pk=pk)
 
 
-# shoes/views.py
-#
-# Cart views for the "shoes" app. The CartItem model itself lives in
-# accounts/models.py (it's tied to CustomUser) — that's fine, Django
-# apps are allowed to import each other's models. Just don't import
-# anything from `shoes` back into `accounts` and you're safe from
-# circular imports.
 
-
-MAX_QTY = 10  # matches MaxValueValidator(10) on CartItem.quantity
+MAX_QTY = 10  
 FREE_SHIPPING_THRESHOLD = 3000
 
 VALID_SIZES = {s for s, _ in SIZE_CHOICES}
@@ -474,7 +540,6 @@ def cart_clear(request):
 
 
 def _decode_photo(data_url, pattern):
-    """Convert a 'data:image/png;base64,...' string into a Django File."""
     if not data_url or ';base64,' not in data_url:
         return None
     header, encoded = data_url.split(';base64,', 1)
@@ -512,9 +577,6 @@ def payment_success_view(request, order_id):
     return render(request, 'shoes/payment_success.html', context)
 
 
-# ---------------------------------------------------------------
-# Order history
-# ---------------------------------------------------------------
 
 STATUS_STEP = {
     'pending_payment': 0,
@@ -583,9 +645,6 @@ def cancel_order(request, order_id):
     return redirect('shoes:history')
 
 
-# ---------------------------------------------------------------
-# Order creation
-# ---------------------------------------------------------------
 
 @login_required
 def create_order(request):

@@ -142,7 +142,7 @@ class CartItem(models.Model):
             models.CheckConstraint(
                 condition=Q(pattern__isnull=False) | Q(variant__isnull=False),
                 name='cartitem_has_pattern_or_variant',
-        )
+                )
     ]
 
     def save(self, *args, **kwargs):

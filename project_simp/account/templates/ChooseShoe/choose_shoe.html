@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block title %}Choose a Shoe to Customize — SIMP{% endblock %}
+
+{% block extra_header %}
+<style>
+  .choose-shoe-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px 64px;
+  }
+  .choose-shoe-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .choose-shoe-header h1 {
+    font-family: var(--font-display, "Barlow Condensed", sans-serif);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    margin: 0 0 8px;
+    color: var(--ink, #121212);
+  }
+  .choose-shoe-header p {
+    color: var(--muted, #6b7280);
+    margin: 0;
+  }
+  .choose-shoe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 24px;
+  }
+  .choose-shoe-card {
+    display: block;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e6dfd5);
+    border-radius: var(--radius-lg, 16px);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .choose-shoe-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow, 0 12px 28px rgba(0,0,0,0.08));
+  }
+  .choose-shoe-card-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: var(--surface-alt, #f4efe8);
+    display: block;
+  }
+  .choose-shoe-card-body {
+    padding: 14px 16px 18px;
+  }
+  .choose-shoe-card-name {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .choose-shoe-card-cta {
+    font-size: 0.85rem;
+    color: var(--brand, #0f8a5f);
+    font-weight: 600;
+  }
+  .choose-shoe-empty {
+    text-align: center;
+    color: var(--muted, #6b7280);
+    padding: 60px 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="choose-shoe-page">
+  <div class="choose-shoe-header">
+    <h1>Choose a shoe to customize</h1>
+    <p>Pick a style below to start designing your own pair.</p>
+  </div>
+
+  {% if shoes %}
+  <div class="choose-shoe-grid">
+    {% for shoe in shoes %}
+    <a class="choose-shoe-card"
+       href="{% url 'account:converse_customize' %}?shoe={{ shoe.customizer_id }}">
+      {% if shoe.thumbnail %}
+        <img class="choose-shoe-card-img" src="{{ shoe.thumbnail.url }}" alt="{{ shoe.name }}">
+      {% else %}
+        <img class="choose-shoe-card-img" src="{% static 'images/shoe_default.jpg' %}" alt="{{ shoe.name }}">
+      {% endif %}
+      <div class="choose-shoe-card-body">
+        <div class="choose-shoe-card-name">{{ shoe.name }}</div>
+        <div class="choose-shoe-card-cta">Customize this shoe →</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="choose-shoe-empty">
+    No customizable shoes are available right now.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

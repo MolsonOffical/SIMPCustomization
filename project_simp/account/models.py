@@ -140,7 +140,7 @@ class CartItem(models.Model):
         ordering = ['-created_at']
         constraints = [
             models.CheckConstraint(
-                check=Q(pattern__isnull=False) | Q(variant__isnull=False),
+                condition=Q(pattern__isnull=False) | Q(variant__isnull=False),
                 name='cartitem_has_pattern_or_variant',
         )
     ]
@@ -175,3 +175,70 @@ class CartItem(models.Model):
         if self.variant_id:
             return f"{self.user} — {self.variant} x{self.quantity}"
         return f"{self.user} — {self.pattern_display_name} (size {self.size}) x{self.quantity}"
+class WishlistItem(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='wishlist_items',
+    )
+
+    # --- Customizer-designed shoe fields (mirrors CartItem) ---
+    pattern = models.CharField(max_length=64, blank=True, null=True)
+    size = models.CharField(max_length=8, blank=True, null=True)
+    colors = models.JSONField(default=dict, blank=True)
+    photo = models.ImageField(upload_to='wishlist_photos/', blank=True, null=True)
+
+    # --- Admin-added regular shoe field ---
+    variant = models.ForeignKey(
+        'shoes.ShoesVariant',
+        on_delete=models.CASCADE,
+        related_name='wishlist_items',
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(pattern__isnull=False) | Q(variant__isnull=False),
+                name='wishlistitem_has_pattern_or_variant',
+            ),
+            # Prevent the same admin-added variant being wishlisted twice by
+            # the same user. Customizer items aren't uniqued this way since
+            # two saved designs on the same pattern can have different colors.
+            models.UniqueConstraint(
+                fields=['user', 'variant'],
+                condition=Q(variant__isnull=False),
+                name='unique_wishlist_variant_per_user',
+            ),
+        ]
+
+    @property
+    def is_variant_item(self):
+        return self.variant_id is not None
+
+    @property
+    def pattern_display_name(self):
+        return PATTERN_NAMES.get(self.pattern, self.pattern)
+
+    @property
+    def display_name(self):
+        if self.variant_id:
+            return self.variant.shoe.name
+        return self.pattern_display_name
+
+    @property
+    def price(self):
+        # Unlike CartItem, no snapshotting — a wishlist isn't a transaction,
+        # so it's fine (arguably better) to always show the current price.
+        if self.variant_id:
+            return self.variant.price
+        return PATTERN_PRICES.get(self.pattern, 0)
+
+    def __str__(self):
+        if self.variant_id:
+            return f"{self.user} ♥ {self.variant}"
+        return f"{self.user} ♥ {self.pattern_display_name}"

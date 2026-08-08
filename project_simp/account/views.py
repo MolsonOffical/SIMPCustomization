@@ -111,6 +111,16 @@ class DesignPage(LoginRequiredMixin, View):
         }
         return render(request, 'Design/designer.html', context)
 
+class ChooseShoePage(View):
+     def get(self, request):
+        shoes = (
+            Shoes.objects
+            .exclude(customizer_id__isnull=True)
+            .exclude(customizer_id='')
+            .order_by('name')
+        )
+        return render(request, 'ChooseShoe/choose_shoe.html', {'shoes': shoes})
+
 
 def LogoutUser(request):
     logout(request)
@@ -270,6 +280,6 @@ class HomePage(View):
                 min_price=Min('variants__price'),
             )
             .filter(min_price__isnull=False)   # only show shoes that actually have a purchasable variant
-            .order_by(F('total_sold').desc(nulls_last=True), '-created_at')[:4]
+            .order_by(F('total_sold').desc(nulls_last=True), '-created_at')[:6]
         )
         return render(request, 'Home/index.html', {'best_selling_shoes': best_selling_shoes})

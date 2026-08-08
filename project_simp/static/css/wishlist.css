@@ -1,0 +1,82 @@
+/* ============================================================
+   Wishlist heart button — used on Home cards, shop listing cards,
+   and the shoe detail page. Toggles between outline (not saved)
+   and filled/red (saved) via the .wishlist-heart-btn--active class,
+   which wishlist.js adds/removes after a successful add/remove.
+   ============================================================ */
+
+.wishlist-heart-btn {
+  --wishlist-active: #e0483e;
+
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 0;
+
+  color: var(--muted);
+  font-size: 15px;
+
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.wishlist-heart-btn:hover {
+  border-color: var(--wishlist-active);
+  color: var(--wishlist-active);
+  transform: translateY(-1px) scale(1.05);
+}
+
+.wishlist-heart-btn:active {
+  transform: scale(0.92);
+}
+
+.wishlist-heart-btn:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Saved state — filled red heart (wishlist.js swaps
+   fa-regular -> fa-solid on the <i> inside at the same time) */
+.wishlist-heart-btn--active {
+  background: #fff;
+  border-color: var(--wishlist-active);
+  color: var(--wishlist-active);
+}
+
+.wishlist-heart-btn--active:hover {
+  background: var(--wishlist-active);
+  color: #fff;
+}
+
+/* Small "pop" animation played once right after a successful toggle */
+.wishlist-heart-btn--pulse {
+  animation: wishlistPulse 0.3s ease;
+}
+
+@keyframes wishlistPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* Disabled/in-flight state while the API request is pending,
+   so a double-click can't fire two toggles */
+.wishlist-heart-btn[disabled] {
+  opacity: 0.6;
+  pointer-events: none;
+}

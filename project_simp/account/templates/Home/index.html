@@ -26,7 +26,6 @@
     <p class="hero-sub">Customize colors, patterns, artwork & size. Every pair is built for you — no two alike. Delivered to your door in Nepal.</p>
     <div class="hero-btns">
        <a href="{% url 'account:converse_customize' %}" class="btn-green">Design Now →</a>
-      <a href="/business" class="btn-white-outline">Business Orders</a>
     </div>
   </div>
  
@@ -76,7 +75,7 @@
       </div>
       <div class="step-title">Choose Your Style</div>
       <div class="step-desc">Browse 30+ styles: low tops, high tops, boots, sandals, basketball shoes, and more. Every style is fully customizable.</div>
-      <a href="/shop" class="step-cta">Browse styles →</a>
+      <a href="{% url 'shoes:shoes_list' %}" class="step-cta">Browse styles →</a>
     </div>
  
     <div class="step-card">
@@ -86,7 +85,7 @@
       </div>
       <div class="step-title">Design Every Surface</div>
       <div class="step-desc">Upload your artwork or logo. Change colors, patterns, and materials on any panel. Use the live preview as you customize.</div>
-      <a href="/customize" class="step-cta">Start designing →</a>
+      <a href="{% url 'account:converse_customize' %}" class="step-cta">Start designing →</a>
     </div>
  
     <div class="step-card">
@@ -96,7 +95,7 @@
       </div>
       <div class="step-title">We Make & Ship It</div>
       <div class="step-desc">After you approve the design, we print and ship anywhere in Nepal. Production in 2–3 weeks, shipping in 3–5 days.</div>
-      <a href="/faq" class="step-cta">Shipping info →</a>
+      <a href="#faq" class="step-cta">Learn More →</a>
     </div>
  
   </div>
@@ -109,7 +108,7 @@
       <div class="section-eyebrow">Featured Collection</div>
       <h2 class="section-h2" style="margin-bottom:0;">Best Selling <span class="green">Styles</span></h2>
     </div>
-    <a href="/shop" class="view-all">View all shoes →</a>
+    <a href="{% url 'shoes:shoes_list' %}" class="view-all">View all shoes →</a>
   </div>
  
   <div class="shoes-grid">
@@ -121,6 +120,11 @@
                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
         {% endif %}
         <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
+        {% if request.user.is_authenticated %}
+        <button type="button" class="wishlist-heart-btn" data-pattern="{{ shoe.customizer_id }}" aria-label="Add to wishlist">
+          <i class="fa-regular fa-heart"></i>
+        </button>
+        {% endif %}
       </div>
       <div class="shoe-body">
         <div class="shoe-name">{{ shoe.name }}</div>
@@ -214,7 +218,6 @@
       <div class="section-eyebrow">Real Customers</div>
       <h2 class="section-h2" style="margin-bottom:0;">From the <span class="green">Customer Wall</span></h2>
     </div>
-    <a href="/reviews" class="view-all">See all reviews →</a>
   </div>
   <div class="customer-grid">
     <div class="customer-tile"><img src="{% static 'images/girls-shoe.jpeg' %}" alt="Customer pair" onerror="this.parentElement.innerHTML='👟'"></div>
@@ -226,7 +229,7 @@
 </section>
  
 <!-- FAQ -->
-<section class="faq-section">
+<section class="faq-section" id="faq">
   <div class="section-eyebrow">Got Questions?</div>
   <h2 class="section-h2">Frequently Asked <span class="green">Questions</span></h2>
   <p style="font-size:14px;color:var(--gray-text);margin-top:-32px;margin-bottom:0;">Quick answers about custom shoes, ordering, and shipping.</p>

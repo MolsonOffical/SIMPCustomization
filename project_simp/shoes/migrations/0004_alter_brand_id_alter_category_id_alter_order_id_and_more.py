@@ -6,9 +6,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shoes', '0003_order_orderitem'),
+    ('shoes', '0003_review'),
     ]
-
     operations = [
         migrations.AlterField(
             model_name='brand',

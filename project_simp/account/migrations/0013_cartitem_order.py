@@ -7,9 +7,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('account', '0012_alter_address_id_alter_cartitem_id_and_more'),
-        ('shoes', '0009_merge_20260728_0858'),
-    ]
+    ('account', '0002_initial'),
+    ('shoes', '0009_merge_20260728_0858'),
+]
 
     operations = [
         migrations.AddField(

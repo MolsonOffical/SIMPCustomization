@@ -11,24 +11,16 @@ import json
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import CartItem, PATTERN_PRICES, SIZE_CHOICES
-from django.db.models import Sum, Min, F
-from shoes.models import Shoes
+from django.db.models import Sum, Min, F, Avg, Count,Q,OuterRef, Subquery
+from shoes.models import Shoes, Category, Brand, Review
+from django.db.models import Min, Avg, Count, Sum, OuterRef, Subquery, IntegerField, Value, FloatField
+from django.db.models.functions import Coalesce
 
-# Matches the prices set in shoeColorConfigs in converse_customizer.html.
-# Keep these two in sync until you have a real Shoe/Product model with price.
 
-
-# Create your views here.
-class HomePage(View):
-    def get(self, request):
-       
-        return render(request, 'Home/index.html')
-
+from shoes.models import OrderItem
 
 class AboutPage(View):
     def get(self, request):
-        if request.user.is_authenticated:
-            return redirect('account:home')
         return render(request, 'Home/about.html')
 
 
@@ -260,16 +252,61 @@ class DeleteProfileView(LoginRequiredMixin, View):
         return redirect('account:login')
 
 
-
 class HomePage(View):
     def get(self, request):
-        best_selling_shoes = (
-            Shoes.objects
-            .annotate(
-                total_sold=Sum('variants__order_items__quantity'),
-                min_price=Min('variants__price'),
+        new_arrivals = Shoes.objects.select_related('category', 'brand').annotate(
+            min_price=Min('variants__price'),
+            avg_rating=Coalesce(Avg('reviews__rating'), Value(0.0), output_field=FloatField()),
+            review_count=Count('reviews', distinct=True),
+        ).order_by('-created_at')[:9]
+
+        units_sold_sq = (
+            OrderItem.objects
+            .filter(
+                variant__shoe=OuterRef('pk'),
+                order__status__in=['paid', 'processing', 'shipped', 'delivered'],
             )
-            .filter(min_price__isnull=False)   # only show shoes that actually have a purchasable variant
-            .order_by(F('total_sold').desc(nulls_last=True), '-created_at')[:4]
+            .values('variant__shoe')
+            .annotate(total=Sum('quantity'))
+            .values('total')
         )
-        return render(request, 'Home/index.html', {'best_selling_shoes': best_selling_shoes})
+
+        popular_shoes = Shoes.objects.select_related('category', 'brand').annotate(
+            min_price=Min('variants__price'),
+            avg_rating=Coalesce(Avg('reviews__rating'), Value(0.0), output_field=FloatField()),
+            review_count=Count('reviews', distinct=True),
+            units_sold=Coalesce(
+                Subquery(units_sold_sq, output_field=IntegerField()), 0
+            ),
+        ).filter(review_count__gt=0).order_by('-units_sold', '-avg_rating')[:6]
+
+        categories = Category.objects.all().order_by('name')
+
+        brands = Brand.objects.annotate(shoe_count=Count('shoes')).order_by('-shoe_count')[:4]
+
+        testimonials = Review.objects.filter(rating=5).exclude(comment='').select_related(
+            'user', 'shoe'
+        ).order_by('-created_at')[:5]
+
+        top_shoe_per_category = Shoes.objects.filter(
+            category=OuterRef('category')
+        ).annotate(
+            avg_rating=Avg('reviews__rating'),
+            review_count=Count('reviews')
+        ).order_by('-review_count', '-avg_rating')
+
+        category_shoes = Shoes.objects.annotate(
+            min_price=Min('variants__price')
+        ).filter(
+            pk__in=Subquery(top_shoe_per_category.values('pk')[:1])
+        ).select_related('category').order_by('category__name')[:6]
+
+        context = {
+            'new_arrivals': new_arrivals,
+            'popular_shoes': popular_shoes,
+            'categories': categories,
+            'brands': brands,
+            'testimonials': testimonials,
+            'category_shoes': category_shoes,
+        }
+        return render(request, 'Home/index.html', context)

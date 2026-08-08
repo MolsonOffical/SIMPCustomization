@@ -10,76 +10,177 @@
 
 {% block content %}
 <div class="container">
-    <div class="search-results-container">
-        {% if shoes_list %}
-            <div class="card-container">
-                {% for shoe in shoes_list %}
-                <div class="card-wrapper">
-                    <a href="{% url 'shoes:shoe_detail' pk=shoe.pk %}" class="card-link">
-                        <div class="card">
-                            <div class="card-image"
-                                 style="background-image: url(
-                                     {% if shoe.thumbnail %}{{ shoe.thumbnail.url }}
-                                     {% else %}{% static 'images/shoe_default.jpg' %}{% endif %}
-                                 );">
+    <button class="filter-toggle-btn" id="filterToggleBtn" aria-label="Toggle filters">
+        <i class="fas fa-sliders-h"></i> Filters
+    </button>
 
-                                <div class="card-category">
-                                    <span class="category-badge">{{ shoe.category.name|default:"Uncategorized" }}</span>
-                                </div>
+    <div class="filter-layout">
+        <aside class="filter-sidebar" id="filterSidebar">
+            <h3><i class="fas fa-sliders-h"></i> Filters</h3>
+            <form id="filterForm" method="get" action="{% url 'shoes:shoes_list' %}">
+                <input type="hidden" name="searched" value="{{ query|default:'' }}">
+                <input type="hidden" name="page" value="1">
 
-                                {% if not shoe.total_stock %}
-                                <div class="stock-badge out">Out of Stock</div>
-                                {% endif %}
-                            </div>
-                            <div class="card-content">
-                                <h2 class="card-title">{{ shoe.name }}</h2>
-                                <p class="card-brand">{{ shoe.brand.name }}</p>
-                                <p class="card-description">
-                                    {{ shoe.description|default:"No description available."|truncatewords:18 }}
-                                </p>
-                                <div class="card-meta">
-                                    <span class="price">
-                                        {% if shoe.min_price %}NPR.{{ shoe.min_price }}{% else %}N/A{% endif %}
-                                    </span>
-                                    <span class="stock {% if not shoe.total_stock %}out{% endif %}">
-                                        {% if shoe.total_stock %}{{ shoe.total_stock }} in stock{% else %}Out of stock{% endif %}
-                                    </span>
-                                </div>
-                                <div class="card-actions">
-                                    <span class="btn">View Details</span>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
+                <div class="filter-group">
+                    <h4>Categories</h4>
+                    <div class="filter-options">
+                        {% for cat in categories %}
+                        <label>
+                            <input type="checkbox" name="category" value="{{ cat.id }}"
+                                   {% if cat.id|slugify in selected_categories %}checked{% endif %}>
+                            {{ cat.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
                 </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-results">
-                <i class="fa-solid fa-shoe-prints"></i>
-                <h2>No shoes found{% if query %} for "{{ query }}"{% endif %}</h2>
-                <p>Try searching with different keywords</p>
-            </div>
-        {% endif %}
+
+                <div class="filter-group">
+                    <h4>Brands</h4>
+                    <div class="filter-options">
+                        {% for brand in brands %}
+                        <label>
+                            <input type="checkbox" name="brand" value="{{ brand.id }}"
+                                   {% if brand.id|slugify in selected_brands %}checked{% endif %}>
+                            {{ brand.name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+             <div class="filter-group">
+    <h4>Rating</h4>
+    <div class="filter-options rating-options">
+        <label>
+            <input type="radio" name="rating" value=""
+                   {% if not selected_rating %}checked{% endif %}>
+            Any
+        </label>
+
+        <label>
+            <input type="radio" name="rating" value="5"
+                   {% if selected_rating|stringformat:"s" == "5" %}checked{% endif %}>
+            ★★★★★
+        </label>
+
+        <label>
+            <input type="radio" name="rating" value="4"
+                   {% if selected_rating|stringformat:"s" == "4" %}checked{% endif %}>
+            ★★★★☆
+        </label>
+
+        <label>
+            <input type="radio" name="rating" value="3"
+                   {% if selected_rating|stringformat:"s" == "3" %}checked{% endif %}>
+            ★★★☆☆
+        </label>
+
+        <label>
+            <input type="radio" name="rating" value="2"
+                   {% if selected_rating|stringformat:"s" == "2" %}checked{% endif %}>
+            ★★☆☆☆
+        </label>
+
+        <label>
+            <input type="radio" name="rating" value="1"
+                   {% if selected_rating|stringformat:"s" == "1" %}checked{% endif %}>
+            ★☆☆☆☆
+        </label>
     </div>
 </div>
 
-<div class="pagination">
-    {% if shoes_list.has_previous %}
-        <a href="?page={{ shoes_list.previous_page_number }}{% if query %}&searched={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">&laquo; Prev</a>
-    {% endif %}
+                <div class="filter-group">
+                    <h4>Price Range (NPR)</h4>
+                    <div class="price-range">
+                        <input type="number" name="min_price" placeholder="Min" value="{{ min_price|default:'' }}" step="1">
+                        <span>–</span>
+                        <input type="number" name="max_price" placeholder="Max" value="{{ max_price|default:'' }}" step="1">
+                    </div>
+                </div>
+            </form>
+        </aside>
 
-    {% for num in shoes_list.paginator.page_range %}
-        {% if shoes_list.number == num %}
-            <span class="current-page">{{ num }}</span>
-        {% else %}
-            <a href="?page={{ num }}{% if query %}&searched={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">{{ num }}</a>
-        {% endif %}
-    {% endfor %}
+        <div class="search-results-container" id="productContainer">
+            {% if shoes_list %}
+                <div class="card-container" id="cardContainer">
+                    {% for shoe in shoes_list %}
+                    <div class="card-wrapper">
+                        <a href="{% url 'shoes:shoe_detail' pk=shoe.pk %}" class="card-link">
+                            <div class="card">
+                                <div class="card-image"
+                                     style="background-image: url(
+                                         {% if shoe.thumbnail %}{{ shoe.thumbnail.url }}
+                                         {% else %}{% static 'images/shoe_default.jpg' %}{% endif %}
+                                     );">
+                                    <div class="card-category">
+                                        <span class="category-badge">{{ shoe.category.name|default:"Uncategorized" }}</span>
+                                    </div>
+                                    {% if not shoe.total_stock %}
+                                    <div class="stock-badge out">Out of Stock</div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-content">
+                                    <h2 class="card-title">{{ shoe.name }}</h2>
+                                    <p class="card-brand">{{ shoe.brand.name }}</p>
 
-    {% if shoes_list.has_next %}
-        <a href="?page={{ shoes_list.next_page_number }}{% if query %}&searched={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}">Next &raquo;</a>
-    {% endif %}
+                                    <div class="card-rating">
+                                        {% if shoe.avg_rating %}
+                                            <i class="fas fa-star" style="color: #f39c12;"></i>
+                                            <span class="rating-value">{{ shoe.avg_rating|floatformat:1 }}</span>
+                                        {% else %}
+                                            <span class="no-rating">No reviews</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <p class="card-description">
+                                        {{ shoe.description|default:"No description available."|truncatewords:18 }}
+                                    </p>
+                                    <div class="card-meta">
+                                        <span class="price">
+                                            {% if shoe.min_price %}NPR.{{ shoe.min_price }}{% else %}N/A{% endif %}
+                                        </span>
+                                        <span class="stock {% if not shoe.total_stock %}out{% endif %}">
+                                            {% if shoe.total_stock %}{{ shoe.total_stock }} in stock{% else %}Out of stock{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="card-actions">
+                                        <span class="btn">View Details</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="pagination" id="pagination">
+                    {% if shoes_list.has_previous %}
+                        <a href="?page={{ shoes_list.previous_page_number }}{% if query %}&searched={{ query }}{% endif %}{% if selected_categories %}&category={{ selected_categories|join:',' }}{% endif %}{% if selected_brands %}&brand={{ selected_brands|join:',' }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="page-link">&laquo; Prev</a>
+                    {% endif %}
+
+                    {% for num in shoes_list.paginator.page_range %}
+                        {% if shoes_list.number == num %}
+                            <span class="current-page">{{ num }}</span>
+                        {% else %}
+                            <a href="?page={{ num }}{% if query %}&searched={{ query }}{% endif %}{% if selected_categories %}&category={{ selected_categories|join:',' }}{% endif %}{% if selected_brands %}&brand={{ selected_brands|join:',' }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="page-link">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if shoes_list.has_next %}
+                        <a href="?page={{ shoes_list.next_page_number }}{% if query %}&searched={{ query }}{% endif %}{% if selected_categories %}&category={{ selected_categories|join:',' }}{% endif %}{% if selected_brands %}&brand={{ selected_brands|join:',' }}{% endif %}{% if selected_rating %}&rating={{ selected_rating }}{% endif %}{% if min_price %}&min_price={{ min_price }}{% endif %}{% if max_price %}&max_price={{ max_price }}{% endif %}" class="page-link">Next &raquo;</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="no-results">
+                    <i class="fa-solid fa-shoe-prints"></i>
+                    <h2>No shoes found{% if query %} for "{{ query }}"{% endif %}</h2>
+                    <p>Try adjusting your filters</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
 
+{% block script %}
+{{ block.super }}
+<script src="{% static 'js/shoes_list.js' %}"></script>
 {% endblock %}

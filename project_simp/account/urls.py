@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     HomePage, AboutPage, RegisterUser, LoginUser, LogoutUser,
     SendOTPView, VerifyOTPView, DesignPage, ConverseCustomizePage,
-    ProfileView, UpdateProfileView, DeleteProfileView
+    ProfileView, UpdateProfileView, DeleteProfileView , ChooseShoePage
 )
 
 app_name = 'account'
@@ -22,6 +22,8 @@ urlpatterns = [
     path('verify-email/confirm/', VerifyOTPView.as_view(), name='verify_otp'),
 
     path('design/', DesignPage.as_view(), name='design'),
-    path('converse-customize/', ConverseCustomizePage.as_view(), name='converse_customize'),
+    path('converse-customize/', ConverseCustomizePage.as_view(), 
+    name='converse_customize'),
+    path('choose-shoe/', ChooseShoePage.as_view(), name='choose_shoe'),
 
 ]

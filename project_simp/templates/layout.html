@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{% static 'css/site-theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
     <link rel="stylesheet" href="{% static 'css/cart.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/wishlist.css' %}" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -182,9 +184,9 @@
               </div>
             </div>
           </div>
-          <a href="{% url 'account:converse_customize' %}"
-            >Customize Your Shoes</a
-          >
+          <a href="{% url 'account:choose_shoe' %}"
+  >Customize Your Shoes</a
+>
           <a href="{% url 'shoes:shoes_list' %}" title="Coming soon">Explore</a>
         </div>
         {% else %}
@@ -232,24 +234,20 @@
           <div class="nav-icon-group">
            
             <a
+               href="{% url 'shoes:wishlist_page' %}"
+              class="nav-icon-btn"
+              aria-label="Wishlist"
+            >
+              <i class="fa-solid fa-heart" aria-hidden="true"></i>
+              <span id="wishlist-badge"></span>
+            </a>
+            <a
               href="{% url 'shoes:cart_page' %}"
               class="nav-icon-btn"
               aria-label="Cart"
-            >
+           > 
               <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
               <span id="cart-badge"></span>
-            </a>
-            <!-- <a href="{% url 'notifications:list' %}" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications">
-  <i class="fa-solid fa-bell" aria-hidden="true"></i>
-  <span id="notif-badge"></span>
-</a>-->
-            <a
-              href="#"
-              class="nav-icon-btn nav-icon-btn--notify"
-              aria-label="Notifications"
-              title="Coming soon"
-            >
-              <i class="fa-solid fa-bell" aria-hidden="true"></i>
             </a>
             <div class="dropdown dropdown--profile">
               <button
@@ -509,9 +507,9 @@
           <ul class="site-footer__links">
             <li><a href="{% url 'shoes:shoes_list' %}">All Styles</a></li>
             <li>
-              <a href="{% url 'account:converse_customize' %}"
-                >Design Your Pair</a
-              >
+              <a href="{% url 'account:choose_shoe' %}"
+  >Customize Your Shoes</a
+>
             </li>
             <li><a href="{% url 'account:about' %}">About SIMP</a></li>
           </ul>
@@ -546,16 +544,17 @@
      {% block script %}
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/cart.js' %}"></script>
-    <script>
-      (function () {
-        const launcher = document.getElementById("simp-launcher");
-        const panel = document.getElementById("simp-panel");
-        const closeBtn = document.getElementById("simp-close");
-        const form = document.getElementById("simp-form");
-        const input = document.getElementById("simp-input");
-        const messages = document.getElementById("simp-messages");
-        const typing = document.getElementById("simp-typing");
-        const quickChips = document.getElementById("simp-quick-chips");
+<script src="{% static 'js/wishlist.js' %}"></script>
+  <script>
+(function(){
+  const launcher   = document.getElementById('simp-launcher');
+  const panel      = document.getElementById('simp-panel');
+  const closeBtn   = document.getElementById('simp-close');
+  const form       = document.getElementById('simp-form');
+  const input      = document.getElementById('simp-input');
+  const messages   = document.getElementById('simp-messages');
+  const typing     = document.getElementById('simp-typing');
+  const quickChips = document.getElementById('simp-quick-chips');
 
         // ---- open / close ----
         function openChat() {

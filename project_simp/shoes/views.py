@@ -26,7 +26,7 @@ from django.views.decorators.http import (
     require_POST,
 )
 
-from account.models import CartItem, PATTERN_PRICES, SIZE_CHOICES
+from account.models import CartItem, WishlistItem, PATTERN_PRICES, SIZE_CHOICES
 from .forms import ReviewForm
 from .models import Order, OrderItem, Review, ReviewMedia, Shoes, ShoesVariant,Category,Brand
 from .recommendations import get_recommendation_engine
@@ -548,6 +548,209 @@ def cart_remove(request):
 def cart_clear(request):
     CartItem.objects.filter(user=request.user).delete()
     return JsonResponse(_cart_payload(request.user))
+
+# ---------------------------------------------------------------
+# Wishlist views
+#
+# Mirrors the CartItem/cart_* pattern above. Key difference: no
+# unit_price snapshotting (see WishlistItem.price property for why),
+# and a `wishlist_toggle` endpoint for the heart button, since a
+# shoe card just needs "on/off" rather than separate add/remove calls.
+# ---------------------------------------------------------------
+
+def _serialize_wishlist_item(item):
+    if item.variant_id:
+        v = item.variant
+        photo_url = v.shoes_photo.url if v.shoes_photo else static('images/shoe_default.jpg')
+        return {
+            "id": item.id,
+            "variant_id": item.variant_id,
+            "name": v.shoe.name,
+            "meta": "",
+            "color": v.color.name,
+            "size": v.size.size_value,
+            "price": str(item.price),
+            "photo": photo_url,
+            "stock": v.stock_quantity,
+            "customization": [],
+        }
+
+    photo_url = item.photo.url if item.photo else static(PATTERN_PHOTOS.get(item.pattern, "img/patterns/default.jpg"))
+    return {
+        "id": item.id,
+        "pattern": item.pattern,
+        "name": item.pattern_display_name,
+        "meta": f"Size {item.size}",
+        "size": item.size,
+        "price": str(item.price),
+        "photo": photo_url,
+        "stock": MAX_QTY,
+        "customization": [
+            {"label": zone, "color": color} for zone, color in (item.colors or {}).items()
+        ],
+    }
+
+
+def _wishlist_payload(user):
+    items = list(WishlistItem.objects.filter(user=user).select_related(
+        'variant__shoe', 'variant__color', 'variant__size'
+    ))
+    return {
+        "items": [_serialize_wishlist_item(i) for i in items],
+        "count": len(items),
+    }
+
+
+def wishlist_page(request):
+    return render(request, "shoes/wishlist.html")
+
+
+@login_required
+@require_GET
+def wishlist_item_list(request):
+    return JsonResponse(_wishlist_payload(request.user))
+
+
+@login_required
+@require_POST
+def wishlist_add(request):
+    data = _parse_body(request)
+    variant_id = data.get("variant_id")
+
+    if variant_id:
+        try:
+            variant = ShoesVariant.objects.get(pk=variant_id)
+        except ShoesVariant.DoesNotExist:
+            return _error("Please choose a valid shoe.", status=404)
+
+        WishlistItem.objects.get_or_create(user=request.user, variant=variant)
+        return JsonResponse(_wishlist_payload(request.user))
+
+    pattern = data.get("pattern")
+    size = str(data.get("size", ""))
+    colors = data.get("colors") or {}
+
+    if pattern not in PATTERN_PRICES:
+        return _error("Unknown shoe pattern.")
+
+    candidates = WishlistItem.objects.filter(user=request.user, pattern=pattern, size=size)
+    match = next((i for i in candidates if i.colors == colors), None)
+    if not match:
+        item = WishlistItem.objects.create(
+            user=request.user, pattern=pattern, size=size, colors=colors,
+        )
+        photo_data_url = data.get("photo")
+        photo_file = _decode_photo(photo_data_url, pattern)
+        if photo_file:
+            item.photo.save(photo_file.name, photo_file, save=True)
+
+    return JsonResponse(_wishlist_payload(request.user))
+
+
+@login_required
+@require_POST
+def wishlist_remove(request):
+    data = _parse_body(request)
+    item_id = data.get("item_id")
+    if item_id is None:
+        return _error("item_id is required.")
+
+    WishlistItem.objects.filter(id=item_id, user=request.user).delete()
+    return JsonResponse(_wishlist_payload(request.user))
+
+
+@login_required
+@require_POST
+def wishlist_toggle(request):
+    """Add/remove in one call — used by the heart button on shoe cards.
+    Accepts EITHER variant_id (admin-added shoes with a specific color/size)
+    OR pattern (customizer-designed shoes shown before size/colors are
+    chosen, e.g. on the homepage best-sellers grid)."""
+    data = _parse_body(request)
+    variant_id = data.get("variant_id")
+    pattern = data.get("pattern")
+
+    if variant_id:
+        try:
+            variant = ShoesVariant.objects.get(pk=variant_id)
+        except ShoesVariant.DoesNotExist:
+            return _error("Please choose a valid shoe.", status=404)
+
+        existing = WishlistItem.objects.filter(user=request.user, variant=variant).first()
+        if existing:
+            existing.delete()
+            is_wishlisted = False
+        else:
+            WishlistItem.objects.create(user=request.user, variant=variant)
+            is_wishlisted = True
+
+    elif pattern:
+        if pattern not in PATTERN_PRICES:
+            return _error("Unknown shoe pattern.")
+
+        existing = WishlistItem.objects.filter(
+            user=request.user, pattern=pattern, size="", colors={}
+        ).first()
+        if existing:
+            existing.delete()
+            is_wishlisted = False
+        else:
+            WishlistItem.objects.create(user=request.user, pattern=pattern, size="", colors={})
+            is_wishlisted = True
+
+    else:
+        return _error("variant_id or pattern is required.")
+
+    payload = _wishlist_payload(request.user)
+    payload["is_wishlisted"] = is_wishlisted
+    return JsonResponse(payload)
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def wishlist_move_to_cart(request):
+    data = _parse_body(request)
+    item_id = data.get("item_id")
+    if item_id is None:
+        return _error("item_id is required.")
+
+    try:
+        item = WishlistItem.objects.get(id=item_id, user=request.user)
+    except WishlistItem.DoesNotExist:
+        return _error("Item not found in your wishlist.", status=404)
+
+    if item.variant_id:
+        variant = item.variant
+        if variant.stock_quantity < 1:
+            return _error("That size is out of stock.")
+        cap = min(MAX_QTY, variant.stock_quantity)
+        cart_match = CartItem.objects.filter(user=request.user, variant=variant).first()
+        if cart_match:
+            cart_match.quantity = min(cart_match.quantity + 1, cap)
+            cart_match.save()
+        else:
+            CartItem.objects.create(user=request.user, variant=variant, quantity=1)
+    else:
+        cart_candidates = CartItem.objects.filter(
+            user=request.user, pattern=item.pattern, size=item.size
+        )
+        cart_match = next((i for i in cart_candidates if i.colors == item.colors), None)
+        if cart_match:
+            cart_match.quantity = min(cart_match.quantity + 1, MAX_QTY)
+            cart_match.save()
+        else:
+            new_cart_item = CartItem.objects.create(
+                user=request.user, pattern=item.pattern, size=item.size,
+                colors=item.colors, quantity=1,
+            )
+            if item.photo:
+                new_cart_item.photo.save(
+                    item.photo.name.split('/')[-1], item.photo.file, save=True
+                )
+
+    item.delete()
+    return JsonResponse(_wishlist_payload(request.user))
 
 
 def _decode_photo(data_url, pattern):

@@ -99,7 +99,6 @@ SIMP{% endblock %} {% block content %}
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           ${meta ? `<div class="cart-item-meta">${isCustom ? meta : "Size: " + meta}</div>` : ""}
-          ${renderCustomizationDots(item.customization)}
           <button type="button" class="cart-view-details" data-item-id="${item.id}">View Details</button>
         </div>
 

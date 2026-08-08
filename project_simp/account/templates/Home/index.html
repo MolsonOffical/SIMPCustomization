@@ -119,6 +119,11 @@
         <div class="img-wrapper">
             <img src="{% if shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}" alt="{{ shoe.name }}">
             {% if shoe.category %}<span class="card-category-tag">{{ shoe.category.name }}</span>{% endif %}
+            {% if request.user.is_authenticated and shoe.customizer_id %}
+            <button type="button" class="wishlist-heart-btn" data-pattern="{{ shoe.customizer_id }}" aria-label="Add to wishlist">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+            {% endif %}
         </div>
         <div class="product-info">
             <div class="product-info-top">
@@ -155,6 +160,11 @@
         <div class="img-wrapper">
             <img src="{% if shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}" alt="{{ shoe.name }}">
             {% if shoe.category %}<span class="card-category-tag">{{ shoe.category.name }}</span>{% endif %}
+            {% if request.user.is_authenticated and shoe.customizer_id %}
+<button type="button" class="wishlist-heart-btn" data-pattern="{{ shoe.customizer_id }}" aria-label="Add to wishlist">
+  <i class="fa-regular fa-heart"></i>
+</button>
+{% endif %}
         </div>
         <div class="product-info">
             <div class="product-info-top">

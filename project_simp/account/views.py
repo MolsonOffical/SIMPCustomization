@@ -103,6 +103,16 @@ class DesignPage(LoginRequiredMixin, View):
         }
         return render(request, 'Design/designer.html', context)
 
+class ChooseShoePage(View):
+     def get(self, request):
+        shoes = (
+            Shoes.objects
+            .exclude(customizer_id__isnull=True)
+            .exclude(customizer_id='')
+            .order_by('name')
+        )
+        return render(request, 'ChooseShoe/choose_shoe.html', {'shoes': shoes})
+
 
 def LogoutUser(request):
     logout(request)
@@ -266,7 +276,7 @@ class HomePage(View):
                 variant__shoe=OuterRef('pk'),
                 order__status__in=['paid', 'processing', 'shipped', 'delivered'],
             )
-            .values('variant__shoe')
+.values('variant__shoe')
             .annotate(total=Sum('quantity'))
             .values('total')
         )

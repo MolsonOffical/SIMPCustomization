@@ -36,6 +36,7 @@ SIMP{% endblock %} {% block content %}
     update: "{% url 'shoes:cart_update' %}",
     remove: "{% url 'shoes:cart_remove' %}",
     clear: "{% url 'shoes:cart_clear' %}",
+    checkout: "{% url 'shoes:checkout_view' %}",
   };
 </script>
 {{ block.super }} {# keeps cart.js loaded from base.html #}
@@ -352,14 +353,14 @@ SIMP{% endblock %} {% block content %}
 
     // wire up recommendation "Add to Cart" buttons
 
-    document.querySelector("#checkout-btn").addEventListener("click", () => {
-      window.location.href = "/shoes/checkout/";
-    });
-    document
-      .querySelector("#checkout-khalti-btn")
-      .addEventListener("click", () => {
-        window.location.href = "/checkout/?method=khalti";
-      });
+   document.querySelector("#checkout-btn").addEventListener("click", () => {
+  window.location.href = window.CART_ENDPOINTS.checkout;
+});
+document
+  .querySelector("#checkout-khalti-btn")
+  .addEventListener("click", () => {
+    window.location.href = window.CART_ENDPOINTS.checkout + "?method=khalti";
+  });
   }
 
   document.addEventListener("DOMContentLoaded", async () => {

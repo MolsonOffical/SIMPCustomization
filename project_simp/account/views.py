@@ -21,8 +21,6 @@ from shoes.models import OrderItem
 
 class AboutPage(View):
     def get(self, request):
-        if request.user.is_authenticated:
-            return redirect('account:home')
         return render(request, 'Home/about.html')
 
 

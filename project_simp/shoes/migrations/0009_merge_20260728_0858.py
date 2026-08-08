@@ -6,8 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shoes', '0006_shoes_customizer_id'),
-        ('shoes', '0008_alter_order_status'),
+        ('shoes', '0001_initial'),
     ]
 
     operations = [

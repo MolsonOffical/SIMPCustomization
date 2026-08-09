@@ -8,8 +8,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-    ('account', '0002_initial'),
-    ('shoes', '0001_initial'),
+    ('account', '0013_cartitem_order'),
+    ('shoes', '0011_orderitem_photo'),
+
 ]
 
     operations = [

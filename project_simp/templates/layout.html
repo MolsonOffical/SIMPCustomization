@@ -246,10 +246,18 @@
               class="nav-icon-btn"
               aria-label="Cart"
            > 
-              <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-              <span id="cart-badge"></span>
-            </a>
-            <div class="dropdown dropdown--profile">
+           <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+           <span id="cart-badge"></span>
+         </a>
+         <a
+           href="{% url 'notifications:list' %}"
+           class="nav-icon-btn nav-icon-btn--notify"
+           aria-label="Notifications"
+         >
+           <i class="fa-solid fa-bell" aria-hidden="true"></i>
+           <span id="notif-badge"></span>
+         </a>
+         <div class="dropdown dropdown--profile">
               <button
                 type="button"
                 class="profile-trigger dropdown-toggle"
@@ -545,6 +553,9 @@
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/cart.js' %}"></script>
 <script src="{% static 'js/wishlist.js' %}"></script>
+{% if request.user.is_authenticated %}
+<script src="{% static 'js/notifications.js' %}"></script>
+{% endif %}
   <script>
 (function(){
   const launcher   = document.getElementById('simp-launcher');

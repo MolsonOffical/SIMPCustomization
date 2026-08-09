@@ -44,7 +44,7 @@ const Notifications = {
   },
 
   renderBadge() {
-    const badge = document.querySelector("#notif-badge");
+    const badge = document.querySelector("#notification-badge");
     if (!badge) return;
     const count = this._cache.unread_count || 0;
     badge.textContent = count;

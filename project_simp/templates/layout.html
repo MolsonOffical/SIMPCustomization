@@ -73,7 +73,34 @@
           transform 0.2s ease,
           opacity 0.2s ease;
       }
+.notification-btn {
+    position: relative;
+}
 
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -7px;
+
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ef4444;
+    color: white;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+
+    border: 2px solid white;
+}
       .pulse-dot {
         box-shadow: 0 0 0 0 rgba(120, 255, 120, 0.6);
         animation: pulse 2s infinite;
@@ -231,63 +258,93 @@
               value="{{ request.GET.searched }}"
             />
           </form>
-          <div class="nav-icon-group">
-           
-            <a
-               href="{% url 'shoes:wishlist_page' %}"
-              class="nav-icon-btn"
-              aria-label="Wishlist"
-            >
-              <i class="fa-solid fa-heart" aria-hidden="true"></i>
-              <span id="wishlist-badge"></span>
-            </a>
-            <a
-              href="{% url 'shoes:cart_page' %}"
-              class="nav-icon-btn"
-              aria-label="Cart"
-           > 
-              <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-              <span id="cart-badge"></span>
-            </a>
-            <div class="dropdown dropdown--profile">
-              <button
-                type="button"
-                class="profile-trigger dropdown-toggle"
-                aria-label="Account menu"
-                aria-expanded="false"
-                aria-haspopup="true"
-              >
-                {% if request.user.profile %}
+          
+<div class="nav-icon-group">
+
+    <!-- Wishlist -->
+    <a
+        href="{% url 'shoes:wishlist_page' %}"
+        class="nav-icon-btn"
+        aria-label="Wishlist"
+    >
+        <i class="fa-solid fa-heart" aria-hidden="true"></i>
+        <span id="wishlist-badge"></span>
+    </a>
+
+    <!-- Cart -->
+    <a
+        href="{% url 'shoes:cart_page' %}"
+        class="nav-icon-btn"
+        aria-label="Cart"
+    >
+        <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+        <span id="cart-badge"></span>
+    </a>
+
+    <!-- Notifications -->
+    <a
+        href="{% url 'notifications:list' %}"
+        class="nav-icon-btn notification-btn"
+        aria-label="Notifications"
+        title="Notifications"
+    >
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+
+        <span
+            id="notification-badge"
+            class="notification-badge"
+            style="display: none;"
+        >
+            0
+        </span>
+    </a>
+
+    <!-- Profile -->
+    <div class="dropdown dropdown--profile">
+        <button
+            type="button"
+            class="profile-trigger dropdown-toggle"
+            aria-label="Account menu"
+            aria-expanded="false"
+            aria-haspopup="true"
+        >
+            {% if request.user.profile %}
                 <img
-                  src="{{ request.user.profile.url }}"
-                  alt=""
-                  class="profile-trigger__img"
+                    src="{{ request.user.profile.url }}"
+                    alt=""
+                    class="profile-trigger__img"
                 />
-                {% else %}
+            {% else %}
                 <i
-                  class="fa-solid fa-circle-user profile-trigger__icon"
-                  aria-hidden="true"
+                    class="fa-solid fa-circle-user profile-trigger__icon"
+                    aria-hidden="true"
                 ></i>
-                {% endif %}
-              </button>
-              <div class="dropdown-content dropdown-content--menu">
-                <a
-                  href="{% url 'account:profile' %}"
-                  class="profile-menu__header"
-                >
-                  <i class="fa-solid fa-user" aria-hidden="true"></i>
-                  {{request.user.username }}
-                </a>
-                <a href="{% url 'account:logout' %}">
-                  <i
+            {% endif %}
+        </button>
+
+        <div class="dropdown-content dropdown-content--menu">
+
+            <a
+                href="{% url 'account:profile' %}"
+                class="profile-menu__header"
+            >
+                <i class="fa-solid fa-user" aria-hidden="true"></i>
+                {{ request.user.username }}
+            </a>
+
+            <a href="{% url 'account:logout' %}">
+                <i
                     class="fa-solid fa-right-from-bracket"
                     aria-hidden="true"
-                  ></i>
-                  Logout
-                </a>
-              </div>
-            </div>
-          </div>
+                ></i>
+                Logout
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
           {% else %}
           <form
             method="get"

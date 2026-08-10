@@ -48,14 +48,34 @@ def _order_items_for_email(order):
     return order.items.select_related('variant__shoe', 'variant__color', 'variant__size').all()
 
 
+def _item_email_name(item):
+    """Item display name for order emails.
+
+    Catalog items have a `variant` (shoe/color/size picked from stock).
+    Customizer items have `variant=None` and store `pattern` instead —
+    this mirrors the variant/pattern branch already used in
+    shoes/views.py's `_serialize_item`.
+    """
+    if item.variant_id:
+        return item.variant.shoe.name
+    return getattr(item, 'pattern_display_name', None) or item.pattern.replace('-', ' ').title()
+
+
+def _item_email_detail(item):
+    """Item subtitle (color/size for catalog items, size only for custom)."""
+    if item.variant_id:
+        return f"{item.variant.color.name} · Size {item.variant.size.size_value}"
+    return f"Custom design · Size {item.size}"
+
+
 def _build_items_table_html(order):
     rows = []
     for item in _order_items_for_email(order):
         rows.append(f"""
             <tr>
               <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;text-align:left;">
-                {item.variant.shoe.name}<br>
-                <span style="color:#9ca3af;font-size:11px;">{item.variant.color.name} · Size {item.variant.size.size_value}</span>
+                {_item_email_name(item)}<br>
+                <span style="color:#9ca3af;font-size:11px;">{_item_email_detail(item)}</span>
               </td>
               <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;text-align:center;">{item.quantity}</td>
               <td style="padding:10px 8px;border-bottom:1px solid #e5e7eb;font-size:13px;color:#374151;text-align:right;">Rs. {item.price:.2f}</td>
@@ -86,7 +106,7 @@ def _build_items_lines_text(order):
     lines = []
     for item in _order_items_for_email(order):
         lines.append(
-            f"  - {item.variant.shoe.name} ({item.variant.color.name}, size {item.variant.size.size_value}) "
+            f"  - {_item_email_name(item)} ({_item_email_detail(item)}) "
             f"x{item.quantity} @ Rs. {item.price:.2f} = Rs. {item.subtotal():.2f}"
         )
     return '\n'.join(lines) if lines else "  (no items found on this order)"
@@ -157,7 +177,9 @@ def notify_delivery_success(order):
         message=f"Your order {order.order_id} has been delivered successfully. Enjoy!",
         order=order,
     )
+    _send_order_failed_email(user, order)
     return notification
+    
 
 
 def send_admin_broadcast(title, message):

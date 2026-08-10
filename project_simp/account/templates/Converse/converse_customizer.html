@@ -4,7 +4,13 @@
 {% block title %}Customize Your Converse — SIMP{% endblock %}
 
 {% block extra_header %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/converse_customizer.css' %}" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script src="https://unpkg.com/@lucide/lab@latest/dist/umd/lucide-lab.js"></script>
+
 <script type="importmap">
 {
   "imports": {
@@ -24,13 +30,13 @@
     <div class="title" id="shoeTitle">Loading…</div>
     <div class="icons-list">
       <!-- Magic wand: randomize colors -->
-      <button class="apply-button" id="btnMagic" title="Randomize Colors">
-        🎨
-      </button>
+    <button class="apply-button" id="btnMagic" title="Randomize Colors">
+  <i data-lucide="shuffle"></i>
+</button>
       <!-- Download screenshot -->
-      <button class="apply-button" id="btnDownload" title="Download Image">
-        ⬇️
-      </button>
+    <button class="apply-button" id="btnDownload" title="Download Image">
+  <i data-lucide="download"></i>
+</button>
       <!-- Custom color picker -->
       <div class="color-picker">
         <input type="color" class="color-input" id="colorPicker" value="#ff0000"
@@ -38,11 +44,21 @@
         <button class="menu-button" id="btnApplyColor">Apply</button>
       </div>
       <!-- Upload / add custom design -->
-      <button class="apply-button" id="btnAddDesign" title="Upload a design image">🖼️</button>
-      <input type="file" id="designFileInput" accept="image/*" style="display:none" />
+   <button class="apply-button" id="btnAddDesign" title="Upload a design image">
+  <i data-lucide="image-plus"></i>
+</button>
+<input type="file" id="designFileInput" accept="image/*" style="display:none" />
+<label class="bg-toggle">
+  <input type="checkbox" id="removeBgToggle" checked>
+  <span class="bg-toggle-track"><span class="bg-toggle-thumb"></span></span>
+  <span class="bg-toggle-label">Remove BG</span>
+</label>
       <!-- Full print: apply an image across an entire zone -->
-<button class="apply-button" id="btnFullPrint" title="Apply Full Print to Current Zone">🧵</button>
+<button class="apply-button" id="btnFullPrint" title="Apply Full Print to Current Zone">
+  <i data-lucide="stamp"></i>
+</button>
 <input type="file" id="fullPrintFileInput" accept="image/*" style="display:none" />
+<div class="toolbar-divider"></div>
     </div>
   </div>
 
@@ -60,6 +76,7 @@
   <!-- Controls shown once at least one design is placed -->
   <!-- Controls shown once at least one design is placed -->
   <div class="decal-controls hidden" id="decalControls">
+    <button class="panel-close-btn" id="btnCloseDecalControls" title="Close">✕</button>
     <label class="decal-controls-label" for="decalSizeSlider">Design size</label>
     <input type="range" id="decalSizeSlider" min="0.05" max="0.9" step="0.01" value="0.28" />
     <label class="decal-controls-label" for="decalRotationSlider">Rotation</label>
@@ -70,19 +87,42 @@
 
   <!-- Layers list: every placed design, click to select, ✕ to delete -->
   <div class="decal-layers hidden" id="decalLayers"></div>
-  <div class="full-print-controls hidden" id="fullPrintControls">
-  <div id="fullPrintZoneLabel" style="font-weight:600; margin-bottom:8px;">Zone: —</div>
-  <label class="decal-controls-label" for="printRepeatXSlider">Repeat (horizontal)</label>
+ <div class="full-print-controls hidden" id="fullPrintControls">
+  <button class="full-print-reopen-btn hidden" id="btnReopenFullPrint" title="Edit print settings">
+  <i data-lucide="stamp"></i>
+</button>
+   <div class="fp-header">
+    <i data-lucide="stamp"></i>
+    <div id="fullPrintZoneLabel">Zone: —</div>
+    <button class="panel-close-btn" id="btnCloseFullPrintControls" title="Close">✕</button>
+  </div>
+
+  <div class="fp-row">
+    <label class="decal-controls-label" for="printRepeatXSlider">Repeat (horizontal)</label>
+    <span class="fp-value" id="valRepeatX">1×</span>
+  </div>
   <input type="range" id="printRepeatXSlider" min="1" max="6" step="1" value="1" />
-  <label class="decal-controls-label" for="printRepeatYSlider">Repeat (vertical)</label>
+
+  <div class="fp-row">
+    <label class="decal-controls-label" for="printRepeatYSlider">Repeat (vertical)</label>
+    <span class="fp-value" id="valRepeatY">1×</span>
+  </div>
   <input type="range" id="printRepeatYSlider" min="1" max="6" step="1" value="1" />
-  <label class="decal-controls-label" for="printRotationSlider">Pattern rotation</label>
+
+  <div class="fp-row">
+    <label class="decal-controls-label" for="printRotationSlider">Pattern rotation</label>
+    <span class="fp-value" id="valRotation">0°</span>
+  </div>
   <input type="range" id="printRotationSlider" min="-180" max="180" step="1" value="0" />
+
   <button class="menu-button" id="btnRemovePrint">Remove Print</button>
 </div>
 
-  <!-- Spinner -->
-  <div class="loader" id="loader"></div>
+<!-- Loading indicator -->
+<div class="loader hidden" id="loader">
+  <span class="loader-spinner"></span>
+  <span class="loader-text hidden" id="loaderText">Removing background…</span>
+</div>
 
   <!-- Shoe switcher (top-right) -->
   <div class="switcher" id="switcher"></div>
@@ -628,7 +668,7 @@ scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 1).texture;
 const debugObject = { envMapIntensity: 5 };
 
 const controls = new OrbitControls(camera, canvas);
-controls.target.set(1, 0, 0);
+controls.target.set(1.4, 0, 0);
 controls.rotateSpeed   = 0.2;
 controls.zoomSpeed     = 0.5;
 controls.panSpeed      = 0.5;
@@ -844,19 +884,61 @@ let selectedDecalIndex = -1;     // which decal the size/rotation sliders curren
 let dragIndex = -1;              // which decal is being dragged right now (-1 = none)
 let decalIdCounter = 0;
 
+function placeTextureAsPending(dataUrl) {
+  textureLoader.load(dataUrl, (texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    pendingDesign = { texture, thumbDataUrl: dataUrl };
+    canvas.classList.add('placing-decal');
+    decalHint.classList.remove('hidden');
+  });
+}
+
 function beginDecalPlacement(file) {
   if (!file || !file.type.startsWith('image/')) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    textureLoader.load(dataUrl, (texture) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-      pendingDesign = { texture, thumbDataUrl: dataUrl };
-      canvas.classList.add('placing-decal');
-      decalHint.classList.remove('hidden');
+
+  const removeBgToggle = document.getElementById('removeBgToggle');
+  const shouldRemoveBg = removeBgToggle && removeBgToggle.checked;
+
+  if (!shouldRemoveBg) {
+    const reader = new FileReader();
+    reader.onload = (e) => placeTextureAsPending(e.target.result);
+    reader.readAsDataURL(file);
+    return;
+  }
+
+loaderEl.classList.remove('hidden');
+  document.getElementById('loaderText').classList.remove('hidden');
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  fetch("{% url 'shoes:remove_background' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCsrfToken() },
+    body: formData,
+  })
+   .then(res => res.json())
+    .then(data => {
+      loaderEl.classList.add('hidden');
+      document.getElementById('loaderText').classList.add('hidden');
+
+      if (data.image) {
+        placeTextureAsPending(data.image);
+      } else {
+        console.error('Background removal failed:', data.error);
+        const reader = new FileReader();
+        reader.onload = (e) => placeTextureAsPending(e.target.result);
+        reader.readAsDataURL(file);
+      }
+    })
+    .catch(err => {
+      loaderEl.classList.add('hidden');
+      document.getElementById('loaderText').classList.add('hidden');
+      console.error('Background removal request failed:', err);
+      const reader = new FileReader();
+      reader.onload = (e) => placeTextureAsPending(e.target.result);
+      reader.readAsDataURL(file);
     });
-  };
-  reader.readAsDataURL(file);
 }
 
 function buildDecalMesh(entry, size, rotationDeg) {
@@ -1024,7 +1106,18 @@ function renderLayersList() {
     decalLayers.appendChild(row);
   });
 }
-
+document.getElementById('btnCloseDecalControls').addEventListener('click', () => {
+  document.getElementById('decalControls').classList.add('hidden');
+});
+document.getElementById('btnCloseFullPrintControls').addEventListener('click', () => {
+  document.getElementById('fullPrintControls').classList.add('hidden');
+  document.getElementById('btnReopenFullPrint').classList.remove('hidden');
+});
+document.getElementById('btnReopenFullPrint').addEventListener('click', () => {
+  document.getElementById('fullPrintControls').classList.remove('hidden');
+  document.getElementById('btnReopenFullPrint').classList.add('hidden');
+});
+document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
 document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
 designFileInput.addEventListener('change', (e) => {
   beginDecalPlacement(e.target.files[0]);
@@ -1128,12 +1221,6 @@ const printRepeatXSlider  = document.getElementById('printRepeatXSlider');
 const printRepeatYSlider  = document.getElementById('printRepeatYSlider');
 const printRotationSlider = document.getElementById('printRotationSlider');
 
-fullPrintControls.style.cssText = `
-  position:fixed; top:70px; left:16px; width:220px;
-  background:#fff; border:1px solid #e5e5e5; border-radius:12px;
-  padding:10px; box-shadow:0 2px 8px rgba(0,0,0,0.08); z-index:20;
-`;
-
 let zonePrintState = {}; // key: slide index (within current shoe) -> { texture, repeatX, repeatY, rotationDeg }
 
 function currentZoneKey() {
@@ -1175,10 +1262,14 @@ function applyPrintStateToMeshes(config, state) {
 }
 
 function showFullPrintPanel(config, state) {
+  document.getElementById('btnReopenFullPrint').classList.add('hidden');
   fullPrintZoneLabel.textContent = `Zone: ${config.title}`;
   printRepeatXSlider.value = state.repeatX;
   printRepeatYSlider.value = state.repeatY;
   printRotationSlider.value = state.rotationDeg;
+  document.getElementById('valRepeatX').textContent = state.repeatX + '×';
+  document.getElementById('valRepeatY').textContent = state.repeatY + '×';
+  document.getElementById('valRotation').textContent = state.rotationDeg + '°';
   fullPrintControls.classList.remove('hidden');
 }
 
@@ -1241,9 +1332,18 @@ fullPrintFileInput.addEventListener('change', (e) => {
   fullPrintFileInput.value = '';
 });
 
-printRepeatXSlider.addEventListener('input', updateCurrentPrintRepeat);
-printRepeatYSlider.addEventListener('input', updateCurrentPrintRepeat);
-printRotationSlider.addEventListener('input', updateCurrentPrintRotation);
+printRepeatXSlider.addEventListener('input', () => {
+  document.getElementById('valRepeatX').textContent = printRepeatXSlider.value + '×';
+  updateCurrentPrintRepeat();
+});
+printRepeatYSlider.addEventListener('input', () => {
+  document.getElementById('valRepeatY').textContent = printRepeatYSlider.value + '×';
+  updateCurrentPrintRepeat();
+});
+printRotationSlider.addEventListener('input', () => {
+  document.getElementById('valRotation').textContent = printRotationSlider.value + '°';
+  updateCurrentPrintRotation();
+});
 document.getElementById('btnRemovePrint').addEventListener('click', removeCurrentPrint);
 /* ============================================================
    CAROUSEL UI
@@ -1654,5 +1754,15 @@ buildCarousel(initialShoeIndex);
 titleEl.textContent = shoeColorConfigs[initialShoeIndex].name;
 loadShoe(initialShoeIndex);
 updatePanelForShoe(initialShoeIndex);
+lucide.createIcons();
+
+const sneakerIcon = document.getElementById('iconFullPrint');
+if (sneakerIcon && window.lucideLab && window.lucideLab.sneaker) {
+  const svg = lucide.createElement(window.lucideLab.sneaker);
+  svg.setAttribute('width', '18');
+  svg.setAttribute('height', '18');
+  svg.setAttribute('stroke-width', '2');
+  sneakerIcon.replaceWith(svg);
+}
 </script>
 {% endblock %}

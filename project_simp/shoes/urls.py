@@ -31,12 +31,12 @@ urlpatterns = [
     path("cart/api/update/", views.cart_update, name="cart_update"),
     path("cart/api/remove/", views.cart_remove, name="cart_remove"),
     path("cart/api/clear/", views.cart_clear, name="cart_clear"),
+path('remove-background/', views.remove_background_view, name='remove_background'),
     path("wishlist/", views.wishlist_page, name="wishlist_page"),
     path("wishlist/api/items/", views.wishlist_item_list, name="wishlist_item_list"),
     path("wishlist/api/add/", views.wishlist_add, name="wishlist_add"),
     path("wishlist/api/remove/", views.wishlist_remove, name="wishlist_remove"),
     path("wishlist/api/toggle/", views.wishlist_toggle, name="wishlist_toggle"),
     path("wishlist/api/move-to-cart/", views.wishlist_move_to_cart, name="wishlist_move_to_cart"),
-
 
 ]

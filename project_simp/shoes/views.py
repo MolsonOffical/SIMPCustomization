@@ -25,6 +25,10 @@ from django.views.decorators.http import (
     require_http_methods,
     require_POST,
 )
+from io import BytesIO
+from django.views.decorators.csrf import csrf_exempt
+from PIL import Image
+from rembg import remove
 
 from account.models import CartItem, WishlistItem, PATTERN_PRICES, SIZE_CHOICES
 from .forms import ReviewForm
@@ -1076,3 +1080,22 @@ def khalti_verify(request, order_id):
     order.save()
     order.pending_cart_items.update(order=None)
     return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
+# ---------------------------------------------------------------
+# Decal background removal (customizer sticker uploads)
+# ---------------------------------------------------------------
+@csrf_exempt
+def remove_background_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    uploaded_file = request.FILES.get('image')
+    if not uploaded_file:
+        return JsonResponse({'error': 'No image provided'}, status=400)
+    try:
+        img = Image.open(uploaded_file)
+        output = remove(img)
+        buffer = BytesIO()
+        output.save(buffer, format='PNG')
+        encoded = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return JsonResponse({'image': f'data:image/png;base64,{encoded}'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

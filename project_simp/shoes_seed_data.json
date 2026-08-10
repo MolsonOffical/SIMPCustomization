@@ -1,0 +1,1566 @@
+[
+{
+  "model": "shoes.category",
+  "pk": 2,
+  "fields": {
+    "name": "Sneakers",
+    "created_at": "2026-07-17T11:24:06.282Z"
+  }
+},
+{
+  "model": "shoes.category",
+  "pk": 3,
+  "fields": {
+    "name": "Boots",
+    "created_at": "2026-07-17T11:36:42.342Z"
+  }
+},
+{
+  "model": "shoes.brand",
+  "pk": 1,
+  "fields": {
+    "name": "nike",
+    "created_at": "2026-07-10T07:33:47.964Z"
+  }
+},
+{
+  "model": "shoes.brand",
+  "pk": 3,
+  "fields": {
+    "name": "Converse",
+    "created_at": "2026-07-17T11:36:10.745Z"
+  }
+},
+{
+  "model": "shoes.brand",
+  "pk": 4,
+  "fields": {
+    "name": "SIMP",
+    "created_at": "2026-07-17T11:36:17.590Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 2,
+  "fields": {
+    "category": 2,
+    "brand": 1,
+    "name": "Air Runner",
+    "description": "Nike Air Force 1-style sneaker with customizable leather, fabric, and outsole panels.",
+    "thumbnail": "shoes/thumbnails/air-runner-thumb.jpg",
+    "customizer_id": "air-runner",
+    "created_at": "2026-07-17T11:29:26.966Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 3,
+  "fields": {
+    "category": 2,
+    "brand": 1,
+    "name": "Air Jordan 1",
+    "description": "Classic high-top basketball sneaker with customizable toe, upper body, ankle patch, heel, and sole color zones.",
+    "thumbnail": "shoes/thumbnails/air_jordan1.jpg",
+    "customizer_id": "air-jordan-1",
+    "created_at": "2026-07-17T11:38:42.243Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 4,
+  "fields": {
+    "category": 2,
+    "brand": 3,
+    "name": "Converse Chuck Taylor All Star — Low Top",
+    "description": "Iconic low-top canvas sneaker with customizable body, tongue, heel stripe, lining, stitching, laces, and rubber sole detailing.",
+    "thumbnail": "shoes/thumbnails/nike-converse-low-top.jpeg",
+    "customizer_id": "nike-converse-low-top",
+    "created_at": "2026-07-17T11:40:16.661Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "brand": 3,
+    "name": "Converse Chuck Taylor All Star — High Top",
+    "description": "Classic high-top canvas sneaker with the same full customization as the low-top — body, tongue, heel stripe, lining, stitching, laces, and sole.",
+    "thumbnail": "shoes/thumbnails/nike-converse-high-top.jpeg",
+    "customizer_id": "nike-converse-high-top",
+    "created_at": "2026-07-17T11:41:03.904Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 6,
+  "fields": {
+    "category": 3,
+    "brand": 4,
+    "name": "Low Poly Boot",
+    "description": "Rugged lace-up leather boot with customizable body, eyelet, and lace colors.",
+    "thumbnail": "shoes/thumbnails/boot.jpg",
+    "customizer_id": "low-poly-boot",
+    "created_at": "2026-07-17T11:41:57.447Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 7,
+  "fields": {
+    "category": 2,
+    "brand": 4,
+    "name": "Urban Canvas",
+    "description": "Original SIMP canvas sneaker design with fully customizable upper, toe caps, lining, sole, side stripes, heel band, logo patch, and laces.",
+    "thumbnail": "shoes/thumbnails/urban-canvas-thumb.jpg",
+    "customizer_id": "urban-canvas",
+    "created_at": "2026-07-17T11:42:55.962Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 1,
+  "fields": {
+    "name": "red",
+    "created_at": "2026-07-10T07:34:47.105Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 2,
+  "fields": {
+    "name": "Black",
+    "created_at": "2026-08-08T11:28:36.416Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 3,
+  "fields": {
+    "name": "Green",
+    "created_at": "2026-08-08T11:28:49.307Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 4,
+  "fields": {
+    "name": "Blue",
+    "created_at": "2026-08-08T11:28:55.469Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 5,
+  "fields": {
+    "name": "Brown",
+    "created_at": "2026-08-08T11:29:14.931Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 6,
+  "fields": {
+    "name": "White",
+    "created_at": "2026-08-08T11:37:18.022Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 7,
+  "fields": {
+    "name": "Red",
+    "created_at": "2026-08-08T11:37:18.030Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 1,
+  "fields": {
+    "size_value": "32",
+    "created_at": "2026-07-10T07:34:57.295Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 2,
+  "fields": {
+    "size_value": "34",
+    "created_at": "2026-08-08T11:29:28.652Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 3,
+  "fields": {
+    "size_value": "37",
+    "created_at": "2026-08-08T11:29:36.735Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 4,
+  "fields": {
+    "size_value": "38",
+    "created_at": "2026-08-08T11:29:42.824Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 5,
+  "fields": {
+    "size_value": "39",
+    "created_at": "2026-08-08T11:29:47.219Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 6,
+  "fields": {
+    "size_value": "40",
+    "created_at": "2026-08-08T11:29:50.032Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 7,
+  "fields": {
+    "size_value": "36",
+    "created_at": "2026-08-08T11:30:11.950Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 8,
+  "fields": {
+    "size_value": "41",
+    "created_at": "2026-08-08T11:37:18.046Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 1,
+  "fields": {
+    "shoe": 2,
+    "color": 1,
+    "size": 1,
+    "price": "4500.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-07T08:33:35.632Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 2,
+  "fields": {
+    "shoe": 3,
+    "color": 1,
+    "size": 1,
+    "price": "3400.00",
+    "stock_quantity": 9,
+    "shoes_photo": "",
+    "created_at": "2026-08-07T08:41:29.949Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 3,
+  "fields": {
+    "shoe": 4,
+    "color": 1,
+    "size": 1,
+    "price": "2000.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-07T08:43:02.794Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 4,
+  "fields": {
+    "shoe": 5,
+    "color": 1,
+    "size": 1,
+    "price": "3000.00",
+    "stock_quantity": 18,
+    "shoes_photo": "",
+    "created_at": "2026-08-07T08:43:23.795Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 5,
+  "fields": {
+    "shoe": 6,
+    "color": 1,
+    "size": 1,
+    "price": "6000.00",
+    "stock_quantity": 20,
+    "shoes_photo": "",
+    "created_at": "2026-08-07T08:43:41.658Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 6,
+  "fields": {
+    "shoe": 7,
+    "color": 2,
+    "size": 3,
+    "price": "4000.00",
+    "stock_quantity": 18,
+    "shoes_photo": "",
+    "created_at": "2026-08-07T08:44:06.756Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 7,
+  "fields": {
+    "shoe": 2,
+    "color": 2,
+    "size": 4,
+    "price": "2149.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.058Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 8,
+  "fields": {
+    "shoe": 2,
+    "color": 2,
+    "size": 5,
+    "price": "2149.00",
+    "stock_quantity": 30,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.065Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 9,
+  "fields": {
+    "shoe": 2,
+    "color": 2,
+    "size": 6,
+    "price": "2149.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.073Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 10,
+  "fields": {
+    "shoe": 2,
+    "color": 2,
+    "size": 8,
+    "price": "2149.00",
+    "stock_quantity": 8,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.083Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 11,
+  "fields": {
+    "shoe": 2,
+    "color": 6,
+    "size": 4,
+    "price": "2149.00",
+    "stock_quantity": 28,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.093Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 12,
+  "fields": {
+    "shoe": 2,
+    "color": 6,
+    "size": 5,
+    "price": "2149.00",
+    "stock_quantity": 24,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.101Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 13,
+  "fields": {
+    "shoe": 2,
+    "color": 6,
+    "size": 6,
+    "price": "2149.00",
+    "stock_quantity": 20,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.113Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 14,
+  "fields": {
+    "shoe": 2,
+    "color": 6,
+    "size": 8,
+    "price": "2149.00",
+    "stock_quantity": 27,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.120Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 15,
+  "fields": {
+    "shoe": 2,
+    "color": 7,
+    "size": 4,
+    "price": "2149.00",
+    "stock_quantity": 16,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.132Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 16,
+  "fields": {
+    "shoe": 2,
+    "color": 7,
+    "size": 5,
+    "price": "2149.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.137Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 17,
+  "fields": {
+    "shoe": 2,
+    "color": 7,
+    "size": 6,
+    "price": "2149.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.147Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 18,
+  "fields": {
+    "shoe": 2,
+    "color": 7,
+    "size": 8,
+    "price": "2149.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.152Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 19,
+  "fields": {
+    "shoe": 2,
+    "color": 4,
+    "size": 4,
+    "price": "2149.00",
+    "stock_quantity": 18,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.160Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 20,
+  "fields": {
+    "shoe": 2,
+    "color": 4,
+    "size": 5,
+    "price": "2149.00",
+    "stock_quantity": 5,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.167Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 21,
+  "fields": {
+    "shoe": 2,
+    "color": 4,
+    "size": 6,
+    "price": "2149.00",
+    "stock_quantity": 15,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.172Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 22,
+  "fields": {
+    "shoe": 2,
+    "color": 4,
+    "size": 8,
+    "price": "2149.00",
+    "stock_quantity": 25,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.182Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 23,
+  "fields": {
+    "shoe": 3,
+    "color": 2,
+    "size": 4,
+    "price": "3628.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.187Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 24,
+  "fields": {
+    "shoe": 3,
+    "color": 2,
+    "size": 5,
+    "price": "3628.00",
+    "stock_quantity": 23,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.198Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 25,
+  "fields": {
+    "shoe": 3,
+    "color": 2,
+    "size": 6,
+    "price": "3628.00",
+    "stock_quantity": 30,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.203Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 26,
+  "fields": {
+    "shoe": 3,
+    "color": 2,
+    "size": 8,
+    "price": "3628.00",
+    "stock_quantity": 6,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.213Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 27,
+  "fields": {
+    "shoe": 3,
+    "color": 6,
+    "size": 4,
+    "price": "3628.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.218Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 28,
+  "fields": {
+    "shoe": 3,
+    "color": 6,
+    "size": 5,
+    "price": "3628.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.226Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 29,
+  "fields": {
+    "shoe": 3,
+    "color": 6,
+    "size": 6,
+    "price": "3628.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.234Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 30,
+  "fields": {
+    "shoe": 3,
+    "color": 6,
+    "size": 8,
+    "price": "3628.00",
+    "stock_quantity": 15,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.243Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 31,
+  "fields": {
+    "shoe": 3,
+    "color": 7,
+    "size": 4,
+    "price": "3628.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.251Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 32,
+  "fields": {
+    "shoe": 3,
+    "color": 7,
+    "size": 5,
+    "price": "3628.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.257Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 33,
+  "fields": {
+    "shoe": 3,
+    "color": 7,
+    "size": 6,
+    "price": "3628.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.267Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 34,
+  "fields": {
+    "shoe": 3,
+    "color": 7,
+    "size": 8,
+    "price": "3628.00",
+    "stock_quantity": 14,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.273Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 35,
+  "fields": {
+    "shoe": 3,
+    "color": 4,
+    "size": 4,
+    "price": "3628.00",
+    "stock_quantity": 19,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.281Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 36,
+  "fields": {
+    "shoe": 3,
+    "color": 4,
+    "size": 5,
+    "price": "3628.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.285Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 37,
+  "fields": {
+    "shoe": 3,
+    "color": 4,
+    "size": 6,
+    "price": "3628.00",
+    "stock_quantity": 8,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.294Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 38,
+  "fields": {
+    "shoe": 3,
+    "color": 4,
+    "size": 8,
+    "price": "3628.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.298Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 39,
+  "fields": {
+    "shoe": 4,
+    "color": 2,
+    "size": 4,
+    "price": "5536.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.303Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 40,
+  "fields": {
+    "shoe": 4,
+    "color": 2,
+    "size": 5,
+    "price": "5536.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.312Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 41,
+  "fields": {
+    "shoe": 4,
+    "color": 2,
+    "size": 6,
+    "price": "5536.00",
+    "stock_quantity": 30,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.317Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 42,
+  "fields": {
+    "shoe": 4,
+    "color": 2,
+    "size": 8,
+    "price": "5536.00",
+    "stock_quantity": 5,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.325Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 43,
+  "fields": {
+    "shoe": 4,
+    "color": 6,
+    "size": 4,
+    "price": "5536.00",
+    "stock_quantity": 5,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.334Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 44,
+  "fields": {
+    "shoe": 4,
+    "color": 6,
+    "size": 5,
+    "price": "5536.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.340Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 45,
+  "fields": {
+    "shoe": 4,
+    "color": 6,
+    "size": 6,
+    "price": "5536.00",
+    "stock_quantity": 15,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.346Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 46,
+  "fields": {
+    "shoe": 4,
+    "color": 6,
+    "size": 8,
+    "price": "5536.00",
+    "stock_quantity": 7,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.350Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 47,
+  "fields": {
+    "shoe": 4,
+    "color": 7,
+    "size": 4,
+    "price": "5536.00",
+    "stock_quantity": 8,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.358Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 48,
+  "fields": {
+    "shoe": 4,
+    "color": 7,
+    "size": 5,
+    "price": "5536.00",
+    "stock_quantity": 27,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.363Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 49,
+  "fields": {
+    "shoe": 4,
+    "color": 7,
+    "size": 6,
+    "price": "5536.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.368Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 50,
+  "fields": {
+    "shoe": 4,
+    "color": 7,
+    "size": 8,
+    "price": "5536.00",
+    "stock_quantity": 14,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.374Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 51,
+  "fields": {
+    "shoe": 4,
+    "color": 4,
+    "size": 4,
+    "price": "5536.00",
+    "stock_quantity": 6,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.380Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 52,
+  "fields": {
+    "shoe": 4,
+    "color": 4,
+    "size": 5,
+    "price": "5536.00",
+    "stock_quantity": 27,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.384Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 53,
+  "fields": {
+    "shoe": 4,
+    "color": 4,
+    "size": 6,
+    "price": "5536.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.392Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 54,
+  "fields": {
+    "shoe": 4,
+    "color": 4,
+    "size": 8,
+    "price": "5536.00",
+    "stock_quantity": 30,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.398Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 55,
+  "fields": {
+    "shoe": 5,
+    "color": 2,
+    "size": 4,
+    "price": "2733.00",
+    "stock_quantity": 6,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.402Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 56,
+  "fields": {
+    "shoe": 5,
+    "color": 2,
+    "size": 5,
+    "price": "2733.00",
+    "stock_quantity": 7,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.409Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 57,
+  "fields": {
+    "shoe": 5,
+    "color": 2,
+    "size": 6,
+    "price": "2733.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.414Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 58,
+  "fields": {
+    "shoe": 5,
+    "color": 2,
+    "size": 8,
+    "price": "2733.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.418Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 59,
+  "fields": {
+    "shoe": 5,
+    "color": 6,
+    "size": 4,
+    "price": "2733.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.427Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 60,
+  "fields": {
+    "shoe": 5,
+    "color": 6,
+    "size": 5,
+    "price": "2733.00",
+    "stock_quantity": 7,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.431Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 61,
+  "fields": {
+    "shoe": 5,
+    "color": 6,
+    "size": 6,
+    "price": "2733.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.436Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 62,
+  "fields": {
+    "shoe": 5,
+    "color": 6,
+    "size": 8,
+    "price": "2733.00",
+    "stock_quantity": 15,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.443Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 63,
+  "fields": {
+    "shoe": 5,
+    "color": 7,
+    "size": 4,
+    "price": "2733.00",
+    "stock_quantity": 27,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.447Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 64,
+  "fields": {
+    "shoe": 5,
+    "color": 7,
+    "size": 5,
+    "price": "2733.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.452Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 65,
+  "fields": {
+    "shoe": 5,
+    "color": 7,
+    "size": 6,
+    "price": "2733.00",
+    "stock_quantity": 12,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.459Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 66,
+  "fields": {
+    "shoe": 5,
+    "color": 7,
+    "size": 8,
+    "price": "2733.00",
+    "stock_quantity": 9,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.464Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 67,
+  "fields": {
+    "shoe": 5,
+    "color": 4,
+    "size": 4,
+    "price": "2733.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.469Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 68,
+  "fields": {
+    "shoe": 5,
+    "color": 4,
+    "size": 5,
+    "price": "2733.00",
+    "stock_quantity": 26,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.476Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 69,
+  "fields": {
+    "shoe": 5,
+    "color": 4,
+    "size": 6,
+    "price": "2733.00",
+    "stock_quantity": 19,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.481Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 70,
+  "fields": {
+    "shoe": 5,
+    "color": 4,
+    "size": 8,
+    "price": "2733.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.486Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 71,
+  "fields": {
+    "shoe": 6,
+    "color": 2,
+    "size": 4,
+    "price": "4911.00",
+    "stock_quantity": 12,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.493Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 72,
+  "fields": {
+    "shoe": 6,
+    "color": 2,
+    "size": 5,
+    "price": "4911.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.499Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 73,
+  "fields": {
+    "shoe": 6,
+    "color": 2,
+    "size": 6,
+    "price": "4911.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.507Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 74,
+  "fields": {
+    "shoe": 6,
+    "color": 2,
+    "size": 8,
+    "price": "4911.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.514Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 75,
+  "fields": {
+    "shoe": 6,
+    "color": 6,
+    "size": 4,
+    "price": "4911.00",
+    "stock_quantity": 21,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.519Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 76,
+  "fields": {
+    "shoe": 6,
+    "color": 6,
+    "size": 5,
+    "price": "4911.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.528Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 77,
+  "fields": {
+    "shoe": 6,
+    "color": 6,
+    "size": 6,
+    "price": "4911.00",
+    "stock_quantity": 24,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.533Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 78,
+  "fields": {
+    "shoe": 6,
+    "color": 6,
+    "size": 8,
+    "price": "4911.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.542Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 79,
+  "fields": {
+    "shoe": 6,
+    "color": 7,
+    "size": 4,
+    "price": "4911.00",
+    "stock_quantity": 25,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.549Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 80,
+  "fields": {
+    "shoe": 6,
+    "color": 7,
+    "size": 5,
+    "price": "4911.00",
+    "stock_quantity": 5,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.557Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 81,
+  "fields": {
+    "shoe": 6,
+    "color": 7,
+    "size": 6,
+    "price": "4911.00",
+    "stock_quantity": 6,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.565Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 82,
+  "fields": {
+    "shoe": 6,
+    "color": 7,
+    "size": 8,
+    "price": "4911.00",
+    "stock_quantity": 19,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.571Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 83,
+  "fields": {
+    "shoe": 6,
+    "color": 4,
+    "size": 4,
+    "price": "4911.00",
+    "stock_quantity": 23,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.613Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 84,
+  "fields": {
+    "shoe": 6,
+    "color": 4,
+    "size": 5,
+    "price": "4911.00",
+    "stock_quantity": 18,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.619Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 85,
+  "fields": {
+    "shoe": 6,
+    "color": 4,
+    "size": 6,
+    "price": "4911.00",
+    "stock_quantity": 6,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.629Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 86,
+  "fields": {
+    "shoe": 6,
+    "color": 4,
+    "size": 8,
+    "price": "4911.00",
+    "stock_quantity": 9,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.634Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 87,
+  "fields": {
+    "shoe": 7,
+    "color": 2,
+    "size": 4,
+    "price": "5064.00",
+    "stock_quantity": 23,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.642Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 88,
+  "fields": {
+    "shoe": 7,
+    "color": 2,
+    "size": 5,
+    "price": "5064.00",
+    "stock_quantity": 26,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.647Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 89,
+  "fields": {
+    "shoe": 7,
+    "color": 2,
+    "size": 6,
+    "price": "5064.00",
+    "stock_quantity": 24,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.652Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 90,
+  "fields": {
+    "shoe": 7,
+    "color": 2,
+    "size": 8,
+    "price": "5064.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.667Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 91,
+  "fields": {
+    "shoe": 7,
+    "color": 6,
+    "size": 4,
+    "price": "5064.00",
+    "stock_quantity": 10,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.692Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 92,
+  "fields": {
+    "shoe": 7,
+    "color": 6,
+    "size": 5,
+    "price": "5064.00",
+    "stock_quantity": 29,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.718Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 93,
+  "fields": {
+    "shoe": 7,
+    "color": 6,
+    "size": 6,
+    "price": "5064.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.741Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 94,
+  "fields": {
+    "shoe": 7,
+    "color": 6,
+    "size": 8,
+    "price": "5064.00",
+    "stock_quantity": 13,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.756Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 95,
+  "fields": {
+    "shoe": 7,
+    "color": 7,
+    "size": 4,
+    "price": "5064.00",
+    "stock_quantity": 22,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.769Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 96,
+  "fields": {
+    "shoe": 7,
+    "color": 7,
+    "size": 5,
+    "price": "5064.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.781Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 97,
+  "fields": {
+    "shoe": 7,
+    "color": 7,
+    "size": 6,
+    "price": "5064.00",
+    "stock_quantity": 16,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.788Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 98,
+  "fields": {
+    "shoe": 7,
+    "color": 7,
+    "size": 8,
+    "price": "5064.00",
+    "stock_quantity": 16,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.798Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 99,
+  "fields": {
+    "shoe": 7,
+    "color": 4,
+    "size": 4,
+    "price": "5064.00",
+    "stock_quantity": 27,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.805Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 100,
+  "fields": {
+    "shoe": 7,
+    "color": 4,
+    "size": 5,
+    "price": "5064.00",
+    "stock_quantity": 11,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.813Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 101,
+  "fields": {
+    "shoe": 7,
+    "color": 4,
+    "size": 6,
+    "price": "5064.00",
+    "stock_quantity": 7,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.821Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 102,
+  "fields": {
+    "shoe": 7,
+    "color": 4,
+    "size": 8,
+    "price": "5064.00",
+    "stock_quantity": 8,
+    "shoes_photo": "",
+    "created_at": "2026-08-08T11:37:18.829Z"
+  }
+}
+]

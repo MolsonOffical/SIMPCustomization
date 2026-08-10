@@ -56,6 +56,7 @@ class ShoeRecommendationEngine:
             purchased_ids = OrderItem.objects.filter(
                 order__user=self.user,
                 order__status__in=CONFIRMED_STATUSES,
+                variant__isnull=False,  # FIX: customized/patterned orders have no variant/shoe link
             ).values_list("variant__shoe_id", flat=True).distinct()
             interacted.update(purchased_ids)
 
@@ -92,6 +93,7 @@ class ShoeRecommendationEngine:
             order_items = OrderItem.objects.filter(
                 order__user=self.user,
                 order__status__in=CONFIRMED_STATUSES,
+                variant__isnull=False,  
             ).select_related("variant__shoe__category", "variant__shoe__brand", "order")
 
             seen_purchases = set()
@@ -158,7 +160,7 @@ class ShoeRecommendationEngine:
 
         days_old = (timezone.now() - shoe.created_at).days
         if days_old <= 14:
-            score += (14 - days_old) * 0.05  # small boost for new arrivals
+            score += (14 - days_old) * 0.05 
 
         return score
 
@@ -270,15 +272,15 @@ class ShoeRecommendationEngine:
         qs = _in_stock(
             Shoes.objects.exclude(id=shoe.id).filter(brand_id=shoe.brand_id).select_related("category", "brand")
             ).annotate(min_price=Min("variants__price")).distinct()
-        
+
         scored = []
         for s in qs:
             score = 2.0  # same-brand match
-            
+
             days_old = (timezone.now() - s.created_at).days
             if days_old <= 30:
                 score += max(0, (30 - days_old) * 0.05)
-                
+
             scored.append((s, score))
         scored.sort(key=lambda pair: pair[1], reverse=True)
         return [s for s, _ in scored[:limit]]

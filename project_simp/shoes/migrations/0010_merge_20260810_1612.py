@@ -6,8 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('shoes', '0002_seed_initial_shoe_data'),
-        ('shoes', '0009_merge_20260802_1317'),
+        ('shoes', '0001_initial'),
     ]
 
     operations = [

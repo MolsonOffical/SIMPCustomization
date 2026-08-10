@@ -1,9 +1,3 @@
-/* ============================================================
-   cart.css — cart page, nav badge, toast
-   Drop this in /static/css/cart.css and include it wherever
-   cart.js is included.
-   ============================================================ */
-
 :root {
   --cart-green: #1e8e3e;
   --cart-green-dark: #166b2f;
@@ -13,7 +7,6 @@
   --cart-red: #e63946;
 }
 
-/* ---------- navbar cart badge ---------- */
 .nav-icon-btn {
   position: relative;
 }
@@ -37,7 +30,6 @@
   font-weight: 600;
 }
 
-/* ---------- toast ---------- */
 #cart-toast {
   position: fixed;
   left: 50%;
@@ -128,7 +120,6 @@
   background: #f5f5f5;
 }
 
-/* ---------- empty state ---------- */
 .cart-empty {
   text-align: center;
   padding: 60px 20px;
@@ -151,7 +142,6 @@
   text-decoration: none;
 }
 
-/* ---------- layout ---------- */
 .cart-layout {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -165,7 +155,6 @@
   }
 }
 
-/* ---------- cart items ---------- */
 .cart-items {
   display: flex;
   flex-direction: column;
@@ -250,7 +239,6 @@
   background: #f5f5f5;
 }
 
-/* ---------- item right-hand actions ---------- */
 .cart-item-actions {
   display: flex;
   flex-direction: column;
@@ -307,77 +295,6 @@
   gap: 6px;
 }
 
-/* ---------- "You May Also Like" ---------- */
-.cart-recs {
-  margin-top: 36px;
-}
-
-.cart-recs h2 {
-  font-size: 18px;
-  margin-bottom: 16px;
-}
-
-.cart-recs-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 700px) {
-  .cart-recs-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.rec-card {
-  border: 1px solid var(--cart-border);
-  border-radius: 12px;
-  padding: 14px;
-  background: #fff;
-}
-
-.rec-card img {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 8px;
-  background: #f4f4f4;
-  margin-bottom: 10px;
-}
-
-.rec-name {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.rec-price {
-  color: var(--cart-text-muted);
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-.rec-add-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px;
-  border: 1px solid var(--cart-border);
-  border-radius: 7px;
-  background: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  color: #111;
-  text-decoration: none;
-}
-
-.rec-add-btn:hover {
-  background: #f5f5f5;
-}
-
-/* ---------- summary panel ---------- */
 .cart-summary {
   border: 1px solid var(--cart-border);
   border-radius: 12px;
@@ -435,41 +352,6 @@
   background: var(--cart-green-dark);
 }
 
-.btn-checkout-khalti {
-  width: 100%;
-  margin-top: 10px;
-  padding: 13px;
-  background: #fff;
-  color: #111;
-  border: 1px solid var(--cart-border);
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.btn-checkout-khalti:hover {
-  background: #f5f5f5;
-}
-
-.khalti-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: #5c2d91;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-/* ---------- trust list inside summary ---------- */
 .cart-trust-list {
   list-style: none;
   margin: 20px 0 0;
@@ -529,7 +411,6 @@
   margin-top: 2px;
 }
 
-/* ---------- View Details modal ---------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -543,13 +424,6 @@
   transition: opacity 0.15s ease;
 }
 
-/* FIX: the [hidden] attribute has the same CSS specificity as the
-   .modal-overlay class above, and author styles beat the browser's
-   default [hidden]{display:none} rule on a specificity tie. Without
-   this, the overlay stays display:flex (just invisible via opacity:0)
-   even while "hidden" is set, and its position:fixed; inset:0;
-   z-index:1000 box sits on top of the ENTIRE page, silently
-   swallowing every click (navbar, remove buttons, checkout, etc). */
 .modal-overlay[hidden] {
   display: none !important;
 }
@@ -700,7 +574,6 @@
   gap: 6px;
 }
 
-/* ---------- bottom trust strip ---------- */
 .trust-strip {
   margin-top: 48px;
   padding-top: 28px;

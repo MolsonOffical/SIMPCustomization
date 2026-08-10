@@ -9,7 +9,8 @@
 <link rel="stylesheet" href="{% static 'css/login.css' %}?v=5" />
 {% endblock %}
 
-
+{% block navbar %}
+ {%endblock%}
 {% block content %}
 <div class="auth-page">
   <div class="auth-wrap">
@@ -81,6 +82,8 @@
   </div>
 </div>
  {% block chatbot %}
+ {%endblock%}
+ {% block footer %}
  {%endblock%}
 <script>
 document.querySelectorAll('.toggle-visibility').forEach(btn => {

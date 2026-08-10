@@ -852,3 +852,43 @@ canvas.webgl.placing-decal { cursor: crosshair; }
 .decal-controls-label, .zone-label, .fp-value {
   letter-spacing: 0.02em;
 }
+.panel-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+.panel-close-btn:hover {
+  color: #000;
+}
+.full-print-reopen-btn {
+  position: fixed;
+  top: 70px;
+  left: 16px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: #111;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  color: #fff;
+}
+.full-print-reopen-btn:hover {
+  background: #333;
+}
+.full-print-reopen-btn i {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+}

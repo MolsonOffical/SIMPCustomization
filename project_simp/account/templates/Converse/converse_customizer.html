@@ -76,6 +76,7 @@
   <!-- Controls shown once at least one design is placed -->
   <!-- Controls shown once at least one design is placed -->
   <div class="decal-controls hidden" id="decalControls">
+    <button class="panel-close-btn" id="btnCloseDecalControls" title="Close">✕</button>
     <label class="decal-controls-label" for="decalSizeSlider">Design size</label>
     <input type="range" id="decalSizeSlider" min="0.05" max="0.9" step="0.01" value="0.28" />
     <label class="decal-controls-label" for="decalRotationSlider">Rotation</label>
@@ -87,9 +88,13 @@
   <!-- Layers list: every placed design, click to select, ✕ to delete -->
   <div class="decal-layers hidden" id="decalLayers"></div>
  <div class="full-print-controls hidden" id="fullPrintControls">
-  <div class="fp-header">
+  <button class="full-print-reopen-btn hidden" id="btnReopenFullPrint" title="Edit print settings">
+  <i data-lucide="stamp"></i>
+</button>
+   <div class="fp-header">
     <i data-lucide="stamp"></i>
     <div id="fullPrintZoneLabel">Zone: —</div>
+    <button class="panel-close-btn" id="btnCloseFullPrintControls" title="Close">✕</button>
   </div>
 
   <div class="fp-row">
@@ -1101,7 +1106,18 @@ function renderLayersList() {
     decalLayers.appendChild(row);
   });
 }
-
+document.getElementById('btnCloseDecalControls').addEventListener('click', () => {
+  document.getElementById('decalControls').classList.add('hidden');
+});
+document.getElementById('btnCloseFullPrintControls').addEventListener('click', () => {
+  document.getElementById('fullPrintControls').classList.add('hidden');
+  document.getElementById('btnReopenFullPrint').classList.remove('hidden');
+});
+document.getElementById('btnReopenFullPrint').addEventListener('click', () => {
+  document.getElementById('fullPrintControls').classList.remove('hidden');
+  document.getElementById('btnReopenFullPrint').classList.add('hidden');
+});
+document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
 document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
 designFileInput.addEventListener('change', (e) => {
   beginDecalPlacement(e.target.files[0]);
@@ -1246,6 +1262,7 @@ function applyPrintStateToMeshes(config, state) {
 }
 
 function showFullPrintPanel(config, state) {
+  document.getElementById('btnReopenFullPrint').classList.add('hidden');
   fullPrintZoneLabel.textContent = `Zone: ${config.title}`;
   printRepeatXSlider.value = state.repeatX;
   printRepeatYSlider.value = state.repeatY;

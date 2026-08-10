@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('account', '0012_alter_address_id_alter_cartitem_id_and_more'),
+        ('account', '0002_initial'),
     ]
 
     operations = [

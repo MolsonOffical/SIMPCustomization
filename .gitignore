@@ -11,3 +11,6 @@ db.sqlite3
 .venv/
 
 media/
+project_simp/.env
+project_simp/db_old_backup.sqlite3
+project_simp/shoes_backup.json

@@ -89,22 +89,44 @@
       <div class="checkout-section">
         <h2>Payment Method</h2>
         <div class="payment-options">
-          <label class="payment-option">
-            <input type="radio" name="payment_method" value="esewa" checked>
-            <img src="{% static 'images/esewa-logo.png' %}" alt="eSewa" onerror="this.style.display='none'">
-            <div>
-              <div class="pname">eSewa</div>
-              <div class="psub">Pay securely using your eSewa wallet</div>
-            </div>
-          </label>
-          <label class="payment-option">
-            <input type="radio" name="payment_method" value="khalti">
-            <img src="{% static 'images/khalti-logo.png' %}" alt="Khalti" onerror="this.style.display='none'">
-            <div>
-              <div class="pname">Khalti</div>
-              <div class="psub">Pay securely using your Khalti wallet</div>
-            </div>
-          </label>
+          {% if payment_method == 'khalti' %}
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="khalti" checked>
+              <img src="{% static 'images/khalti-logo.png' %}" alt="Khalti" onerror="this.style.display='none'">
+              <div>
+                <div class="pname">Khalti</div>
+                <div class="psub">Pay securely using your Khalti wallet</div>
+              </div>
+            </label>
+
+          {% elif payment_method == 'esewa' %}
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="esewa" checked>
+              <img src="{% static 'images/esewa-logo.png' %}" alt="eSewa" onerror="this.style.display='none'">
+              <div>
+                <div class="pname">eSewa</div>
+                <div class="psub">Pay securely using your eSewa wallet</div>
+              </div>
+            </label>
+
+          {% else %}
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="esewa" checked>
+              <img src="{% static 'images/esewa-logo.png' %}" alt="eSewa" onerror="this.style.display='none'">
+              <div>
+                <div class="pname">eSewa</div>
+                <div class="psub">Pay securely using your eSewa wallet</div>
+              </div>
+            </label>
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="khalti">
+              <img src="{% static 'images/khalti-logo.png' %}" alt="Khalti" onerror="this.style.display='none'">
+              <div>
+                <div class="pname">Khalti</div>
+                <div class="psub">Pay securely using your Khalti wallet</div>
+              </div>
+            </label>
+          {% endif %}
         </div>
       </div>
     </div>

@@ -1,391 +1,449 @@
 {% extends "layout.html" %}
 {% load static %}
-
-{% block title %} HOME {% endblock %}
-
+{% block title %}HOME{% endblock %}
 {% block extra_header %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/home.css' %}" />
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
-  }
-}
-</script>
+<style>
+    :root {
+        --hero-bg: url('{% static "images/hero3.png" %}');
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="topbar">🎉 Free shipping on orders over <span>Rs. 5,000</span> — Use code <span>SIMP2025</span></div>
+<section class="hero-static">
+    <div class="hero-inner">
+        <div class="hero-content">
+    <span class="tagline">Premium Custom & Branded Footwear</span>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-left">
-    <span class="hero-collection-tag">SS 2025 Collection</span>
-    <h1 class="hero-h1">Made to<br>Order.<br><span class="green">Yours to<br>Design.</span></h1>
-    <p class="hero-sub">Customize colors, patterns, artwork & size. Every pair is built for you — no two alike. Delivered to your door in Nepal.</p>
-    <div class="hero-btns">
-       <a href="{% url 'account:converse_customize' %}" class="btn-green">Design Now →</a>
-      <a href="/business" class="btn-white-outline">Business Orders</a>
-    </div>
-  </div>
- 
-  <div class="hero-right">
-  <div class="hero-shoe-display">
-  <div class="hero-shoe-glow"></div>
-  <div class="hero-shoe-floor"></div>
-  <canvas id="heroCanvas" class="hero-shoe-canvas"></canvas>
-  <div class="hero-shoe-fallback" id="heroShoeFallback">👟</div>
-</div>
-    <div class="hero-badge">
-      <div class="badge-title">Payment via</div>
-      <div class="badge-val">eSewa · Khalti · Card</div>
-    </div>
-    <div class="hero-badge2">
-      <div class="badge2-val">4K+</div>
-      <div class="badge2-label">Pairs Delivered</div>
-    </div>
-  </div>
-</section>
- 
-<!-- PARTNERS / RATINGS STRIP -->
-<div class="partners-strip">
-  <span class="partners-label">Trusted by</span>
-  <div class="partners-divider"></div>
-  <span class="partner-name">FAIRFIELD</span>
-  <span class="partner-name">RELEC</span>
-  <span class="partner-name">ABB</span>
-  <span class="partner-name">TURNER</span>
-  <span class="partner-name">FOXEN</span>
-  <div class="rating-pills">
-    <div class="rating-pill"><span class="stars">★★★★★</span><span class="score">4.9</span><span class="source">Google</span></div>
-    <div class="rating-pill"><span class="stars">★★★★★</span><span class="score">4.8</span><span class="source">Trustpilot</span></div>
-  </div>
-</div>
- 
-<!-- HOW IT WORKS -->
-<section class="how-section">
-  <div class="section-eyebrow">How it works</div>
-  <h2 class="section-h2">Customize Your Pair<br>in <span class="green">3 Easy Steps</span></h2>
-  <div class="steps-grid">
- 
-    <div class="step-card">
-      <div class="step-num-big">1</div>
-      <div class="step-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15c0-1 .5-1.8 1.4-2.2L10 10.3c.6-.3 1-.9 1-1.6V6.5c0-.8.7-1.5 1.5-1.5H14c1.5 0 2.7.9 3.3 2.2l1 2.1c.3.6.9 1 1.6 1H21v3.2c0 1-.8 1.7-1.7 1.7H4.5C3.7 13.5 3 14.2 3 15z"/><path d="M3 15v2.3c0 .7.6 1.2 1.2 1.2h16.6c.7 0 1.2-.5 1.2-1.2V15"/><path d="M7 18.5v1M11 18.5v1M15 18.5v1"/></svg>
-      </div>
-      <div class="step-title">Choose Your Style</div>
-      <div class="step-desc">Browse 30+ styles: low tops, high tops, boots, sandals, basketball shoes, and more. Every style is fully customizable.</div>
-      <a href="/shop" class="step-cta">Browse styles →</a>
-    </div>
- 
-    <div class="step-card">
-      <div class="step-num-big">2</div>
-      <div class="step-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18c1.5 0 2.5-1 2.5-2.3 0-.6-.2-1.1-.6-1.5-.4-.4-.6-.9-.6-1.4 0-1.2 1-2.2 2.2-2.2H17c1.7 0 3-1.3 3-3 0-4-3.6-7.6-8-7.6z"/><circle cx="7.5" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.5" cy="7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14" cy="7" r="1.1" fill="currentColor" stroke="none"/></svg>
-      </div>
-      <div class="step-title">Design Every Surface</div>
-      <div class="step-desc">Upload your artwork or logo. Change colors, patterns, and materials on any panel. Use the live preview as you customize.</div>
-      <a href="/customize" class="step-cta">Start designing →</a>
-    </div>
- 
-    <div class="step-card">
-      <div class="step-num-big">3</div>
-      <div class="step-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg>
-      </div>
-      <div class="step-title">We Make & Ship It</div>
-      <div class="step-desc">After you approve the design, we print and ship anywhere in Nepal. Production in 2–3 weeks, shipping in 3–5 days.</div>
-      <a href="/faq" class="step-cta">Shipping info →</a>
-    </div>
- 
-  </div>
-</section>
- 
-<!-- BEST SELLING STYLES -->
-<section class="shoes-section">
-  <div class="section-header">
-    <div>
-      <div class="section-eyebrow">Featured Collection</div>
-      <h2 class="section-h2" style="margin-bottom:0;">Best Selling <span class="green">Styles</span></h2>
-    </div>
-    <a href="/shop" class="view-all">View all shoes →</a>
-  </div>
- 
-  <div class="shoes-grid">
-  {% for shoe in best_selling_shoes %}
-    <div class="shoe-card">
-      <div class="shoe-img-wrap">
-        {% if shoe.thumbnail %}
-          <img src="{{ shoe.thumbnail.url }}" alt="{{ shoe.name }}" class="shoe-img"
-               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+    <h2>Customize Your <span class="highlight">Style</span>,<br>Or Shop Top Brands</h2>
+
+    <p>
+        Create your own unique shoes with our customization studio or explore our
+        collection of premium Nike, Adidas, and other branded footwear for every occasion.
+    </p>
+
+    <div class="hero-buttons">
+        <a href="{% url 'shoes:shoes_list' %}" class="btn btn-outline">
+            Shop Collection
+            <i class="fa-solid fa-arrow-right" style="margin-left:10px;"></i>
+        </a>
+
+        {% if user.is_authenticated %}
+        <a href="{% url 'account:converse_customize' %}" class="btn">
+            Customize Your Shoes
+            <i class="fa-solid fa-paint-brush" style="margin-left:10px;"></i>
+        </a>
+        {% else %}
+        <a href="{% url 'account:login' %}" class="btn">
+            Login to Customize
+            <i class="fa-solid fa-arrow-right" style="margin-left:10px;"></i>
+        </a>
         {% endif %}
-        <span class="customizable-badge"><span class="color-dot"></span> CUSTOMIZABLE</span>
-      </div>
-      <div class="shoe-body">
-        <div class="shoe-name">{{ shoe.name }}</div>
-        <div class="shoe-price">From Rs. {{ shoe.min_price|floatformat:0 }}</div>
-      </div>
-      <div class="shoe-footer">
-  {% if shoe.customizer_id %}
-    <a href="{% url 'account:converse_customize' %}?shoe={{ shoe.customizer_id }}" class="btn-customize-card">Customize →</a>
-  {% else %}
-    <span class="btn-customize-card" style="opacity:.5;cursor:not-allowed;">Coming Soon</span>
-  {% endif %}
-</div>
     </div>
-  {% empty %}
-    <p>No shoes available yet.</p>
-  {% endfor %}
 </div>
+        <aside class="spec-tag">
+            <span class="tag-hole"></span>
+            <span class="spec-tag-label">Product Spec</span>
+            <ul class="spec-list">
+                <li><span>Colorway</span><b>01 — Crimson / Navy</b></li>
+                <li><span>Upper</span><b>Premium Canvas</b></li>
+                <li><span>Sole</span><b>Vulcanized Rubber</b></li>
+                <li><span>Built In</span><b>Kathmandu, NP</b></li>
+            </ul>
+        </aside>
+    </div>
+    <div class="scroll-indicator">
+        <span>Scroll</span>
+        <i class="fa-solid fa-chevron-down"></i>
+    </div>
 </section>
- 
-<!-- ABOUT + FEATURES -->
-<section class="about-section">
-  <div class="about-left">
-    <div class="section-eyebrow">Who We Are</div>
-    <h2 class="about-h2">The Original Home<br>of <span class="green">Custom Shoes</span></h2>
-    <p class="about-desc">Every pair from SIMP is built by people who understand footwear. We combine direct-to-shoe printing, hand-finishing, and expert quality inspection to deliver shoes that are truly yours.</p>
 
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-num">4K+</div>
-        <div class="stat-label">Pairs Delivered</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num">150+</div>
-        <div class="stat-label">Design Options</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num">100%</div>
-        <div class="stat-label">Customizable</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-num">3–5</div>
-        <div class="stat-label">Days Delivery</div>
-      </div>
+<div class="marquee-strip" aria-hidden="true">
+    <div class="marquee-track">
+        <span>Free Shipping</span><span class="dot">◆</span>
+        <span>Made-to-Order Custom Build</span><span class="dot">◆</span>
+        <span>eSewa &amp; Khalti Accepted</span><span class="dot">◆</span>
+        <span>7-Day Easy Returns</span><span class="dot">◆</span>
+        <span>Free Shipping</span><span class="dot">◆</span>
+        <span>Made-to-Order Custom Build</span><span class="dot">◆</span>
+        <span>eSewa &amp; Khalti Accepted</span><span class="dot">◆</span>
+        <span>7-Day Easy Returns</span><span class="dot">◆</span>
     </div>
-  </div>
- 
-  <div class="about-right">
-    <div class="feature-row">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="7" rx="1"/><path d="M6 10v4M18 10v4"/><rect x="5" y="14" width="14" height="7" rx="1"/><path d="M9 17.5h6"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Direct-to-shoe printing</div>
-        <div class="feature-desc">Your artwork bonds into the material surface for vibrant, long-lasting color that won't peel or crack.</div>
-      </div>
+</div>
+
+{% if category_shoes %}
+<div class="section-head">
+    <span class="eyebrow">Shop by Category</span>
+    <h2 class="section-title">Top Picks by Category</h2>
+    <p class="section-subtitle">Find the perfect style for every occasion</p>
+</div>
+<div class="category-banner-slider" id="categoryBannerSlider">
+    <div class="banner-frame">
+        <div class="banner-slides" id="bannerSlides">
+            {% for shoe in category_shoes %}
+            <div class="banner-slide">
+                <img src="{% if shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}" alt="{{ shoe.name }}" class="slide-img">
+                <div class="slide-info">
+                    <span class="category-tag">{{ shoe.category.name }}</span>
+                    <h3>{{ shoe.name }}</h3>
+                    {% if shoe.description %}
+                        <p class="slide-description">{{ shoe.description|truncatewords:20 }}</p>
+                    {% endif %}
+                    <div class="price">Rs. {{ shoe.min_price|floatformat:0 }}</div>
+                    <a href="{% url 'shoes:shoe_detail' shoe.pk %}" class="btn">View Details</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="banner-controls">
+            <button class="banner-prev" id="bannerPrev"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="banner-next" id="bannerNext"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
     </div>
-    <div class="feature-row">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Hand-finished & inspected</div>
-        <div class="feature-desc">Every pair is assembled and inspected by hand before it leaves our facility.</div>
-      </div>
+</div>
+{% endif %}
+
+<div class="section-head">
+    <span class="eyebrow">Latest Drop</span>
+    <h2 class="section-title">New Arrivals</h2>
+    <p class="section-subtitle">The latest drops, straight off the press</p>
+</div>
+<div class="products-grid">
+    {% for shoe in new_arrivals %}
+    <a href="{% url 'shoes:shoe_detail' shoe.pk %}" class="product-card-link">
+        <div class="img-wrapper">
+            <img src="{% if shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}" alt="{{ shoe.name }}">
+            {% if shoe.category %}<span class="card-category-tag">{{ shoe.category.name }}</span>{% endif %}
+            {% if request.user.is_authenticated and shoe.customizer_id %}
+            <button type="button" class="wishlist-heart-btn" data-pattern="{{ shoe.customizer_id }}" aria-label="Add to wishlist">
+              <i class="fa-regular fa-heart"></i>
+            </button>
+            {% endif %}
+        </div>
+        <div class="product-info">
+            <div class="product-info-top">
+                <h4>{{ shoe.name }}</h4>
+                <span class="sku">#{{ shoe.pk|stringformat:"04d" }}</span>
+            </div>
+            <div class="rating">
+                {% if shoe.avg_rating %}
+                    {% for i in "12345" %}
+                        <i class="fa{% if shoe.avg_rating >= forloop.counter %}-solid{% elif shoe.avg_rating > forloop.counter0 and shoe.avg_rating < forloop.counter %}-solid-half-stroke{% else %}-regular{% endif %} fa-star"></i>
+                    {% endfor %}
+                {% else %}
+                    {% for i in "12345" %}<i class="fa-regular fa-star"></i>{% endfor %}
+                {% endif %}
+                <span>({{ shoe.review_count|default:0 }})</span>
+            </div>
+            <div class="card-footer">
+                <div class="price">Rs. {{ shoe.min_price|floatformat:0 }}</div>
+                <span class="card-cta">View <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<div class="section-head">
+    <span class="eyebrow">Community Picks</span>
+    <h2 class="section-title">Most Loved</h2>
+    <p class="section-subtitle">Top picks from our community</p>
+</div>
+<div class="products-grid">
+    {% for shoe in popular_shoes %}
+    <a href="{% url 'shoes:shoe_detail' shoe.pk %}" class="product-card-link">
+        <div class="img-wrapper">
+            <img src="{% if shoe.thumbnail %}{{ shoe.thumbnail.url }}{% else %}{% static 'images/shoe_default.jpg' %}{% endif %}" alt="{{ shoe.name }}">
+            {% if shoe.category %}<span class="card-category-tag">{{ shoe.category.name }}</span>{% endif %}
+            {% if request.user.is_authenticated and shoe.customizer_id %}
+<button type="button" class="wishlist-heart-btn" data-pattern="{{ shoe.customizer_id }}" aria-label="Add to wishlist">
+  <i class="fa-regular fa-heart"></i>
+</button>
+{% endif %}
+        </div>
+        <div class="product-info">
+            <div class="product-info-top">
+                <h4>{{ shoe.name }}</h4>
+                <span class="sku">#{{ shoe.pk|stringformat:"04d" }}</span>
+            </div>
+            <div class="rating">
+                {% if shoe.avg_rating %}
+                    {% for i in "12345" %}
+                        <i class="fa{% if shoe.avg_rating >= forloop.counter %}-solid{% elif shoe.avg_rating > forloop.counter0 and shoe.avg_rating < forloop.counter %}-solid-half-stroke{% else %}-regular{% endif %} fa-star"></i>
+                    {% endfor %}
+                {% else %}
+                    {% for i in "12345" %}<i class="fa-regular fa-star"></i>{% endfor %}
+                {% endif %}
+                <span>({{ shoe.review_count|default:0 }})</span>
+            </div>
+            <div class="card-footer">
+                <div class="price">Rs. {{ shoe.min_price|floatformat:0 }}</div>
+                <span class="card-cta">View <i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<section class="features">
+    <div class="feature-item">
+        <i class="fa-solid fa-truck-fast"></i>
+        <h5>Free Shipping</h5>
+        <p>On all orders</p>
     </div>
-    <div class="feature-row">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Fast delivery to Nepal</div>
-        <div class="feature-desc">Production in 2–3 weeks. Shipping in 3–5 business days anywhere in Nepal.</div>
-      </div>
+    <div class="feature-item">
+        <i class="fa-solid fa-shield-halved"></i>
+        <h5>Secure Payment</h5>
+        <p>eSewa & Khalti integrated</p>
     </div>
-    <div class="feature-row">
-      <div class="feature-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 9.5h19"/><path d="M6 15h4"/></svg>
-      </div>
-      <div>
-        <div class="feature-title">Pay with eSewa or Khalti</div>
-        <div class="feature-desc">Secure local payment options plus card and cash on delivery.</div>
-      </div>
+    <div class="feature-item">
+        <i class="fa-solid fa-rotate-left"></i>
+        <h5>Easy Returns</h5>
+        <p>7-day hassle-free returns</p>
     </div>
-  </div>
 </section>
- 
-<!-- CUSTOMER WALL -->
-<section class="customer-section">
-  <div class="section-header">
-    <div>
-      <div class="section-eyebrow">Real Customers</div>
-      <h2 class="section-h2" style="margin-bottom:0;">From the <span class="green">Customer Wall</span></h2>
+
+<div class="section-head">
+    <span class="eyebrow">Reviews</span>
+    <h2 class="section-title">What Our Customers Say</h2>
+</div>
+<div class="testimonials-wrapper">
+    <div class="testimonials-carousel" id="testimonialCarousel">
+        {% for review in testimonials %}
+        <div class="testimonial-card">
+            <div class="stars">
+    {% for i in "12345" %}
+        <i class="fa{% if review.rating >= forloop.counter %}-solid{% elif review.rating > forloop.counter0 and review.rating < forloop.counter %}-solid fa-star-half-stroke{% else %}-regular{% endif %} fa-star"></i>
+    {% endfor %}
+</div>
+            <p>"{{ review.comment|truncatewords:30 }}"</p>
+            <div class="author">
+                <img src="{% if review.user.profile %}{{ review.user.profile.url }}{% else %}{% static 'images/profile_default.jpg' %}{% endif %}" alt="{{ review.user.first_name }}">
+                <span>{{ review.user.first_name|default:review.user.username }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="testimonial-card">
+            <p>No reviews yet. Be the first to share your experience!</p>
+        </div>
+        {% endfor %}
     </div>
-    <a href="/reviews" class="view-all">See all reviews →</a>
-  </div>
-  <div class="customer-grid">
-    <div class="customer-tile"><img src="{% static 'images/girls-shoe.jpeg' %}" alt="Customer pair" onerror="this.parentElement.innerHTML='👟'"></div>
-    <div class="customer-tile"><img src="{% static 'images/men-shoes.jpeg' %}" alt="Customer pair" onerror="this.parentElement.innerHTML='🥿'"></div>
-    <div class="customer-tile"><img src="{% static 'images/running-shoes.jpeg' %}" alt="Customer pair" onerror="this.parentElement.innerHTML='👟'"></div>
-    <div class="customer-tile"><img src="{% static 'images/shoes-image.jpeg' %}" alt="Customer pair" onerror="this.parentElement.innerHTML='🥾'"></div>
-    <div class="customer-tile"><img src="{% static 'images/hills.jpeg' %}" alt="Customer pair" onerror="this.parentElement.innerHTML='👟'"></div>
-  </div>
-</section>
- 
-<!-- FAQ -->
+    <div class="testimonial-dots" id="testimonialDots"></div>
+</div>
+
 <section class="faq-section">
-  <div class="section-eyebrow">Got Questions?</div>
-  <h2 class="section-h2">Frequently Asked <span class="green">Questions</span></h2>
-  <p style="font-size:14px;color:var(--gray-text);margin-top:-32px;margin-bottom:0;">Quick answers about custom shoes, ordering, and shipping.</p>
-  <div class="faq-grid">
-    <div class="faq-item">
-      <div>
-        <div class="faq-label">Q1</div>
-        <div class="faq-q">How much does customization cost?</div>
-      </div>
-      <span class="faq-arrow">▾</span>
+  <div class="section-head" style="margin-top:0;">
+    <span class="eyebrow">Care &amp; Questions</span>
+    <h2 class="section-title">Why SIMP?</h2>
+</div>
+<div class="faq-grid">
+    <!-- Left Column -->
+    <div class="faq-column">
+        <div class="faq-item active">
+            <div class="faq-question">
+                <span>What makes SIMP shoes different?</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                <p>Every SIMP shoe is crafted with premium materials and offers complete customisation – from colors to patterns – so you get a one‑of‑a‑kind pair.</p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>How does customisation work?</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                <p>Log in, head to the Design Studio, choose your base shoe, and play with colors, patterns, and materials. Preview in 3D and order directly!</p>
+            </div>
+        </div>
     </div>
-    <div class="faq-item">
-      <div>
-        <div class="faq-label">Q2</div>
-        <div class="faq-q">Will the print fade or peel over time?</div>
-      </div>
-      <span class="faq-arrow">▾</span>
+    <!-- Right Column -->
+    <div class="faq-column">
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>Is shipping really free?</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                <p>Absolutely! We offer free shipping on every order, no minimum purchase required.</p>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                <span>What payment methods do you accept?</span>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+                <p>We support eSewa, Khalti, and soon more digital wallets. Cash on delivery is also available in major cities.</p>
+            </div>
+        </div>
     </div>
-    <div class="faq-item">
-      <div>
-        <div class="faq-label">Q3</div>
-        <div class="faq-q">What file formats can I upload?</div>
-      </div>
-      <span class="faq-arrow">▾</span>
+</div>
+
+<div class="section-eyebrow" style="margin-top:48px;">Got Questions?</div>
+<h2 class="section-h2">Frequently Asked <span class="green">Questions</span></h2>
+<p style="font-size:14px;color:var(--gray-text);margin-top:8px;margin-bottom:24px;">Quick answers about custom shoes, ordering, and shipping.</p>
+<div class="faq-grid">
+<div class="faq2-item">
+  <div class="faq2-item-header">
+    <div>
+      <div class="faq-label">Q1</div>
+      <div class="faq-q">How much does customization cost?</div>
     </div>
-    <div class="faq-item">
-      <div>
-        <div class="faq-label">Q4</div>
-        <div class="faq-q">Which parts of the shoe can I customize?</div>
-      </div>
-      <span class="faq-arrow">▾</span>
-    </div>
+    <span class="faq-arrow">▾</span>
   </div>
+  <div class="faq2-a" style="display:none;">
+    Pricing depends on the style and customization level — starting around Rs. 2,500.
+  </div>
+</div>
+<div class="faq2-item">
+  <div class="faq2-item-header">
+    <div>
+      <div class="faq-label">Q2</div>
+      <div class="faq-q">Will the print fade or peel over time?</div>
+    </div>
+    <span class="faq-arrow">▾</span>
+  </div>
+  <div class="faq2-a" style="display:none;">
+    No — we use direct-to-shoe printing that bonds into the material, so it won't peel or crack with normal wear.
+  </div>
+</div>
+<div class="faq2-item">
+  <div class="faq2-item-header">
+    <div>
+      <div class="faq-label">Q3</div>
+      <div class="faq-q">What file formats can I upload?</div>
+    </div>
+    <span class="faq-arrow">▾</span>
+  </div>
+  <div class="faq2-a" style="display:none;">
+    PNG, JPG, and SVG files work best. For highest print quality, use a high-resolution image.
+  </div>
+</div>
+<div class="faq2-item">
+  <div class="faq2-item-header">
+    <div>
+      <div class="faq-label">Q4</div>
+      <div class="faq-q">Which parts of the shoe can I customize?</div>
+    </div>
+    <span class="faq-arrow">▾</span>
+  </div>
+  <div class="faq2-a" style="display:none;">
+    You can customize the upper panel, tongue, and heel — colors, patterns, and your own uploaded artwork.
+  </div>
+</div>
+</div>
 </section>
- 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-top">
-    <div>
-      <div class="footer-logo">SIMP</div>
-      <p class="footer-tagline">Shoe Identity & Modification Platform. Custom shoes built for you — no two pairs alike.</p>
-    </div>
-    <div>
-      <div class="footer-col-title">Custom Shoes</div>
-      <ul class="footer-links">
-        <li><a href="#">Low-Top Sneakers</a></li>
-        <li><a href="#">High-Top Sneakers</a></li>
-        <li><a href="#">Boots</a></li>
-        <li><a href="#">Sandals</a></li>
-        <li><a href="#">All Styles</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title">About Us</div>
-      <ul class="footer-links">
-        <li><a href="#">Who We Are</a></li>
-        <li><a href="#">Manufacturing</a></li>
-        <li><a href="#">Contact Us</a></li>
-        <li><a href="#">FAQs</a></li>
-        <li><a href="#">Blog</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-col-title">Contact</div>
-      <ul class="footer-links">
-        <li><a href="#">simp@email.com</a></li>
-        <li><a href="#">+977 9800000000</a></li>
-        <li><a href="#">Kathmandu, Nepal</a></li>
-        <li><a href="#" style="margin-top:8px;display:block;">Privacy Policy</a></li>
-        <li><a href="#">Terms of Service</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span class="footer-copy">© 2025 SIMP. All rights reserved.</span>
-    <div class="social-row">
-      <a href="#">Instagram</a>
-      <a href="#">Facebook</a>
-      <a href="#">Twitter</a>
-      <a href="#">TikTok</a>
-      <a href="#">YouTube</a>
-    </div>
-  </div>
-</footer>
 {% endblock %}
+
 {% block script %}
 {{ block.super }}
-<script type="module">
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-const AIR_JORDAN_ASSET_BASE = "{% static 'air-jordan/' %}";
-const canvas = document.getElementById('heroCanvas');
-const fallback = document.getElementById('heroShoeFallback');
-
-if (canvas) {
-  const scene = new THREE.Scene();
-  scene.background = null;
-
-  const camera = new THREE.PerspectiveCamera(35, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-camera.position.set(3.5, 2.0, 3.5);
-camera.lookAt(0, 0, 0);
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, canvas });
-  renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.toneMapping = THREE.ReinhardToneMapping;
-  renderer.toneMappingExposure = 1.2;
-
-  const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.7);
-  scene.add(hemi);
-  const dir = new THREE.DirectionalLight(0xffffff, 3);
-  dir.position.set(1, 3, 2);
-  scene.add(dir);
-
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.6).texture;
-
-  const loader = new GLTFLoader();
-  const draco = new DRACOLoader();
-  draco.setDecoderConfig({ type: 'wasm' });
-  draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
-  loader.setDRACOLoader(draco);
-
-  let model = null;
-
-  loader.load(
-    AIR_JORDAN_ASSET_BASE + 'model/air_jordan.glb',
-    (gltf) => {
-      model = gltf.scene;
-      model.scale.set(0.5, 0.5, 0.5);
-model.rotation.set(0.15, 0.9, 0);
-model.position.set(0, -0.2, 0);
-
-      scene.add(model);
-    },
-    undefined,
-    (err) => {
-      console.error('Hero shoe failed to load:', err);
-      canvas.style.display = 'none';
-      if (fallback) fallback.style.display = 'flex';
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const slidesContainer = document.getElementById("bannerSlides");
+    if (slidesContainer) {
+        const prevBtn = document.getElementById("bannerPrev");
+        const nextBtn = document.getElementById("bannerNext");
+        const slider = document.getElementById("categoryBannerSlider");
+        let currentIndex = 0;
+        const totalSlides = slidesContainer.children.length;
+        let autoPlay;
+        function goToSlide(index) {
+            if (index < 0) index = totalSlides - 1;
+            if (index >= totalSlides) index = 0;
+            currentIndex = index;
+            slidesContainer.style.transform =
+                `translateX(-${currentIndex * 100}%)`;
+        }
+        function nextSlide() {
+            goToSlide(currentIndex + 1);
+        }
+        function prevSlide() {
+            goToSlide(currentIndex - 1);
+        }
+        prevBtn?.addEventListener("click", prevSlide);
+        nextBtn?.addEventListener("click", nextSlide);
+        function startAutoPlay() {
+            stopAutoPlay();
+            autoPlay = setInterval(nextSlide, 4000);
+        }
+        function stopAutoPlay() {
+            clearInterval(autoPlay);
+        }
+        slider?.addEventListener("mouseenter", stopAutoPlay);
+        slider?.addEventListener("mouseleave", startAutoPlay);
+        startAutoPlay();
     }
-  );
-
-  function animate() {
-    requestAnimationFrame(animate);
-    if (model) model.rotation.y += 0.006;
-    renderer.render(scene, camera);
-  }
-  animate();
-
-  window.addEventListener('resize', () => {
-    if (!canvas.clientWidth || !canvas.clientHeight) return;
-    camera.aspect = canvas.clientWidth / canvas.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-  });
-}
+    const carousel = document.getElementById("testimonialCarousel");
+    const dotsContainer = document.getElementById("testimonialDots");
+    if (carousel && dotsContainer) {
+        const cards = carousel.querySelectorAll(".testimonial-card");
+        if (cards.length > 0) {
+            cards.forEach((card, index) => {
+                const dot = document.createElement("span");
+                dot.addEventListener("click", function () {
+                    carousel.scrollTo({
+                        left: index * (cards[0].offsetWidth + 32),
+                        behavior: "smooth"
+                    });
+                });
+                dotsContainer.appendChild(dot);
+            });
+            const dots = dotsContainer.querySelectorAll("span");
+            function updateDots() {
+                const cardWidth = cards[0].offsetWidth + 32;
+                const active = Math.round(carousel.scrollLeft / cardWidth);
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle("active", i === active);
+                });
+            }
+            carousel.addEventListener("scroll", updateDots);
+            dots[0].classList.add("active");
+            setInterval(function () {
+                if (
+                    carousel.scrollLeft + carousel.clientWidth >=
+                    carousel.scrollWidth - 5
+                ) {
+                    carousel.scrollTo({
+                        left: 0,
+                        behavior: "smooth"
+                    });
+                } else {
+                    carousel.scrollBy({
+                        left: cards[0].offsetWidth + 32,
+                        behavior: "smooth"
+                    })
+                }
+            }, 4000);
+        }
+    }
+    const faqItems = document.querySelectorAll(".faq-item");
+    faqItems.forEach(function(item){
+        const question = item.querySelector(".faq-question");
+        question.addEventListener("click", function(){
+            faqItems.forEach(function(other){
+                if(other !== item){
+                    other.classList.remove("active");
+                }
+            });
+            item.classList.toggle("active");
+        });
+    });
+    document.querySelectorAll('.faq2-item').forEach(item => {
+        item.querySelector('.faq2-item-header').addEventListener('click', () => {
+            const answer = item.querySelector('.faq2-a');
+            const arrow = item.querySelector('.faq-arrow');
+            const isOpen = answer.style.display === 'block';
+            answer.style.display = isOpen ? 'none' : 'block';
+            arrow.textContent = isOpen ? '▾' : '▴';
+        });
+    });
+});
 </script>
 {% endblock %}

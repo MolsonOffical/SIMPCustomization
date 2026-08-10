@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{% static 'css/site-theme.css' %}" />
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
     <link rel="stylesheet" href="{% static 'css/cart.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/wishlist.css' %}" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -71,7 +73,34 @@
           transform 0.2s ease,
           opacity 0.2s ease;
       }
+.notification-btn {
+    position: relative;
+}
 
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -7px;
+
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ef4444;
+    color: white;
+
+    border-radius: 999px;
+
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+
+    border: 2px solid white;
+}
       .pulse-dot {
         box-shadow: 0 0 0 0 rgba(120, 255, 120, 0.6);
         animation: pulse 2s infinite;
@@ -182,9 +211,9 @@
               </div>
             </div>
           </div>
-          <a href="{% url 'account:converse_customize' %}"
-            >Customize Your Shoes</a
-          >
+          <a href="{% url 'account:choose_shoe' %}"
+  >Customize Your Shoes</a
+>
           <a href="{% url 'shoes:shoes_list' %}" title="Coming soon">Explore</a>
         </div>
         {% else %}
@@ -213,68 +242,115 @@
 
         <div class="user-actions">
           {% if request.user.is_authenticated %}
-          <div class="nav-icon-group">
-           
-            <a
-              href="{% url 'shoes:cart_page' %}"
-              class="nav-icon-btn"
-              aria-label="Cart"
-            >
-              <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-              <span id="cart-badge"></span>
-            </a>
-            <a href="{% url 'notifications:list' %}" class="nav-icon-btn nav-icon-btn--notify" aria-label="Notifications">
-  <i class="fa-solid fa-bell" aria-hidden="true"></i>
-  <span id="notif-badge"></span>
-</a>
-            <a
-              href="#"
-              class="nav-icon-btn nav-icon-btn--notify"
-              aria-label="Notifications"
-              title="Coming soon"
-            >
-              <i class="fa-solid fa-bell" aria-hidden="true"></i>
-            </a>
-            <div class="dropdown dropdown--profile">
-              <button
-                type="button"
-                class="profile-trigger dropdown-toggle"
-                aria-label="Account menu"
-                aria-expanded="false"
-                aria-haspopup="true"
-              >
-                {% if request.user.profile %}
+          <form
+            method="get"
+            action="{% url 'shoes:shoes_list' %} "
+            class="search-form"
+          >
+            <i
+              class="fa-solid fa-magnifying-glass search-form__icon"
+              aria-hidden="true"
+            ></i>
+            <input
+              type="text"
+              name="searched"
+              placeholder="Search posts..."
+              value="{{ request.GET.searched }}"
+            />
+          </form>
+          
+<div class="nav-icon-group">
+
+    <!-- Wishlist -->
+    <a
+        href="{% url 'shoes:wishlist_page' %}"
+        class="nav-icon-btn"
+        aria-label="Wishlist"
+    >
+        <i class="fa-solid fa-heart" aria-hidden="true"></i>
+        <span id="wishlist-badge"></span>
+    </a>
+
+    <!-- Cart -->
+    <a
+        href="{% url 'shoes:cart_page' %}"
+        class="nav-icon-btn"
+        aria-label="Cart"
+    >
+        <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+        <span id="cart-badge"></span>
+    </a>
+
+    <!-- Notifications -->
+    <a
+        href="{% url 'notifications:list' %}"
+        class="nav-icon-btn notification-btn"
+        aria-label="Notifications"
+        title="Notifications"
+    >
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+
+        <span
+            id="notification-badge"
+            class="notification-badge"
+            style="display: none;"
+        >
+            0
+        </span>
+    </a>
+
+    <!-- Profile -->
+    <div class="dropdown dropdown--profile">
+        <button
+            type="button"
+            class="profile-trigger dropdown-toggle"
+            aria-label="Account menu"
+            aria-expanded="false"
+            aria-haspopup="true"
+        >
+            {% if request.user.profile %}
                 <img
-                  src="{{ request.user.profile.url }}"
-                  alt=""
-                  class="profile-trigger__img"
+                    src="{{ request.user.profile.url }}"
+                    alt=""
+                    class="profile-trigger__img"
                 />
-                {% else %}
+            {% else %}
                 <i
-                  class="fa-solid fa-circle-user profile-trigger__icon"
-                  aria-hidden="true"
+                    class="fa-solid fa-circle-user profile-trigger__icon"
+                    aria-hidden="true"
                 ></i>
-                {% endif %}
-              </button>
-              <div class="dropdown-content dropdown-content--menu">
-                <a
-                  href="{% url 'account:profile' %}"
-                  class="profile-menu__header"
-                >
-                  <i class="fa-solid fa-user" aria-hidden="true"></i> {{request.user.username }}
-                </a>
-                <a href="{% url 'account:logout' %}">
-                  <i
+            {% endif %}
+        </button>
+
+        <div class="dropdown-content dropdown-content--menu">
+
+            <a
+                href="{% url 'account:profile' %}"
+                class="profile-menu__header"
+            >
+                <i class="fa-solid fa-user" aria-hidden="true"></i>
+                {{ request.user.username }}
+            </a>
+
+            <a href="{% url 'account:logout' %}">
+                <i
                     class="fa-solid fa-right-from-bracket"
                     aria-hidden="true"
-                  ></i>
-                  Logout
-                </a>
-              </div>
-            </div>
-          </div>
+                ></i>
+                Logout
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
           {% else %}
-          <form method="get" action="#" class="search-form">
+          <form
+            method="get"
+            action="{% url 'shoes:shoes_list' %} "
+            class="search-form"
+          >
             <i
               class="fa-solid fa-magnifying-glass search-form__icon"
               aria-hidden="true"
@@ -300,86 +376,180 @@
 
     <!-- this is for the chatbot ui -->
     {% block chatbot %}
-    <div id="simp-ai-widget" class="fixed bottom-5 right-5 z-[999] font-[Inter]">
-
+    <div
+      id="simp-ai-widget"
+      class="fixed bottom-5 right-5 z-[999] font-[Inter]"
+    >
       <!-- Launcher button -->
-      <button id="simp-launcher"
+      <button
+        id="simp-launcher"
         class="w-16 h-16 rounded-full bg-[var(--brand-green)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] flex items-center justify-center relative hover:bg-[var(--brand-green-dark)] active:scale-95 transition"
-        aria-label="Open SIMP AI chat">
-        <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-white pulse-dot border-2 border-[var(--brand-green)]"></span>
-        <svg id="simp-launcher-icon" xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+        aria-label="Open SIMP AI chat"
+      >
+        <span
+          class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-white pulse-dot border-2 border-[var(--brand-green)]"
+        ></span>
+        <svg
+          id="simp-launcher-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-7 h-7"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"
+          ></path>
         </svg>
       </button>
 
       <!-- Chat panel -->
-      <div id="simp-panel"
-        class="absolute bottom-[76px] right-0 w-[92vw] max-w-[380px] h-[75vh] max-h-[560px] bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden border border-[var(--line)]">
-
+      <div
+        id="simp-panel"
+        class="absolute bottom-[76px] right-0 w-[92vw] max-w-[380px] h-[75vh] max-h-[560px] bg-white rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] flex flex-col overflow-hidden border border-[var(--line)]"
+      >
         <!-- Header -->
-        <div class="bg-[var(--ink)] text-white px-5 pt-4 pb-4 flex items-center justify-between shrink-0">
+        <div
+          class="bg-[var(--ink)] text-white px-5 pt-4 pb-4 flex items-center justify-between shrink-0"
+        >
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-[var(--brand-green)] flex items-center justify-center font-display text-sm">S</div>
+            <div
+              class="w-10 h-10 rounded-full bg-[var(--brand-green)] flex items-center justify-center font-display text-sm"
+            >
+              S
+            </div>
             <div>
               <p class="font-display text-base leading-none">SIMP AI</p>
-              <p class="text-[11px] text-white/60 mt-1 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-[#3DDC64] inline-block"></span> Online — replies in seconds
+              <p
+                class="text-[11px] text-white/60 mt-1 flex items-center gap-1.5"
+              >
+                <span
+                  class="w-1.5 h-1.5 rounded-full bg-[#3DDC64] inline-block"
+                ></span>
+                Online — replies in seconds
               </p>
             </div>
           </div>
-          <button id="simp-close" class="text-white/70 hover:text-white p-1" aria-label="Close chat">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          <button
+            id="simp-close"
+            class="text-white/70 hover:text-white p-1"
+            aria-label="Close chat"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
         <div class="stitch"></div>
 
         <!-- Messages -->
-        <div id="simp-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[var(--paper)]">
+        <div
+          id="simp-messages"
+          class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[var(--paper)]"
+        >
+          <div class="flex items-end gap-2">
+            <div
+              class="w-6 h-6 rounded-full bg-[var(--brand-green)] text-white text-[10px] font-display flex items-center justify-center shrink-0"
+            >
+              S
+            </div>
+            <div
+              class="bubble-bot bg-white border border-[var(--line)] px-3.5 py-2.5 text-sm text-[#22222A] max-w-[80%] shadow-sm"
+            >
+              Hey! I'm SIMP AI 👋 Ask me about our shoes — styles, prices,
+              sizes, or anything in our FAQ.
+            </div>
+          </div>
 
-        <div class="flex items-end gap-2">
-  <div class="w-6 h-6 rounded-full bg-[var(--brand-green)] text-white text-[10px] font-display flex items-center justify-center shrink-0">S</div>
-  <div class="bubble-bot bg-white border border-[var(--line)] px-3.5 py-2.5 text-sm text-[#22222A] max-w-[80%] shadow-sm">
-    Hey! I'm SIMP AI 👋 Ask me about our shoes — styles, prices, sizes, or anything in our FAQ.
-  </div>
-</div>
-
-<div class="flex flex-wrap gap-2 pl-8" id="simp-quick-chips">
-  <button class="chip text-xs px-3 py-1.5 rounded-full border border-[var(--ink)]/15 text-[var(--ink)] hover:bg-[var(--ink)] hover:text-white">What shoes do you have?</button>
-  <button class="chip text-xs px-3 py-1.5 rounded-full border border-[var(--ink)]/15 text-[var(--ink)] hover:bg-[var(--ink)] hover:text-white">Return policy</button>
-  <button class="chip text-xs px-3 py-1.5 rounded-full border border-[var(--ink)]/15 text-[var(--ink)] hover:bg-[var(--ink)] hover:text-white">Sizing help</button>
-</div>
-
-        
-
+          <div class="flex flex-wrap gap-2 pl-8" id="simp-quick-chips">
+            <button
+              class="chip text-xs px-3 py-1.5 rounded-full border border-[var(--ink)]/15 text-[var(--ink)] hover:bg-[var(--ink)] hover:text-white"
+            >
+              What shoes do you have?
+            </button>
+            <button
+              class="chip text-xs px-3 py-1.5 rounded-full border border-[var(--ink)]/15 text-[var(--ink)] hover:bg-[var(--ink)] hover:text-white"
+            >
+              Return policy
+            </button>
+            <button
+              class="chip text-xs px-3 py-1.5 rounded-full border border-[var(--ink)]/15 text-[var(--ink)] hover:bg-[var(--ink)] hover:text-white"
+            >
+              Sizing help
+            </button>
+          </div>
         </div>
 
         <!-- Typing indicator (hidden by default) -->
         <div id="simp-typing" class="hidden px-4 pb-2 bg-[var(--paper)]">
           <div class="flex items-end gap-2">
-            <div class="w-6 h-6 rounded-full bg-[var(--brand-green)] text-white text-[10px] font-display flex items-center justify-center shrink-0">S</div>
-            <div class="bubble-bot bg-white border border-[var(--line)] px-4 py-3 flex gap-1 items-center">
-              <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[var(--slate)] inline-block"></span>
-              <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[var(--slate)] inline-block"></span>
-              <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[var(--slate)] inline-block"></span>
+            <div
+              class="w-6 h-6 rounded-full bg-[var(--brand-green)] text-white text-[10px] font-display flex items-center justify-center shrink-0"
+            >
+              S
+            </div>
+            <div
+              class="bubble-bot bg-white border border-[var(--line)] px-4 py-3 flex gap-1 items-center"
+            >
+              <span
+                class="typing-dot w-1.5 h-1.5 rounded-full bg-[var(--slate)] inline-block"
+              ></span>
+              <span
+                class="typing-dot w-1.5 h-1.5 rounded-full bg-[var(--slate)] inline-block"
+              ></span>
+              <span
+                class="typing-dot w-1.5 h-1.5 rounded-full bg-[var(--slate)] inline-block"
+              ></span>
             </div>
           </div>
         </div>
 
         <!-- Input -->
-        <form id="simp-form" class="shrink-0 border-t border-[var(--line)] bg-white p-3 flex items-center gap-2">
-          <input id="simp-input" type="text" autocomplete="off" placeholder="Ask about sizing, orders, returns…"
-            class="flex-1 text-sm px-3.5 py-2.5 rounded-full bg-[var(--paper)] border border-[var(--line)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/40 focus:border-[var(--brand-green)] placeholder:text-[var(--slate)]" />
-          <button type="submit" aria-label="Send message"
-            class="w-10 h-10 shrink-0 rounded-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white flex items-center justify-center active:scale-95 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        <form
+          id="simp-form"
+          class="shrink-0 border-t border-[var(--line)] bg-white p-3 flex items-center gap-2"
+        >
+          <input
+            id="simp-input"
+            type="text"
+            autocomplete="off"
+            placeholder="Ask about sizing, orders, returns…"
+            class="flex-1 text-sm px-3.5 py-2.5 rounded-full bg-[var(--paper)] border border-[var(--line)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-green)]/40 focus:border-[var(--brand-green)] placeholder:text-[var(--slate)]"
+          />
+          <button
+            type="submit"
+            aria-label="Send message"
+            class="w-10 h-10 shrink-0 rounded-full bg-[var(--brand-green)] hover:bg-[var(--brand-green-dark)] text-white flex items-center justify-center active:scale-95 transition"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-4 h-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="m22 2-7 20-4-9-9-4Z" />
+              <path d="M22 2 11 13" />
+            </svg>
           </button>
         </form>
       </div>
     </div>
-    {% endblock %}
-
-
-    {% block footer %}
+    {% endblock %} {% block footer %}
     <footer class="site-footer">
       <div class="site-footer__top">
         <div>
@@ -394,9 +564,9 @@
           <ul class="site-footer__links">
             <li><a href="{% url 'shoes:shoes_list' %}">All Styles</a></li>
             <li>
-              <a href="{% url 'account:converse_customize' %}"
-                >Design Your Pair</a
-              >
+              <a href="{% url 'account:choose_shoe' %}"
+  >Customize Your Shoes</a
+>
             </li>
             <li><a href="{% url 'account:about' %}">About SIMP</a></li>
           </ul>
@@ -427,10 +597,15 @@
         </div>
       </div>
     </footer>
-    {% endblock %} {% block script %}
+    {% endblock %}
+     {% block script %}
     <script src="{% static 'js/navbar.js' %}"></script>
     <script src="{% static 'js/cart.js' %}"></script>
-    <script>
+<script src="{% static 'js/wishlist.js' %}"></script>
+{% if request.user.is_authenticated %}
+<script src="{% static 'js/notifications.js' %}"></script>
+{% endif %}
+  <script>
 (function(){
   const launcher   = document.getElementById('simp-launcher');
   const panel      = document.getElementById('simp-panel');
@@ -441,106 +616,108 @@
   const typing     = document.getElementById('simp-typing');
   const quickChips = document.getElementById('simp-quick-chips');
 
-  // ---- open / close ----
-  function openChat(){
-    panel.classList.add('open');
-    launcher.classList.add('hide');
-    setTimeout(() => input.focus(), 200);
-  }
-  function closeChat(){
-    panel.classList.remove('open');
-    launcher.classList.remove('hide');
-  }
-  launcher.addEventListener('click', openChat);
-  closeBtn.addEventListener('click', closeChat);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && panel.classList.contains('open')) closeChat();
-  });
+        // ---- open / close ----
+        function openChat() {
+          panel.classList.add("open");
+          launcher.classList.add("hide");
+          setTimeout(() => input.focus(), 200);
+        }
+        function closeChat() {
+          panel.classList.remove("open");
+          launcher.classList.remove("hide");
+        }
+        launcher.addEventListener("click", openChat);
+        closeBtn.addEventListener("click", closeChat);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && panel.classList.contains("open"))
+            closeChat();
+        });
 
-  function scrollToBottom(){
-    messages.scrollTop = messages.scrollHeight;
-  }
+        function scrollToBottom() {
+          messages.scrollTop = messages.scrollHeight;
+        }
 
-  function addUserMessage(text){
-    const row = document.createElement('div');
-    row.className = 'flex justify-end';
-    row.innerHTML = `
+        function addUserMessage(text) {
+          const row = document.createElement("div");
+          row.className = "flex justify-end";
+          row.innerHTML = `
       <div class="bubble-user bg-[var(--ink)] text-white px-3.5 py-2.5 text-sm max-w-[80%] shadow-sm">
         ${escapeHTML(text)}
       </div>`;
-    messages.appendChild(row);
-    scrollToBottom();
-  }
+          messages.appendChild(row);
+          scrollToBottom();
+        }
 
-  function escapeHTML(str){
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
+        function escapeHTML(str) {
+          const div = document.createElement("div");
+          div.textContent = str;
+          return div.innerHTML;
+        }
 
-  // ---- talk to the real Django + Groq streaming endpoint ----
-  async function handleSend(text){
-    text = text.trim();
-    if (!text) return;
-    addUserMessage(text);
-    input.value = '';
-    typing.classList.remove('hidden');
-    scrollToBottom();
+        // ---- talk to the real Django + Groq streaming endpoint ----
+        async function handleSend(text) {
+          text = text.trim();
+          if (!text) return;
+          addUserMessage(text);
+          input.value = "";
+          typing.classList.remove("hidden");
+          scrollToBottom();
 
-    // empty bot bubble to fill in as tokens stream in
-    const row = document.createElement('div');
-    row.className = 'flex items-end gap-2';
-    row.innerHTML = `
+          // empty bot bubble to fill in as tokens stream in
+          const row = document.createElement("div");
+          row.className = "flex items-end gap-2";
+          row.innerHTML = `
       <div class="w-6 h-6 rounded-full bg-[var(--brand-green)] text-white text-[10px] font-display flex items-center justify-center shrink-0">S</div>
       <div class="bubble-bot bg-white border border-[var(--line)] px-3.5 py-2.5 text-sm text-[#22222A] max-w-[80%] shadow-sm bot-stream-target"></div>`;
-    messages.appendChild(row);
-    const target = row.querySelector('.bot-stream-target');
+          messages.appendChild(row);
+          const target = row.querySelector(".bot-stream-target");
 
-    try {
-      const res = await fetch('{% url "chatbot:mind" %}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text })
-      });
+          try {
+            const res = await fetch('{% url "chatbot:mind" %}', {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text }),
+            });
 
-      typing.classList.add('hidden');
+            typing.classList.add("hidden");
 
-      if (!res.ok || !res.body) {
-        target.textContent = "Sorry, something went wrong on my end.";
-        scrollToBottom();
-        return;
-      }
+            if (!res.ok || !res.body) {
+              target.textContent = "Sorry, something went wrong on my end.";
+              scrollToBottom();
+              return;
+            }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let full = '';
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let full = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        full += decoder.decode(value, { stream: true });
-        target.textContent = full;
-        scrollToBottom();
-      }
-    } catch (err) {
-      typing.classList.add('hidden');
-      target.textContent = "Sorry, I couldn't reach the server. Please try again.";
-      scrollToBottom();
-    }
-  }
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              full += decoder.decode(value, { stream: true });
+              target.textContent = full;
+              scrollToBottom();
+            }
+          } catch (err) {
+            typing.classList.add("hidden");
+            target.textContent =
+              "Sorry, I couldn't reach the server. Please try again.";
+            scrollToBottom();
+          }
+        }
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    handleSend(input.value);
-  });
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          handleSend(input.value);
+        });
 
-  quickChips.addEventListener('click', (e) => {
-    const btn = e.target.closest('.chip');
-    if (!btn) return;
-    handleSend(btn.textContent);
-  });
-})();
-</script>
+        quickChips.addEventListener("click", (e) => {
+          const btn = e.target.closest(".chip");
+          if (!btn) return;
+          handleSend(btn.textContent);
+        });
+      })();
+    </script>
     {% endblock %}
   </body>
 </html>

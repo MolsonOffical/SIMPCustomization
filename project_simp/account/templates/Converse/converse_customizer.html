@@ -1671,7 +1671,52 @@ document.getElementById('ppAddToCart').addEventListener('click', addToCartAjax);
 document.getElementById('ppBuyNow').addEventListener('click', goToCartReview);
 
 document.getElementById('ppWishlist').addEventListener('click', () => {
-  alert('Wishlist coming soon!');
+  if (!selectedSize) {
+    ppErrorBanner.textContent = 'Please select a size first.';
+    ppErrorBanner.hidden = false;
+    ppSuccessBanner.hidden = true;
+    return;
+  }
+  const cfg = shoeColorConfigs[currentShoeIndex];
+  const ppWishlistBtn = document.getElementById('ppWishlist');
+  ppWishlistBtn.disabled = true;
+  ppWishlistBtn.innerHTML = 'Adding...';
+
+  fetch("{% url 'shoes:wishlist_add' %}", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCsrfToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({
+      size: selectedSize,
+      pattern: cfg.id,
+      colors: selectedColors,
+      photo: captureShoeSnapshot(),
+    })
+  })
+    .then(res => {
+      if (!res.ok) {
+        return res.json().then(err => { throw new Error(err.error || 'Request failed'); });
+      }
+      return res.json();
+    })
+    .then(data => {
+      ppWishlistBtn.innerHTML = '♥ In Wishlist';
+      const badge = document.getElementById('wishlist-badge');
+      if (badge && data.wishlist_item_count !== undefined) {
+        badge.textContent = data.wishlist_item_count;
+      }
+    })
+    .catch(err => {
+      ppErrorBanner.textContent = err.message || 'Could not add to wishlist.';
+      ppErrorBanner.hidden = false;
+      ppWishlistBtn.innerHTML = '♡ Add to Wishlist';
+    })
+    .finally(() => {
+      ppWishlistBtn.disabled = false;
+    });
 });
 
 /* ============================================================

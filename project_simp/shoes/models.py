@@ -185,14 +185,36 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    variant = models.ForeignKey(ShoesVariant, on_delete=models.PROTECT, related_name='order_items')
+
+    # Catalog shoe (nullable now — customizer items don't have a variant)
+    variant = models.ForeignKey(
+        ShoesVariant, on_delete=models.PROTECT, related_name='order_items',
+        null=True, blank=True,
+    )
+
+    # Customizer shoe fields (nullable — catalog items don't use these)
+    pattern = models.CharField(max_length=64, blank=True, null=True)
+    colors = models.JSONField(default=dict, blank=True)
+    size = models.CharField(max_length=8, blank=True, null=True)
+    photo = models.ImageField(upload_to='order_photos/', blank=True, null=True)
+
+
     price = models.DecimalField(max_digits=10, decimal_places=2)  # snapshot at time of order
     quantity = models.PositiveIntegerField(default=1)
 
     def subtotal(self):
         return self.price * self.quantity
 
+    @property
+    def display_photo_url(self):
+        if self.photo:
+            return self.photo.url
+        if self.variant_id and self.variant.shoes_photo:
+            return self.variant.shoes_photo.url
+        return None
+
     def __str__(self):
-        return f"{self.variant} x{self.quantity}"
-    
+        if self.variant_id:
+            return f"{self.variant} x{self.quantity}"
+        return f"{self.pattern} (size {self.size}) x{self.quantity}"
 

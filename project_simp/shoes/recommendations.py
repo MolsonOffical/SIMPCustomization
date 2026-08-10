@@ -265,34 +265,21 @@ class ShoeRecommendationEngine:
         return recommended
 
     def get_similar_shoes(self, shoe, limit=4):
-        if not shoe.category_id and not shoe.brand_id:
+        if not shoe.brand_id:
             return []
-
-        candidate_q = Q()
-        if shoe.category_id:
-            candidate_q |= Q(category_id=shoe.category_id)
-        if shoe.brand_id:
-            candidate_q |= Q(brand_id=shoe.brand_id)
-
         qs = _in_stock(
-            Shoes.objects.exclude(id=shoe.id).filter(candidate_q).select_related("category", "brand")
-        ).annotate(min_price=Min("variants__price")).distinct()
-
+            Shoes.objects.exclude(id=shoe.id).filter(brand_id=shoe.brand_id).select_related("category", "brand")
+            ).annotate(min_price=Min("variants__price")).distinct()
+        
         scored = []
         for s in qs:
-            score = 0.0
-            if shoe.category_id and s.category_id == shoe.category_id:
-                score += 3
-            if shoe.brand_id and s.brand_id == shoe.brand_id:
-                score += 2
-
+            score = 2.0  # same-brand match
+            
             days_old = (timezone.now() - s.created_at).days
             if days_old <= 30:
                 score += max(0, (30 - days_old) * 0.05)
-
-            if score > 0:
-                scored.append((s, score))
-
+                
+            scored.append((s, score))
         scored.sort(key=lambda pair: pair[1], reverse=True)
         return [s for s, _ in scored[:limit]]
 

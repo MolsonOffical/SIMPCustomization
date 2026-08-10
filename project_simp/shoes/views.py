@@ -331,7 +331,12 @@ def _error(message, status=400):
 def _serialize_item(item):
     if item.variant_id:
         v = item.variant
-        photo_url = v.shoes_photo.url if v.shoes_photo else static('images/shoe_default.jpg')
+        if v.shoes_photo:
+            photo_url = v.shoes_photo.url
+        elif v.shoe.thumbnail:
+            photo_url = v.shoe.thumbnail.url
+        else:
+            photo_url = static('images/shoes.jpg')
         return {
             "id": item.id,
             "name": v.shoe.name,
@@ -346,10 +351,14 @@ def _serialize_item(item):
             "line_total": str(item.subtotal),
         }
 
-    photo_url = (
-        item.photo.url if item.photo
-        else static(PATTERN_PHOTOS.get(item.pattern, "img/patterns/default.jpg"))
-    )
+    if item.photo:
+        photo_url = item.photo.url
+    else:
+        matching_shoe = Shoes.objects.filter(customizer_id=item.pattern).first()
+        if matching_shoe and matching_shoe.thumbnail:
+            photo_url = matching_shoe.thumbnail.url
+        else:
+            photo_url = static('images/shoes.jpg')
     return {
         "id": item.id,
         "name": item.pattern_display_name,
@@ -561,7 +570,12 @@ def cart_clear(request):
 def _serialize_wishlist_item(item):
     if item.variant_id:
         v = item.variant
-        photo_url = v.shoes_photo.url if v.shoes_photo else static('images/shoe_default.jpg')
+        if v.shoes_photo:
+            photo_url = v.shoes_photo.url
+        elif v.shoe.thumbnail:
+            photo_url = v.shoe.thumbnail.url
+        else:
+            photo_url = static('images/shoes.jpg')
         return {
             "id": item.id,
             "variant_id": item.variant_id,
@@ -575,7 +589,14 @@ def _serialize_wishlist_item(item):
             "customization": [],
         }
 
-    photo_url = item.photo.url if item.photo else static(PATTERN_PHOTOS.get(item.pattern, "img/patterns/default.jpg"))
+    if item.photo:
+        photo_url = item.photo.url
+    else:
+        matching_shoe = Shoes.objects.filter(customizer_id=item.pattern).first()
+        if matching_shoe and matching_shoe.thumbnail:
+            photo_url = matching_shoe.thumbnail.url
+        else:
+            photo_url = static('images/shoes.jpg')
     return {
         "id": item.id,
         "pattern": item.pattern,

@@ -28,7 +28,7 @@ from django.views.decorators.http import (
 from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
-from rembg import remove
+
 
 from account.models import CartItem, WishlistItem, PATTERN_PRICES, SIZE_CHOICES
 from .forms import ReviewForm
@@ -1091,6 +1091,7 @@ def remove_background_view(request):
     if not uploaded_file:
         return JsonResponse({'error': 'No image provided'}, status=400)
     try:
+        from rembg import remove
         img = Image.open(uploaded_file)
         output = remove(img)
         buffer = BytesIO()

@@ -117,15 +117,17 @@
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn-add-cart" id="add-cart-btn"
-                                    {% if not selected_variant or selected_variant.stock_quantity == 0 %}disabled{% endif %}>
-                                <i class="fa-solid fa-cart-shopping"></i> Add to Cart
-                            </button>
-                            <button type="button" class="btn-wishlist-detail wishlist-heart-btn"
-                                    data-variant-id="{{ selected_variant.pk }}"
-                                    aria-label="Add to wishlist">
-                                <i class="fa-regular fa-heart"></i>
-                            </button>
+                            <div class="cart-actions-row">
+                                <button type="submit" class="btn-add-cart" id="add-cart-btn"
+                                        {% if not selected_variant or selected_variant.stock_quantity == 0 %}disabled{% endif %}>
+                                    <i class="fa-solid fa-cart-shopping"></i> Add to Cart
+                                </button>
+                                <button type="button" class="btn-wishlist-detail wishlist-heart-btn"
+                                        data-variant-id="{{ selected_variant.pk }}"
+                                        aria-label="Add to wishlist">
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+                            </div>
                         </form>
 
                         <div class="shoe-description">

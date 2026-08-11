@@ -1275,4 +1275,23 @@ body {
 .review-menu__dropdown form button {
   color: var(--danger);
 }
-
+.cart-actions-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  max-width: 320px;
+  margin-bottom: 25px;
+}
+.cart-actions-row .btn-add-cart {
+  flex: 1;
+  width: auto;
+  max-width: none;
+  margin-bottom: 0;
+}
+#cart-form .btn-wishlist-detail.wishlist-heart-btn {
+  position: static;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 999px;
+}

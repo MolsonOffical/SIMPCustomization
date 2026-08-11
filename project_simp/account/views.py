@@ -294,7 +294,7 @@ class HomePage(View):
 
         brands = Brand.objects.annotate(shoe_count=Count('shoes')).order_by('-shoe_count')[:4]
 
-        testimonials = Review.objects.filter(rating=5).exclude(comment='').select_related(
+        testimonials = Review.objects.exclude(comment='').select_related(
             'user', 'shoe'
         ).order_by('-created_at')[:5]
 

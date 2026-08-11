@@ -22,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hcxdxia8dxk#pw3%6^)e&eckw&^@0h!vtc5(1smdj&o4yrq(mi'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
 
 # Application definition
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -130,6 +131,17 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -147,12 +159,12 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # eSewa ePay v2 — UAT/test credentials (replace when going live)
 ESEWA_PRODUCT_CODE = "EPAYTEST"
-ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"
+ESEWA_SECRET_KEY = config("ESEWA_SECRET_KEY")
 ESEWA_FORM_URL = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
 ESEWA_STATUS_URL = "https://rc.esewa.com.np/api/epay/transaction/status/"
 
 # Khalti KPG v2 — sandbox test key (get your own at https://test-admin.khalti.com)
-KHALTI_SECRET_KEY = "05bf95cc57244045b8df5fad06748dab"
+KHALTI_SECRET_KEY = config("KHALTI_SECRET_KEY")
 KHALTI_INITIATE_URL = "https://dev.khalti.com/api/v2/epayment/initiate/"
 KHALTI_LOOKUP_URL = "https://dev.khalti.com/api/v2/epayment/lookup/"
 

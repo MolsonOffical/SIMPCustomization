@@ -235,7 +235,7 @@ class ShoeDetailView(View):
 
 
 def test(request):
-    return render(request, "D:/projects/intern-codeit/SIMPCustomization\project_simp/templates/layout.html")
+    return render(request, "layout.html")
 
 
 class History(View):

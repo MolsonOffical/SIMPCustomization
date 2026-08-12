@@ -1,9 +1,11 @@
+import logging
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
 from .models import Notification, NotificationType
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -17,9 +19,10 @@ def _send_email_safely(subject, text_message, html_message, recipient_email):
             html_message=html_message,
             fail_silently=False,
         )
+        logger.info(f"Email sent to {recipient_email}")
         return True
     except Exception as e:
-        print(f"[Notification Email Error] Failed to send to {recipient_email}: {e}")
+        logger.error(f"Email failed to {recipient_email}: {e}")
         return False
 
 
@@ -40,7 +43,43 @@ def notify_purchase_success(order):
     )
 
     _send_purchase_email(user, order)
+    return notification
 
+
+def notify_delivery_success(order):
+    user = order.user
+    if user is None:
+        return None
+
+    notification = Notification.objects.create(
+        user=user,
+        notification_type=NotificationType.DELIVERY,
+        title="Order Delivered",
+        message=f"Your order {order.order_id} has been delivered successfully. Enjoy!",
+        order=order,
+    )
+
+    _send_delivery_success_email(user, order)
+    return notification
+
+
+def notify_order_failed(order):
+    user = order.user
+    if user is None:
+        return None
+
+    notification = Notification.objects.create(
+        user=user,
+        notification_type=NotificationType.FAILED,
+        title="Order Failed",
+        message=(
+            f"Your order {order.order_id} could not be processed. "
+            f"Please try again or contact support if this keeps happening."
+        ),
+        order=order,
+    )
+
+    _send_order_failed_email(user, order)
     return notification
 
 
@@ -49,20 +88,12 @@ def _order_items_for_email(order):
 
 
 def _item_email_name(item):
-    """Item display name for order emails.
-
-    Catalog items have a `variant` (shoe/color/size picked from stock).
-    Customizer items have `variant=None` and store `pattern` instead —
-    this mirrors the variant/pattern branch already used in
-    shoes/views.py's `_serialize_item`.
-    """
     if item.variant_id:
         return item.variant.shoe.name
     return getattr(item, 'pattern_display_name', None) or item.pattern.replace('-', ' ').title()
 
 
 def _item_email_detail(item):
-    """Item subtitle (color/size for catalog items, size only for custom)."""
     if item.variant_id:
         return f"{item.variant.color.name} · Size {item.variant.size.size_value}"
     return f"Custom design · Size {item.size}"
@@ -114,7 +145,6 @@ def _build_items_lines_text(order):
 
 def _send_purchase_email(user, order):
     subject = "Your Purchase Was Successful"
-
     text_message = f"""
 Hi {user.first_name or user.username},
 
@@ -128,9 +158,7 @@ Please wait for your delivery to reach you. We'll notify you once it arrives.
 
 — The SIMP Team
 """
-
     items_table_html = _build_items_table_html(order)
-
     html_message = f"""
 <!DOCTYPE html>
 <html>
@@ -165,65 +193,75 @@ Please wait for your delivery to reach you. We'll notify you once it arrives.
     return _send_email_safely(subject, text_message, html_message, user.email)
 
 
-def notify_delivery_success(order):
-    user = order.user
-    if user is None:
-        return None
+def _send_delivery_success_email(user, order):
+    subject = "Your Order Has Been Delivered!"
+    text_message = f"""
+Hi {user.first_name or user.username},
 
-    notification = Notification.objects.create(
-        user=user,
-        notification_type=NotificationType.DELIVERY,
-        title="Order Delivered",
-        message=f"Your order {order.order_id} has been delivered successfully. Enjoy!",
-        order=order,
-    )
-    _send_order_failed_email(user, order)
-    return notification
-    
+Great news – your order ({order.order_id}) has been delivered to your address.
 
+Here's a summary of what you ordered:
 
-def send_admin_broadcast(title, message):
-    users = User.objects.filter(is_active=True, is_staff=False, is_superuser=False)
-    notifications = [
-        Notification(
-            user=user,
-            notification_type=NotificationType.ADMIN,
-            title=title,
-            message=message,
-        )
-        for user in users
-    ]
-    created = Notification.objects.bulk_create(notifications)
-    return len(created)
+{_build_items_lines_text(order)}
 
-def notify_order_failed(order):
-    user = order.user
-    if user is None:
-        return None
+Overall Total: Rs. {order.total_amount:.2f}
 
-    notification = Notification.objects.create(
-        user=user,
-        notification_type=NotificationType.FAILED,
-        title="Order Failed",
-        message=(
-            f"Your order {order.order_id} could not be processed. "
-            f"Please try again or contact support if this keeps happening."
-        ),
-        order=order,
-    )
+We hope you love your new shoes! If you have any questions or feedback, feel free to reach out.
 
-    _send_order_failed_email(user, order)
+Thanks for choosing SIMP.
 
-    return notification
+— The SIMP Team
+"""
+    items_table_html = _build_items_table_html(order)
+    html_message = f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f8; margin: 0; padding: 40px 0;">
+  <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
+    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 36px 32px; text-align: center;">
+      <h1 style="color: #fff; margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Order Delivered 🎉</h1>
+      <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">Your shoes are here!</p>
+    </div>
+    <div style="padding: 40px 32px; text-align: center;">
+      <p style="color: #6b7280; font-size: 15px; margin: 0 0 24px;">
+        Hi <strong style="color:#111827;">{user.first_name or user.username}</strong>,
+      </p>
+      <div style="background: #ecfdf5; border: 2px dashed #6ee7b7; border-radius: 12px; padding: 20px; display: inline-block; margin-bottom: 24px;">
+        <p style="margin:0; color:#065f46; font-size:13px; letter-spacing: 0.5px; text-transform: uppercase;">Order ID</p>
+        <p style="margin:4px 0 0; color:#047857; font-size:20px; font-weight:800; letter-spacing:1px; font-family:'Courier New', monospace;">{order.order_id}</p>
+      </div>
+
+      {items_table_html}
+
+      <p style="color: #4b5563; font-size: 14px; margin: 20px 0 0; text-align: left;">
+        Your order has been delivered successfully. We hope you enjoy your new purchase!
+      </p>
+      <p style="color: #4b5563; font-size: 14px; margin: 16px 0 0; text-align: left;">
+        If you have any questions, don't hesitate to reply to this email or contact our support team.
+      </p>
+    </div>
+    <div style="background: #f9fafb; padding: 20px 32px; text-align: center; border-top: 1px solid #e5e7eb;">
+      <p style="color: #d1d5db; font-size: 12px; margin: 0;">This is an automated message, please do not reply.</p>
+    </div>
+  </div>
+</body>
+</html>
+"""
+    return _send_email_safely(subject, text_message, html_message, user.email)
 
 
 def _send_order_failed_email(user, order):
     subject = "There Was a Problem With Your Order"
-
     text_message = f"""
 Hi {user.first_name or user.username},
 
 Unfortunately, we couldn't process your order ({order.order_id}).
+
+Here's what you tried to order:
+
+{_build_items_lines_text(order)}
+
+Overall Total: Rs. {order.total_amount:.2f}
 
 This can happen due to a payment issue, an out-of-stock item, or a temporary system error. No charge should have been made, but please check your payment method to be sure.
 
@@ -231,7 +269,7 @@ You're welcome to try placing the order again. If the problem keeps happening, r
 
 — The SIMP Team
 """
-
+    items_table_html = _build_items_table_html(order)
     html_message = f"""
 <!DOCTYPE html>
 <html>
@@ -250,7 +288,9 @@ You're welcome to try placing the order again. If the problem keeps happening, r
         <p style="margin:4px 0 0; color:#dc2626; font-size:20px; font-weight:800; letter-spacing:1px; font-family:'Courier New', monospace;">{order.order_id}</p>
       </div>
 
-      <p style="color: #4b5563; font-size: 14px; margin: 0 0 8px; text-align: left;">
+      {items_table_html}
+
+      <p style="color: #4b5563; font-size: 14px; margin: 20px 0 0; text-align: left;">
         This can happen due to a payment issue, an out-of-stock item, or a temporary system error. No charge should have been made, but please double check your payment method.
       </p>
       <p style="color: #4b5563; font-size: 14px; margin: 16px 0 0; text-align: left;">
@@ -265,3 +305,18 @@ You're welcome to try placing the order again. If the problem keeps happening, r
 </html>
 """
     return _send_email_safely(subject, text_message, html_message, user.email)
+
+
+def send_admin_broadcast(title, message):
+    users = User.objects.filter(is_active=True, is_staff=False, is_superuser=False)
+    notifications = [
+        Notification(
+            user=user,
+            notification_type=NotificationType.ADMIN,
+            title=title,
+            message=message,
+        )
+        for user in users
+    ]
+    created = Notification.objects.bulk_create(notifications)
+    return len(created)

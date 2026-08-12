@@ -8,9 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,700;0,900;1,900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/login.css' %}?v=5" />
 {% endblock %}
-
-{% block navbar %}
- {%endblock%}
 {% block content %}
 <div class="auth-page">
   <div class="auth-wrap">
@@ -80,11 +77,9 @@
     </div>
     </section>
   </div>
-</div>
- {% block chatbot %}
- {%endblock%}
- {% block footer %}
- {%endblock%}
+</div>{% endblock %}
+ {% block script %}
+ {{ block.super }} 
 <script>
 document.querySelectorAll('.toggle-visibility').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -94,3 +89,4 @@ document.querySelectorAll('.toggle-visibility').forEach(btn => {
 });
 </script>
 {% endblock %}
+

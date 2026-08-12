@@ -65,6 +65,7 @@ class LoginUser(View):
                 login(request, user)
 
                 if not user.is_email_verified:
+                    request.session['pending_user_id'] = user.id
                     return redirect('account:send_otp')
 
                 next_url = request.GET.get('next') or request.POST.get('next')

@@ -1,0 +1,584 @@
+[
+{
+  "model": "shoes.category",
+  "pk": 1,
+  "fields": {
+    "name": "sneaker",
+    "created_at": "2026-08-01T16:52:06.553Z"
+  }
+},
+{
+  "model": "shoes.category",
+  "pk": 2,
+  "fields": {
+    "name": "Sneakers",
+    "created_at": "2026-08-09T06:26:10.046Z"
+  }
+},
+{
+  "model": "shoes.category",
+  "pk": 3,
+  "fields": {
+    "name": "Boots",
+    "created_at": "2026-08-09T06:26:10.046Z"
+  }
+},
+{
+  "model": "shoes.brand",
+  "pk": 1,
+  "fields": {
+    "name": "nike",
+    "created_at": "2026-08-01T16:51:47.285Z"
+  }
+},
+{
+  "model": "shoes.brand",
+  "pk": 2,
+  "fields": {
+    "name": "Converse",
+    "created_at": "2026-08-09T06:26:10.047Z"
+  }
+},
+{
+  "model": "shoes.brand",
+  "pk": 3,
+  "fields": {
+    "name": "SIMP",
+    "created_at": "2026-08-09T06:26:10.047Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 2,
+  "fields": {
+    "category": 2,
+    "brand": 1,
+    "name": "Air Runner",
+    "description": "Nike Air Force 1-style sneaker with customizable leather, fabric, and outsole panels.",
+    "thumbnail": "shoes/thumbnails/air-runner-thumb.jpg",
+    "customizer_id": "air-runner",
+    "created_at": "2026-08-09T06:26:10.048Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 3,
+  "fields": {
+    "category": 2,
+    "brand": 1,
+    "name": "Air Jordan 1",
+    "description": "Classic high-top basketball sneaker with customizable toe, upper body, ankle patch, heel, and sole color zones.",
+    "thumbnail": "shoes/thumbnails/air_jordan1.jpg",
+    "customizer_id": "air-jordan-1",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 4,
+  "fields": {
+    "category": 2,
+    "brand": 2,
+    "name": "Converse Chuck Taylor All Star — Low Top",
+    "description": "Iconic low-top canvas sneaker with customizable body, tongue, heel stripe, lining, stitching, laces, and rubber sole detailing.",
+    "thumbnail": "shoes/thumbnails/nike-converse-low-top.jpeg",
+    "customizer_id": "nike-converse-low-top",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "brand": 2,
+    "name": "Converse Chuck Taylor All Star — High Top",
+    "description": "Classic high-top canvas sneaker with the same full customization as the low-top — body, tongue, heel stripe, lining, stitching, laces, and sole.",
+    "thumbnail": "shoes/thumbnails/nike-converse-high-top.jpeg",
+    "customizer_id": "nike-converse-high-top",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 6,
+  "fields": {
+    "category": 3,
+    "brand": 3,
+    "name": "Low Poly Boot",
+    "description": "Rugged lace-up leather boot with customizable body, eyelet, and lace colors.",
+    "thumbnail": "shoes/thumbnails/boot.jpg",
+    "customizer_id": "low-poly-boot",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 7,
+  "fields": {
+    "category": 2,
+    "brand": 3,
+    "name": "Urban Canvas",
+    "description": "Original SIMP canvas sneaker design with fully customizable upper, toe caps, lining, sole, side stripes, heel band, logo patch, and laces.",
+    "thumbnail": "shoes/thumbnails/urban-canvas-thumb.jpg",
+    "customizer_id": "urban-canvas",
+    "created_at": "2026-08-09T06:26:10.050Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 1,
+  "fields": {
+    "name": "white",
+    "created_at": "2026-08-09T06:07:32.077Z"
+  }
+},
+{
+  "model": "shoes.shoescolor",
+  "pk": 9,
+  "fields": {
+    "name": "black",
+    "created_at": "2026-08-09T06:50:15.865Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 1,
+  "fields": {
+    "size_value": "8",
+    "created_at": "2026-08-09T06:07:41.125Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 2,
+  "fields": {
+    "size_value": "32",
+    "created_at": "2026-08-09T06:26:10.052Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 3,
+  "fields": {
+    "size_value": "34",
+    "created_at": "2026-08-09T06:26:10.052Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 4,
+  "fields": {
+    "size_value": "37",
+    "created_at": "2026-08-09T06:26:10.052Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 5,
+  "fields": {
+    "size_value": "38",
+    "created_at": "2026-08-09T06:26:10.052Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 6,
+  "fields": {
+    "size_value": "39",
+    "created_at": "2026-08-09T06:26:10.053Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 7,
+  "fields": {
+    "size_value": "40",
+    "created_at": "2026-08-09T06:26:10.053Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 8,
+  "fields": {
+    "size_value": "36",
+    "created_at": "2026-08-09T06:26:10.053Z"
+  }
+},
+{
+  "model": "shoes.shoessize",
+  "pk": 9,
+  "fields": {
+    "size_value": "41",
+    "created_at": "2026-08-09T06:26:10.053Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 104,
+  "fields": {
+    "shoe": 2,
+    "color": 9,
+    "size": 1,
+    "price": "2000.00",
+    "stock_quantity": 13,
+    "shoes_photo": "shoes/images/images.jpeg",
+    "created_at": "2026-08-09T06:51:05.050Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 105,
+  "fields": {
+    "shoe": 2,
+    "color": 1,
+    "size": 3,
+    "price": "2000.00",
+    "stock_quantity": 7,
+    "shoes_photo": "shoes/images/ad22b92Nike-CW2288-111_1_pcAmvCk.avif",
+    "created_at": "2026-08-09T06:58:51.793Z"
+  }
+},
+{
+  "model": "shoes.review",
+  "pk": 3,
+  "fields": {
+    "shoe": 7,
+    "user": 1,
+    "rating": 4,
+    "comment": "hayyyyyyyyyy",
+    "is_anonymous": false,
+    "created_at": "2026-08-09T06:54:14.118Z",
+    "updated_at": "2026-08-09T06:54:14.119Z"
+  }
+},
+{
+  "model": "shoes.review",
+  "pk": 4,
+  "fields": {
+    "shoe": 2,
+    "user": 1,
+    "rating": 5,
+    "comment": "noiceeeeeee",
+    "is_anonymous": false,
+    "created_at": "2026-08-09T06:54:28.375Z",
+    "updated_at": "2026-08-09T06:54:28.375Z"
+  }
+},
+{
+  "model": "shoes.review",
+  "pk": 5,
+  "fields": {
+    "shoe": 4,
+    "user": 2,
+    "rating": 2,
+    "comment": "nice but only okey",
+    "is_anonymous": false,
+    "created_at": "2026-08-09T06:56:25.797Z",
+    "updated_at": "2026-08-09T06:56:25.797Z"
+  }
+},
+{
+  "model": "shoes.review",
+  "pk": 6,
+  "fields": {
+    "shoe": 2,
+    "user": 2,
+    "rating": 5,
+    "comment": "noc",
+    "is_anonymous": false,
+    "created_at": "2026-08-09T07:00:39.647Z",
+    "updated_at": "2026-08-09T07:01:15.327Z"
+  }
+},
+{
+  "model": "shoes.review",
+  "pk": 7,
+  "fields": {
+    "shoe": 3,
+    "user": 1,
+    "rating": 4,
+    "comment": "okok",
+    "is_anonymous": false,
+    "created_at": "2026-08-11T04:27:32.031Z",
+    "updated_at": "2026-08-11T04:27:32.032Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 3,
+  "fields": {
+    "shoe": 7,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:26:29.595Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 4,
+  "fields": {
+    "shoe": 2,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:26:34.029Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 5,
+  "fields": {
+    "shoe": 4,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:26:42.800Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 6,
+  "fields": {
+    "shoe": 6,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:28:03.486Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 8,
+  "fields": {
+    "shoe": 2,
+    "user": 2,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:55:27.883Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 9,
+  "fields": {
+    "shoe": 4,
+    "user": 2,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:56:06.311Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 10,
+  "fields": {
+    "shoe": 7,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:57:21.221Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 11,
+  "fields": {
+    "shoe": 2,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-09T06:57:30.442Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 12,
+  "fields": {
+    "shoe": 4,
+    "user": 2,
+    "visitor_id": null,
+    "created_at": "2026-08-10T08:25:53.438Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 13,
+  "fields": {
+    "shoe": 2,
+    "user": 2,
+    "visitor_id": null,
+    "created_at": "2026-08-10T08:26:07.593Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 14,
+  "fields": {
+    "shoe": 7,
+    "user": 2,
+    "visitor_id": null,
+    "created_at": "2026-08-10T08:26:16.609Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 15,
+  "fields": {
+    "shoe": 2,
+    "user": 2,
+    "visitor_id": null,
+    "created_at": "2026-08-10T16:21:05.898Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 16,
+  "fields": {
+    "shoe": 3,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T04:27:23.269Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 17,
+  "fields": {
+    "shoe": 2,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T04:29:10.318Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 18,
+  "fields": {
+    "shoe": 7,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T04:29:51.930Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 19,
+  "fields": {
+    "shoe": 6,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T04:31:13.109Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 20,
+  "fields": {
+    "shoe": 3,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T07:27:27.944Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 21,
+  "fields": {
+    "shoe": 7,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T07:27:48.107Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 22,
+  "fields": {
+    "shoe": 2,
+    "user": 1,
+    "visitor_id": null,
+    "created_at": "2026-08-11T07:28:03.341Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 23,
+  "fields": {
+    "shoe": 2,
+    "user": null,
+    "visitor_id": "8fd47f8f7fe74881af5a2a9da09bb94b",
+    "created_at": "2026-08-11T09:45:43.451Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 24,
+  "fields": {
+    "shoe": 7,
+    "user": null,
+    "visitor_id": "8fd47f8f7fe74881af5a2a9da09bb94b",
+    "created_at": "2026-08-11T09:46:04.799Z"
+  }
+},
+{
+  "model": "shoes.shoeview",
+  "pk": 25,
+  "fields": {
+    "shoe": 7,
+    "user": null,
+    "visitor_id": "61d4ee052dd042218dee316e106719b3",
+    "created_at": "2026-08-11T15:56:00.160Z"
+  }
+},
+{
+  "model": "shoes.order",
+  "pk": 1,
+  "fields": {
+    "order_id": "SIMP3CFC886FB63B",
+    "user": 2,
+    "full_name": "molson",
+    "phone": "zdfgzfb",
+    "address": "zdfbzdfb",
+    "city": "dgbxdgb",
+    "landmark": "dxgbdsgb",
+    "payment_method": "esewa",
+    "status": "delivered",
+    "total_amount": "10400.00",
+    "transaction_id": "000GDFA",
+    "created_at": "2026-08-05T10:06:32.353Z",
+    "updated_at": "2026-08-05T10:06:49.521Z"
+  }
+},
+{
+  "model": "shoes.order",
+  "pk": 2,
+  "fields": {
+    "order_id": "SIMPE9C88E729BBC",
+    "user": 2,
+    "full_name": "fdgndf",
+    "phone": "gsbsfgb",
+    "address": "fxgndfgn",
+    "city": "fgndf",
+    "landmark": "",
+    "payment_method": "esewa",
+    "status": "delivered",
+    "total_amount": "5200.00",
+    "transaction_id": "000GDFG",
+    "created_at": "2026-08-05T10:15:53.842Z",
+    "updated_at": "2026-08-05T10:16:22.114Z"
+  }
+},
+{
+  "model": "shoes.order",
+  "pk": 3,
+  "fields": {
+    "order_id": "SIMP30576B1050DD",
+    "user": 1,
+    "full_name": "molson",
+    "phone": "9866338758",
+    "address": "ktm",
+    "city": "ktm",
+    "landmark": "ktm",
+    "payment_method": "esewa",
+    "status": "delivered",
+    "total_amount": "2000.00",
+    "transaction_id": "000GE9C",
+    "created_at": "2026-08-09T06:11:38.265Z",
+    "updated_at": "2026-08-09T06:12:08.207Z"
+  }
+}
+]

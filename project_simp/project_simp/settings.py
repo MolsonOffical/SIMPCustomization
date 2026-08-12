@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'anymail',
     'account',
     'shoes',
     'notifications',
@@ -155,17 +156,21 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('CLOUDINARY_API_KEY'),
     'API_SECRET': config('CLOUDINARY_API_SECRET'),
 }
-EMAIL_BACKEND = 'project_simp.email_backend.CustomEmailBackend'
+# Email — Brevo, via django-anymail, over HTTPS.
+# Railway blocks outbound SMTP on Free/Trial/Hobby plans, so smtplib-based
+# backends (Gmail, Brevo's own SMTP relay, etc.) can't connect from a
+# deployed service. Anymail's Brevo backend calls Brevo's HTTPS API instead,
+# which is never blocked — same reasoning as the SendGrid setup this replaces.
+# BREVO_API_KEY must be a v3 API key (Settings > SMTP & API > API Keys),
+# set as an env var (Railway Variables tab / local .env) — never hardcode it.
+EMAIL_BACKEND = 'anymail.backends.brevo.EmailBackend'
+ANYMAIL = {
+    'BREVO_API_KEY': config('BREVO_API_KEY'),
+}
 
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Must exactly match a sender you verified in Brevo (Settings > Senders,
+# Domains, IPs > Senders), or sends will fail.
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 # eSewa ePay v2 — UAT/test credentials (replace when going live)
 ESEWA_PRODUCT_CODE = "EPAYTEST"

@@ -1,3 +1,4 @@
+replace  requirements.txt with this 
 annotated-types==0.7.0
 anyio==4.14.2
 asgiref==3.11.1
@@ -7,6 +8,8 @@ charset-normalizer==3.4.9
 distro==1.9.0
 dj-database-url==3.1.2
 Django==6.0.6
+django-anymail[resend]
+django-sendgrid-v5
 flatbuffers==25.12.19
 groq==1.5.0
 gunicorn==26.0.0

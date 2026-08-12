@@ -1,0 +1,106 @@
+[
+{
+  "model": "shoes.shoes",
+  "pk": 2,
+  "fields": {
+    "category": 2,
+    "brand": 1,
+    "name": "Air Runner",
+    "description": "Nike Air Force 1-style sneaker with customizable leather, fabric, and outsole panels.",
+    "thumbnail": "media/shoes/thumbnails/air-runner-thumb_eatuae",
+    "customizer_id": "air-runner",
+    "created_at": "2026-08-09T06:26:10.048Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 3,
+  "fields": {
+    "category": 2,
+    "brand": 1,
+    "name": "Air Jordan 1",
+    "description": "Classic high-top basketball sneaker with customizable toe, upper body, ankle patch, heel, and sole color zones.",
+    "thumbnail": "media/shoes/thumbnails/air_jordan1_dm5akr",
+    "customizer_id": "air-jordan-1",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 4,
+  "fields": {
+    "category": 2,
+    "brand": 2,
+    "name": "Converse Chuck Taylor All Star — Low Top",
+    "description": "Iconic low-top canvas sneaker with customizable body, tongue, heel stripe, lining, stitching, laces, and rubber sole detailing.",
+    "thumbnail": "media/shoes/thumbnails/nike-converse-low-top_sb5n2v",
+    "customizer_id": "nike-converse-low-top",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "brand": 2,
+    "name": "Converse Chuck Taylor All Star — High Top",
+    "description": "Classic high-top canvas sneaker with the same full customization as the low-top — body, tongue, heel stripe, lining, stitching, laces, and sole.",
+    "thumbnail": "media/shoes/thumbnails/nike-converse-high-top_hy8afs",
+    "customizer_id": "nike-converse-high-top",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 6,
+  "fields": {
+    "category": 3,
+    "brand": 3,
+    "name": "Low Poly Boot",
+    "description": "Rugged lace-up leather boot with customizable body, eyelet, and lace colors.",
+    "thumbnail": "media/shoes/thumbnails/boot_qv4giv",
+    "customizer_id": "low-poly-boot",
+    "created_at": "2026-08-09T06:26:10.049Z"
+  }
+},
+{
+  "model": "shoes.shoes",
+  "pk": 7,
+  "fields": {
+    "category": 2,
+    "brand": 3,
+    "name": "Urban Canvas",
+    "description": "Original SIMP canvas sneaker design with fully customizable upper, toe caps, lining, sole, side stripes, heel band, logo patch, and laces.",
+    "thumbnail": "media/shoes/thumbnails/urban-canvas-thumb_umjfkr",
+    "customizer_id": "urban-canvas",
+    "created_at": "2026-08-09T06:26:10.050Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 104,
+  "fields": {
+    "shoe": 2,
+    "color": 9,
+    "size": 1,
+    "price": "2000.00",
+    "stock_quantity": 13,
+    "shoes_photo": "media/shoes/images/images_rsyu7w",
+    "created_at": "2026-08-09T06:51:05.050Z"
+  }
+},
+{
+  "model": "shoes.shoesvariant",
+  "pk": 105,
+  "fields": {
+    "shoe": 2,
+    "color": 1,
+    "size": 3,
+    "price": "2000.00",
+    "stock_quantity": 7,
+    "shoes_photo": "media/shoes/images/ad22b92Nike-CW2288-111_1_pcAmvCk_j388ii",
+    "created_at": "2026-08-09T06:58:51.793Z"
+  }
+}
+]

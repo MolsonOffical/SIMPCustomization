@@ -104,8 +104,10 @@ class DesignPage(LoginRequiredMixin, View):
         }
         return render(request, 'Design/designer.html', context)
 
-class ChooseShoePage(View):
-     def get(self, request):
+class ChooseShoePage(LoginRequiredMixin, View):
+    login_url = 'account:login'
+
+    def get(self, request):
         shoes = (
             Shoes.objects
             .exclude(customizer_id__isnull=True)

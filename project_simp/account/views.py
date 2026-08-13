@@ -267,52 +267,77 @@ class DeleteProfileView(LoginRequiredMixin, View):
 
 class HomePage(View):
     def get(self, request):
-        new_arrivals = Shoes.objects.select_related('category', 'brand').annotate(
-            min_price=Min('variants__price'),
-            avg_rating=Coalesce(Avg('reviews__rating'), Value(0.0), output_field=FloatField()),
-            review_count=Count('reviews', distinct=True),
-        ).order_by('-created_at')[:9]
 
-        units_sold_sq = (
-            OrderItem.objects
-            .filter(
-                variant__shoe=OuterRef('pk'),
-                order__status__in=['paid', 'processing', 'shipped', 'delivered'],
-            )
-.values('variant__shoe')
-            .annotate(total=Sum('quantity'))
-            .values('total')
+        customizer_filter = (
+            Q(customizer_id__isnull=True) |
+            Q(customizer_id="")
         )
 
-        popular_shoes = Shoes.objects.select_related('category', 'brand').annotate(
-            min_price=Min('variants__price'),
-            avg_rating=Coalesce(Avg('reviews__rating'), Value(0.0), output_field=FloatField()),
-            review_count=Count('reviews', distinct=True),
-            units_sold=Coalesce(
-                Subquery(units_sold_sq, output_field=IntegerField()), 0
-            ),
-        ).filter(review_count__gt=0).order_by('-units_sold', '-avg_rating')[:6]
+        new_arrivals = (Shoes.objects.select_related('category', 'brand').filter(customizer_filter).annotate(
+                min_price=Min('variants__price'),
+                avg_rating=Coalesce(
+                    Avg('reviews__rating'),
+                    Value(0.0),
+                    output_field=FloatField(),
+                ),
+                review_count=Count('reviews',distinct=True,),
+            ).order_by('-created_at')[:9]
+        )
 
-        categories = Category.objects.all().order_by('name')
+        units_sold_sq = (
+            OrderItem.objects.filter(variant__shoe=OuterRef('pk'),order__status__in=[
+                    'paid',
+                    'processing',
+                    'shipped',
+                    'delivered',
+                ],
+            ).values('variant__shoe').annotate(total=Sum('quantity')).values('total')
+        )
 
-        brands = Brand.objects.annotate(shoe_count=Count('shoes')).order_by('-shoe_count')[:4]
+        popular_shoes = (
+            Shoes.objects.select_related('category', 'brand').filter(customizer_filter).annotate(
+                min_price=Min('variants__price'),
+                avg_rating=Coalesce(
+                    Avg('reviews__rating'),
+                    Value(0.0),
+                    output_field=FloatField(),
+                ),
+                review_count=Count('reviews',distinct=True,),
+                units_sold=Coalesce(
+                    Subquery(
+                        units_sold_sq,
+                        output_field=IntegerField(),
+                    ),
+                    0,
+                ),
+            ).filter(review_count__gt=0).order_by('-units_sold','-avg_rating',)[:6]
+        )
 
-        testimonials = Review.objects.exclude(comment='').select_related(
-            'user', 'shoe'
-        ).order_by('-created_at')[:5]
+        categories = (Category.objects.all().order_by('name'))
 
-        top_shoe_per_category = Shoes.objects.filter(
-            category=OuterRef('category')
-        ).annotate(
-            avg_rating=Avg('reviews__rating'),
-            review_count=Count('reviews')
-        ).order_by('-review_count', '-avg_rating')
+        brands = (Brand.objects.annotate(shoe_count=Count('shoes')).order_by('-shoe_count')[:4])
 
-        category_shoes = Shoes.objects.annotate(
-            min_price=Min('variants__price')
-        ).filter(
-            pk__in=Subquery(top_shoe_per_category.values('pk')[:1])
-        ).select_related('category').order_by('category__name')[:6]
+        testimonials = (
+            Review.objects.exclude(comment='').select_related('user','shoe',).order_by('-created_at')[:5]
+        )
+
+        top_shoe_per_category = (
+            Shoes.objects.filter(
+                Q(customizer_id__isnull=True) |
+                Q(customizer_id=""),
+                category=OuterRef('category'),
+            ).annotate(
+                avg_rating=Avg('reviews__rating'),
+                review_count=Count('reviews'),
+            ).order_by('-review_count','-avg_rating',
+            )
+        )
+
+        category_shoes = (
+            Shoes.objects.filter(customizer_filter,pk__in=Subquery(top_shoe_per_category.values('pk')[:1]),
+            ).annotate(min_price=Min('variants__price')
+            ).select_related('category').order_by('category__name')[:6]
+        )
 
         context = {
             'new_arrivals': new_arrivals,
@@ -322,4 +347,5 @@ class HomePage(View):
             'testimonials': testimonials,
             'category_shoes': category_shoes,
         }
-        return render(request, 'Home/index.html', context)
+
+        return render(request,'Home/index.html',context)

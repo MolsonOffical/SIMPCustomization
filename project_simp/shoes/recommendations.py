@@ -19,6 +19,10 @@ def _in_stock(qs):
     return qs.annotate(_in_stock=Exists(has_stock)).filter(_in_stock=True)
 
 
+def _catalog_only(qs):
+    return qs.filter(Q(customizer_id__isnull=True) | Q(customizer_id=""))
+
+
 class ShoeRecommendationEngine:
     def __init__(self, user=None, visitor_id=None, cache_timeout=300, decay_days=90):
         self.user = user if user and getattr(user, "is_authenticated", False) else None
@@ -56,7 +60,7 @@ class ShoeRecommendationEngine:
             purchased_ids = OrderItem.objects.filter(
                 order__user=self.user,
                 order__status__in=CONFIRMED_STATUSES,
-                variant__isnull=False,  # FIX: customized/patterned orders have no variant/shoe link
+                variant__isnull=False, 
             ).values_list("variant__shoe_id", flat=True).distinct()
             interacted.update(purchased_ids)
 
@@ -165,7 +169,7 @@ class ShoeRecommendationEngine:
         return score
 
     def _popular_shoes(self, limit, exclude_ids=None):
-        qs = _in_stock(Shoes.objects.select_related("category", "brand"))
+        qs = _catalog_only(_in_stock(Shoes.objects.select_related("category", "brand")))
         if exclude_ids:
             qs = qs.exclude(id__in=exclude_ids)
 
@@ -240,11 +244,11 @@ class ShoeRecommendationEngine:
         if top_brands:
             candidate_q |= Q(brand_id__in=top_brands)
 
-        candidates = _in_stock(
+        candidates = _catalog_only(_in_stock(
             Shoes.objects.exclude(id__in=interacted_ids)
             .filter(candidate_q)
             .select_related("category", "brand")
-        ).annotate(min_price=Min("variants__price")).distinct()
+        )).annotate(min_price=Min("variants__price")).distinct()
 
         scored = []
         for shoe in candidates:
@@ -269,13 +273,13 @@ class ShoeRecommendationEngine:
     def get_similar_shoes(self, shoe, limit=4):
         if not shoe.brand_id:
             return []
-        qs = _in_stock(
+        qs = _catalog_only(_in_stock(
             Shoes.objects.exclude(id=shoe.id).filter(brand_id=shoe.brand_id).select_related("category", "brand")
-            ).annotate(min_price=Min("variants__price")).distinct()
+        )).annotate(min_price=Min("variants__price")).distinct()
 
         scored = []
         for s in qs:
-            score = 2.0  # same-brand match
+            score = 2.0
 
             days_old = (timezone.now() - s.created_at).days
             if days_old <= 30:

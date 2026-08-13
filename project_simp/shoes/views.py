@@ -43,6 +43,8 @@ class ShoesListView(View):
             min_price=Min("variants__price"),
             total_stock=Sum("variants__stock_quantity"),
             avg_rating=Avg("reviews__rating"),
+        ).filter(
+            Q(customizer_id__isnull=True) | Q(customizer_id="")
         )
 
         search = request.GET.get("searched", "").strip()

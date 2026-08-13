@@ -1,1104 +1,220 @@
-import base64
-import binascii
-import hashlib
-import hmac
-import json
-
-import requests
-
+import uuid
+from django.db import models
 from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.files.base import ContentFile
-from django.core.paginator import Paginator
-from django.db import transaction
-from django.db.models import Avg, Min, Prefetch, Sum, Q
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.templatetags.static import static
-from django.urls import reverse
-from django.utils.crypto import get_random_string
-from django.views import View
-from django.views.decorators.http import (
-    require_GET,
-    require_http_methods,
-    require_POST,
-)
-from io import BytesIO
-from django.views.decorators.csrf import csrf_exempt
-from PIL import Image
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-from account.models import CartItem, WishlistItem, PATTERN_PRICES, SIZE_CHOICES
-from .forms import ReviewForm
-from .models import Order, OrderItem, Review, ReviewMedia, Shoes, ShoesVariant,Category,Brand
-from .recommendations import get_recommendation_engine
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
 
 
+class Brand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-class ShoesListView(View):
-    def get(self, request, category_id=None):
-        shoes = Shoes.objects.select_related("category", "brand").annotate(
-            min_price=Min("variants__price"),
-            total_stock=Sum("variants__stock_quantity"),
-            avg_rating=Avg("reviews__rating"),
-        ).filter(
-            Q(customizer_id__isnull=True) | Q(customizer_id="")
-        )
+    def __str__(self):
+        return self.name
 
-        search = request.GET.get("searched", "").strip()
 
-        category_ids = []
+CUSTOMIZER_CHOICES = [
+    ('nike-converse-low-top', 'Converse Low Top'),
+    ('nike-converse-high-top', 'Converse High Top'),
+    ('air-runner', 'Air Runner'),
+    ('air-jordan-1', 'Air Jordan 1'),
+    ('low-poly-boot', 'Low Poly Boot'),
+    ('urban-canvas', 'Urban Canvas'),
+]
 
-        if category_id is not None:
-            category_ids.append(str(category_id))
 
-        for val in request.GET.getlist("category"):
-            category_ids.extend(
-                [c.strip() for c in val.split(",") if c.strip()]
-            )
+class Shoes(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="shoes")
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name="shoes")
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    thumbnail = models.ImageField(upload_to="shoes/thumbnails/", blank=True, null=True)
+    customizer_id = models.CharField(
+        max_length=64, choices=CUSTOMIZER_CHOICES, blank=True, null=True,
+        help_text="Which 3D customizer model this catalog shoe should open."
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        if category_ids:
-            shoes = shoes.filter(category_id__in=category_ids)
+    class Meta:
+        verbose_name_plural = "Shoes"
 
-        brand_ids = []
-        for val in request.GET.getlist("brand"):
-            brand_ids.extend(
-                [b.strip() for b in val.split(",") if b.strip()]
-            )
+    def __str__(self):
+        return self.name
 
-        if brand_ids:
-            shoes = shoes.filter(brand_id__in=brand_ids)
 
-        if search:
-            shoes = shoes.filter(
-                Q(name__icontains=search)
-                | Q(description__icontains=search)
-                | Q(category__name__icontains=search)
-                | Q(brand__name__icontains=search)
-            )
+class ShoesColor(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        stock = request.GET.get("stock")
-        if stock == "instock":
-            shoes = shoes.filter(total_stock__gt=0)
+    def __str__(self):
+        return self.name
 
-        rating = request.GET.get("rating")
-        if rating and rating.isdigit():
-            rating = int(rating)
 
-            if rating == 5:
-                shoes = shoes.filter(
-                    avg_rating__gte=5,
-                    avg_rating__lte=5
-                )
-            elif 1 <= rating <= 4:
-                shoes = shoes.filter(
-                    avg_rating__gte=rating,
-                    avg_rating__lt=rating + 1
-                )
+class ShoesSize(models.Model):
+    size_value = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        min_price = request.GET.get("min_price")
-        max_price = request.GET.get("max_price")
+    def __str__(self):
+        return self.size_value
 
-        if min_price:
-            try:
-                shoes = shoes.filter(min_price__gte=float(min_price))
-            except ValueError:
-                pass
 
-        if max_price:
-            try:
-                shoes = shoes.filter(min_price__lte=float(max_price))
-            except ValueError:
-                pass
+class ShoesVariant(models.Model):
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="variants")
+    color = models.ForeignKey(ShoesColor, on_delete=models.CASCADE)
+    size = models.ForeignKey(ShoesSize, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock_quantity = models.PositiveIntegerField(default=0)
+    shoes_photo = models.ImageField(upload_to="shoes/images/", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        shoes = shoes.order_by("-created_at")
+    class Meta:
+        unique_together = ("shoe", "color", "size")
 
-        paginator = Paginator(shoes, 9)
-        page = request.GET.get("page", 1)
-        shoes_list = paginator.get_page(page)
+    def __str__(self):
+        return f"{self.shoe.name} - {self.color.name} - {self.size.size_value}"
 
-        categories = Category.objects.all().order_by("name")
-        brands = Brand.objects.all().order_by("name")
 
-        context = {
-            "shoes_list": shoes_list,
-            "query": search,
-            "categories": categories,
-            "brands": brands,
-            "selected_categories": category_ids,
-            "selected_brands": brand_ids,
-            "selected_rating": rating if rating else "",
-            "min_price": min_price,
-            "max_price": max_price,
-        }
+class Review(models.Model):
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews")
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True)
+    is_anonymous = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-        return render(request, "shoes/shoes_list.html", context)
-        
-class ShoeDetailView(View):
-    def get(self, request, pk):
-        variants_qs = ShoesVariant.objects.select_related(
-            'color', 'size'
-        ).order_by('color__name', 'size__size_value')
+    class Meta:
+        unique_together = ("shoe", "user")
 
-        shoe = get_object_or_404(
-            Shoes.objects.select_related('category', 'brand').prefetch_related(
-                Prefetch('variants', queryset=variants_qs)
-            ),
-            pk=pk
-        )
-        variants = list(shoe.variants.all())
+    def __str__(self):
+        return f"{self.user} → {self.shoe} ({self.rating}★)"
 
-        color_photo = {}
-        for v in variants:
-            if v.shoes_photo and v.color_id not in color_photo:
-                color_photo[v.color_id] = v.shoes_photo.url
 
-        for v in variants:
-            v.resolved_photo = v.shoes_photo.url if v.shoes_photo else color_photo.get(
-                v.color_id, '')
+def review_media_upload_path(instance, filename):
+    return f"reviews/{instance.review.shoe_id}/{instance.review.user_id}/{filename}"
 
-        variant_id = request.GET.get('variant')
-        selected_variant = None
-        if variant_id:
-            selected_variant = next(
-                (v for v in variants if str(v.pk) == variant_id), None)
-        if not selected_variant and variants:
-            in_stock = [v for v in variants if v.stock_quantity > 0]
-            selected_variant = in_stock[0] if in_stock else variants[0]
 
-        colors_seen = {}
-        for v in variants:
-            if v.color_id not in colors_seen:
-                colors_seen[v.color_id] = v.color
-        colors = list(colors_seen.values())
-        for color in colors:
-            color.display_thumbnail = color_photo.get(color.id, '')
+class ReviewMedia(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="media")
+    file = models.FileField(upload_to=review_media_upload_path)
+    media_type = models.CharField(
+        max_length=5,
+        choices=[('image', 'Image'), ('video', 'Video')],
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
-        variants_data = [
-            {
-                'id': v.pk,
-                'color_id': v.color_id,
-                'size_id': v.size_id,
-                'size_value': v.size.size_value,
-                'price': str(v.price),
-                'stock': v.stock_quantity,
-                'photo': v.resolved_photo,
-            }
-            for v in variants
+
+class ReviewReply(models.Model):
+    review = models.OneToOneField(Review, on_delete=models.CASCADE, related_name="reply")
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reply to {self.review}"
+
+
+class ShoeView(models.Model):
+    shoe = models.ForeignKey(Shoes, on_delete=models.CASCADE, related_name="shoe_views")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="shoe_views",
+    )
+    visitor_id = models.CharField(max_length=64, null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["shoe", "created_at"]),
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["visitor_id", "created_at"]),
         ]
 
-        brand_shoes = Shoes.objects.filter(
-            brand=shoe.brand
-        ).exclude(pk=pk).annotate(
-            min_price=Min('variants__price')
-        ).select_related('category', 'brand')[:4]
-
-        reviews = shoe.reviews.select_related('user').prefetch_related('media').order_by('-created_at')
-        avg_rating = reviews.aggregate(avg=Avg('rating'))['avg']
-        review_count = reviews.count()
-
-        rating_breakdown = []
-        for star in [5, 4, 3, 2, 1]:
-            count = reviews.filter(rating=star).count()
-            percent = round((count / review_count) * 100) if review_count else 0
-            rating_breakdown.append({'star': star, 'count': count, 'percent': percent})
-
-        user_has_reviewed = (
-            request.user.is_authenticated
-            and reviews.filter(user=request.user).exists()
-        )
-
-        engine = get_recommendation_engine(request)
-        engine.log_view(shoe)
-
-        similar_shoes = engine.get_similar_shoes(shoe, limit=4)
-        recommended_shoes = engine.get_recommendations(limit=4)
-
-        context = {
-            'shoe': shoe,
-            'variants': variants,
-            'variants_data': variants_data,
-            'colors': colors,
-            'selected_variant': selected_variant,
-            'brand_shoes': brand_shoes,
-            'similar_shoes': similar_shoes,
-            'recommended_shoes': recommended_shoes,
-            'reviews': reviews,
-            'avg_rating': avg_rating,
-            'review_count': review_count,
-            'rating_breakdown': rating_breakdown,
-            'user_has_reviewed': user_has_reviewed,
-            'review_form': ReviewForm(),
-        }
-
-        return render(request, 'shoes/shoe_detail.html', context)
-
-
-def test(request):
-    return render(request, "layout.html")
-
-
-class History(View):
-    def get(self, request, category_id=None):
-        return render(request, 'history/history.html')
-
-
-class AddReviewView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        shoe = get_object_or_404(Shoes, pk=pk)
-        form = ReviewForm(request.POST, request.FILES)
-        if form.is_valid():
-            review = form.save(commit=False)
-            review.shoe = shoe
-            review.user = request.user
-            review.save()
-
-            for f in request.FILES.getlist('files'):
-                media_type = 'video' if f.content_type.startswith('video') else 'image'
-                ReviewMedia.objects.create(review=review, file=f, media_type=media_type)
-
-            messages.success(request, "Review submitted.")
-        else:
-            error_text = "; ".join(
-                f"{field}: {', '.join(errs)}" for field, errs in form.errors.items()
-            )
-            messages.error(request, f"Couldn't submit review — {error_text}")
-        return redirect('shoes:shoe_detail', pk=pk)
-
-
-class EditReviewView(LoginRequiredMixin, View):
-    def get(self, request, pk, review_id):
-        review = get_object_or_404(Review, pk=review_id, shoe_id=pk)
-        if review.user != request.user:
-            messages.error(request, "You can't edit someone else's review.")
-            return redirect('shoes:shoe_detail', pk=pk)
-        form = ReviewForm(instance=review)
-        return render(request, 'shoes/edit_review.html', {'form': form, 'shoe_id': pk, 'review_id': review_id, 'review': review})
-
-    def post(self, request, pk, review_id):
-        review = get_object_or_404(Review, pk=review_id, shoe_id=pk)
-        if review.user != request.user:
-            messages.error(request, "You can't edit someone else's review.")
-            return redirect('shoes:shoe_detail', pk=pk)
-        form = ReviewForm(request.POST, request.FILES, instance=review)
-        if form.is_valid():
-            form.save()
-
-            remove_ids = request.POST.getlist('remove_media')
-            if remove_ids:
-                review.media.filter(id__in=remove_ids).delete()
-
-            for f in request.FILES.getlist('new_files'):
-                media_type = 'video' if f.content_type.startswith('video') else 'image'
-                ReviewMedia.objects.create(review=review, file=f, media_type=media_type)
-
-            messages.success(request, "Review updated.")
-            return redirect('shoes:shoe_detail', pk=pk)
-        return render(request, 'shoes/edit_review.html', {'form': form, 'shoe_id': pk, 'review_id': review_id, 'review': review})
-
-
-class DeleteReviewView(LoginRequiredMixin, View):
-    def post(self, request, pk, review_id):
-        review = get_object_or_404(Review, pk=review_id, shoe_id=pk)
-        if review.user != request.user:
-            messages.error(request, "You can't delete someone else's review.")
-        else:
-            review.delete()
-            messages.success(request, "Review deleted.")
-        return redirect('shoes:shoe_detail', pk=pk)
-
-
-
-MAX_QTY = 10  
-FREE_SHIPPING_THRESHOLD = 3000
-
-VALID_SIZES = {s for s, _ in SIZE_CHOICES}
-
-PATTERN_PHOTOS = {
-    "nike-converse-low-top": "img/patterns/converse-low-top.jpg",
-    "nike-converse-high-top": "img/patterns/converse-high-top.jpg",
-    "air-runner": "img/patterns/air-runner.jpg",
-}
-
-
-def _parse_body(request):
-    try:
-        return json.loads(request.body or "{}")
-    except json.JSONDecodeError:
-        return {}
-
-
-def _error(message, status=400):
-    return JsonResponse({"error": message}, status=status)
-
-
-def _serialize_item(item):
-    if item.variant_id:
-        v = item.variant
-        if v.shoes_photo:
-            photo_url = v.shoes_photo.url
-        elif v.shoe.thumbnail:
-            photo_url = v.shoe.thumbnail.url
-        else:
-            photo_url = static('images/shoes.jpg')
-        return {
-            "id": item.id,
-            "name": v.shoe.name,
-            "meta": "",
-            "color": v.color.name,
-            "size": v.size.size_value,
-            "price": str(item.unit_price),
-            "photo": photo_url,
-            "stock": v.stock_quantity,
-            "quantity": item.quantity,
-            "customization": [],
-            "line_total": str(item.subtotal),
-        }
-
-    if item.photo:
-        photo_url = item.photo.url
-    else:
-        matching_shoe = Shoes.objects.filter(customizer_id=item.pattern).first()
-        if matching_shoe and matching_shoe.thumbnail:
-            photo_url = matching_shoe.thumbnail.url
-        else:
-            photo_url = static('images/shoes.jpg')
-    return {
-        "id": item.id,
-        "name": item.pattern_display_name,
-        "meta": f"Size {item.size}",
-        "size": item.size,
-        "price": str(item.unit_price),
-        "photo": photo_url,
-        "stock": MAX_QTY,
-        "quantity": item.quantity,
-        "customization": [
-            {"label": zone, "color": color} for zone, color in (item.colors or {}).items()
-        ],
-        "line_total": str(item.subtotal),
-    }
-
-
-def _cart_payload(user):
-    # NOTE: cart display is NOT filtered by the `order` reservation
-    # field. Items stay visible in the cart the whole time an order is
-    # pending_payment — they only disappear once payment actually
-    # succeeds (deleted in esewa_verify/khalti_verify), or they simply
-    # stay put if payment fails/is abandoned (order gets reset to
-    # None, but the item was never hidden from view in the first
-    # place, so there is nothing to "restore").
-    items = list(CartItem.objects.filter(user=user))
-    count = sum(i.quantity for i in items)
-    subtotal = sum(i.subtotal for i in items)
-    shipping_label = "—" if not items else (
-        "Free" if subtotal >= FREE_SHIPPING_THRESHOLD else "Calculated at checkout"
-    )
-    return {
-        "items": [_serialize_item(i) for i in items],
-        "count": count,
-        "subtotal": str(subtotal),
-        "shipping_label": shipping_label,
-        "shipping_fee": "0",
-        "total": str(subtotal),
-    }
-
-
-def cart_page(request):
-    return render(request, "shoes/cart.html")
-
-
-@login_required
-@require_GET
-def cart_item_list(request):
-    return JsonResponse(_cart_payload(request.user))
-
-
-@login_required
-@require_POST
-@transaction.atomic
-def cart_add(request):
-    if request.method == 'GET':
-        if not request.user.is_authenticated:
-            return redirect(f"/accounts/login/?next={request.path}")
-
-        pattern = request.GET.get('pattern')
-        size = str(request.GET.get('size', ''))
-        try:
-            colors = json.loads(request.GET.get('colors', '{}'))
-        except json.JSONDecodeError:
-            colors = {}
-        quantity = int(request.GET.get('quantity') or 1)
-
-        if pattern not in PATTERN_PRICES or size not in VALID_SIZES:
-            messages.error(request, 'Please choose a valid shoe and size.')
-            return redirect(request.META.get('HTTP_REFERER', 'shoes:cart_page'))
-
-        candidates = CartItem.objects.filter(user=request.user, pattern=pattern, size=size)
-        match = next((i for i in candidates if i.colors == colors), None)
-        if match:
-            match.quantity = min(match.quantity + quantity, MAX_QTY)
-            match.save()
-        else:
-            CartItem.objects.create(
-                user=request.user, pattern=pattern, size=size,
-                colors=colors, quantity=min(quantity, MAX_QTY),
-            )
-        return redirect('shoes:cart_page')
-
-    data = _parse_body(request)
-
-    variant_id = data.get("variant_id")
-    if variant_id:
-        return _add_variant_item(request, data, variant_id)
-
-    pattern = data.get("pattern")
-    size = str(data.get("size", ""))
-    colors = data.get("colors") or {}
-    quantity = int(data.get("quantity") or 1)
-
-    if pattern not in PATTERN_PRICES:
-        return _error("Unknown shoe pattern.")
-    if size not in VALID_SIZES:
-        return _error("Invalid size.")
-    if quantity < 1:
-        return _error("Quantity must be at least 1.")
-
-    candidates = CartItem.objects.filter(user=request.user, pattern=pattern, size=size)
-    match = next((i for i in candidates if i.colors == colors), None)
-
-    if match:
-        match.quantity = min(match.quantity + quantity, MAX_QTY)
-        match.save()
-    else:
-        item = CartItem.objects.create(
-            user=request.user,
-            pattern=pattern,
-            size=size,
-            colors=colors,
-            quantity=min(quantity, MAX_QTY),
-        )
-        photo_data_url = data.get("photo")
-        photo_file = _decode_photo(photo_data_url, pattern)
-        if photo_file:
-            item.photo.save(photo_file.name, photo_file, save=True)
-
-    return JsonResponse(_cart_payload(request.user))
-
-
-def _add_variant_item(request, data, variant_id):
-    try:
-        quantity = int(data.get("quantity") or 1)
-    except (TypeError, ValueError):
-        return _error("Invalid quantity.")
-    if quantity < 1:
-        return _error("Quantity must be at least 1.")
-
-    try:
-        variant = ShoesVariant.objects.select_related('shoe', 'color', 'size').get(pk=variant_id)
-    except ShoesVariant.DoesNotExist:
-        return _error("Please choose a valid shoe.", status=404)
-
-    if variant.stock_quantity < 1:
-        return _error("That size is out of stock.")
-
-    cap = min(MAX_QTY, variant.stock_quantity)
-    match = CartItem.objects.filter(user=request.user, variant=variant).first()
-
-    if match:
-        match.quantity = min(match.quantity + quantity, cap)
-        match.save()
-    else:
-        CartItem.objects.create(
-            user=request.user,
-            variant=variant,
-            quantity=min(quantity, cap),
-        )
-
-    return JsonResponse(_cart_payload(request.user))
-
-
-@login_required
-@require_POST
-@transaction.atomic
-def cart_update(request):
-    data = _parse_body(request)
-    item_id = data.get("item_id")
-    quantity = data.get("quantity")
-
-    if item_id is None or quantity is None:
-        return _error("item_id and quantity are required.")
-
-    try:
-        quantity = int(quantity)
-    except (TypeError, ValueError):
-        return _error("Invalid quantity.")
-
-    try:
-        item = CartItem.objects.get(id=item_id, user=request.user)
-    except CartItem.DoesNotExist:
-        return _error("Item not found in your cart.", status=404)
-
-    item.quantity = max(1, min(quantity, MAX_QTY))
-    item.save()
-
-    return JsonResponse(_cart_payload(request.user))
-
-
-@login_required
-@require_POST
-def cart_remove(request):
-    data = _parse_body(request)
-    item_id = data.get("item_id")
-    if item_id is None:
-        return _error("item_id is required.")
-
-    CartItem.objects.filter(id=item_id, user=request.user).delete()
-    return JsonResponse(_cart_payload(request.user))
-
-
-@login_required
-@require_POST
-def cart_clear(request):
-    CartItem.objects.filter(user=request.user).delete()
-    return JsonResponse(_cart_payload(request.user))
-
-# ---------------------------------------------------------------
-# Wishlist views
-#
-# Mirrors the CartItem/cart_* pattern above. Key difference: no
-# unit_price snapshotting (see WishlistItem.price property for why),
-# and a `wishlist_toggle` endpoint for the heart button, since a
-# shoe card just needs "on/off" rather than separate add/remove calls.
-# ---------------------------------------------------------------
-
-def _serialize_wishlist_item(item):
-    if item.variant_id:
-        v = item.variant
-        if v.shoes_photo:
-            photo_url = v.shoes_photo.url
-        elif v.shoe.thumbnail:
-            photo_url = v.shoe.thumbnail.url
-        else:
-            photo_url = static('images/shoes.jpg')
-        return {
-            "id": item.id,
-            "variant_id": item.variant_id,
-            "name": v.shoe.name,
-            "meta": "",
-            "color": v.color.name,
-            "size": v.size.size_value,
-            "price": str(item.price),
-            "photo": photo_url,
-            "stock": v.stock_quantity,
-            "customization": [],
-        }
-
-    if item.photo:
-        photo_url = item.photo.url
-    else:
-        matching_shoe = Shoes.objects.filter(customizer_id=item.pattern).first()
-        if matching_shoe and matching_shoe.thumbnail:
-            photo_url = matching_shoe.thumbnail.url
-        else:
-            photo_url = static('images/shoes.jpg')
-    return {
-        "id": item.id,
-        "pattern": item.pattern,
-        "name": item.pattern_display_name,
-        "meta": f"Size {item.size}",
-        "size": item.size,
-        "price": str(item.price),
-        "photo": photo_url,
-        "stock": MAX_QTY,
-        "customization": [
-            {"label": zone, "color": color} for zone, color in (item.colors or {}).items()
-        ],
-    }
-
-
-def _wishlist_payload(user):
-    items = list(WishlistItem.objects.filter(user=user).select_related(
-        'variant__shoe', 'variant__color', 'variant__size'
-    ))
-    return {
-        "items": [_serialize_wishlist_item(i) for i in items],
-        "count": len(items),
-    }
-
-
-def wishlist_page(request):
-    return render(request, "shoes/wishlist.html")
-
-
-@login_required
-@require_GET
-def wishlist_item_list(request):
-    return JsonResponse(_wishlist_payload(request.user))
-
-
-@login_required
-@require_POST
-def wishlist_add(request):
-    data = _parse_body(request)
-    variant_id = data.get("variant_id")
-
-    if variant_id:
-        try:
-            variant = ShoesVariant.objects.get(pk=variant_id)
-        except ShoesVariant.DoesNotExist:
-            return _error("Please choose a valid shoe.", status=404)
-
-        WishlistItem.objects.get_or_create(user=request.user, variant=variant)
-        return JsonResponse(_wishlist_payload(request.user))
-
-    pattern = data.get("pattern")
-    size = str(data.get("size", ""))
-    colors = data.get("colors") or {}
-
-    if pattern not in PATTERN_PRICES:
-        return _error("Unknown shoe pattern.")
-
-    candidates = WishlistItem.objects.filter(user=request.user, pattern=pattern, size=size)
-    match = next((i for i in candidates if i.colors == colors), None)
-    if not match:
-        item = WishlistItem.objects.create(
-            user=request.user, pattern=pattern, size=size, colors=colors,
-        )
-        photo_data_url = data.get("photo")
-        photo_file = _decode_photo(photo_data_url, pattern)
-        if photo_file:
-            item.photo.save(photo_file.name, photo_file, save=True)
-
-    return JsonResponse(_wishlist_payload(request.user))
-
-
-@login_required
-@require_POST
-def wishlist_remove(request):
-    data = _parse_body(request)
-    item_id = data.get("item_id")
-    if item_id is None:
-        return _error("item_id is required.")
-
-    WishlistItem.objects.filter(id=item_id, user=request.user).delete()
-    return JsonResponse(_wishlist_payload(request.user))
-
-
-@login_required
-@require_POST
-def wishlist_toggle(request):
-    """Add/remove in one call — used by the heart button on shoe cards.
-    Accepts EITHER variant_id (admin-added shoes with a specific color/size)
-    OR pattern (customizer-designed shoes shown before size/colors are
-    chosen, e.g. on the homepage best-sellers grid)."""
-    data = _parse_body(request)
-    variant_id = data.get("variant_id")
-    pattern = data.get("pattern")
-
-    if variant_id:
-        try:
-            variant = ShoesVariant.objects.get(pk=variant_id)
-        except ShoesVariant.DoesNotExist:
-            return _error("Please choose a valid shoe.", status=404)
-
-        existing = WishlistItem.objects.filter(user=request.user, variant=variant).first()
-        if existing:
-            existing.delete()
-            is_wishlisted = False
-        else:
-            WishlistItem.objects.create(user=request.user, variant=variant)
-            is_wishlisted = True
-
-    elif pattern:
-        if pattern not in PATTERN_PRICES:
-            return _error("Unknown shoe pattern.")
-
-        existing = WishlistItem.objects.filter(
-            user=request.user, pattern=pattern, size="", colors={}
-        ).first()
-        if existing:
-            existing.delete()
-            is_wishlisted = False
-        else:
-            WishlistItem.objects.create(user=request.user, pattern=pattern, size="", colors={})
-            is_wishlisted = True
-
-    else:
-        return _error("variant_id or pattern is required.")
-
-    payload = _wishlist_payload(request.user)
-    payload["is_wishlisted"] = is_wishlisted
-    return JsonResponse(payload)
-
-
-@login_required
-@require_POST
-@transaction.atomic
-def wishlist_move_to_cart(request):
-    data = _parse_body(request)
-    item_id = data.get("item_id")
-    if item_id is None:
-        return _error("item_id is required.")
-
-    try:
-        item = WishlistItem.objects.get(id=item_id, user=request.user)
-    except WishlistItem.DoesNotExist:
-        return _error("Item not found in your wishlist.", status=404)
-
-    if item.variant_id:
-        variant = item.variant
-        if variant.stock_quantity < 1:
-            return _error("That size is out of stock.")
-        cap = min(MAX_QTY, variant.stock_quantity)
-        cart_match = CartItem.objects.filter(user=request.user, variant=variant).first()
-        if cart_match:
-            cart_match.quantity = min(cart_match.quantity + 1, cap)
-            cart_match.save()
-        else:
-            CartItem.objects.create(user=request.user, variant=variant, quantity=1)
-    else:
-        cart_candidates = CartItem.objects.filter(
-            user=request.user, pattern=item.pattern, size=item.size
-        )
-        cart_match = next((i for i in cart_candidates if i.colors == item.colors), None)
-        if cart_match:
-            cart_match.quantity = min(cart_match.quantity + 1, MAX_QTY)
-            cart_match.save()
-        else:
-            new_cart_item = CartItem.objects.create(
-                user=request.user, pattern=item.pattern, size=item.size,
-                colors=item.colors, quantity=1,
-            )
-            if item.photo:
-                new_cart_item.photo.save(
-                    item.photo.name.split('/')[-1], item.photo.file, save=True
-                )
-
-    item.delete()
-    return JsonResponse(_wishlist_payload(request.user))
-
-
-def _decode_photo(data_url, pattern):
-    if not data_url or ';base64,' not in data_url:
-        return None
-    header, encoded = data_url.split(';base64,', 1)
-    ext = header.split('/')[-1]
-    try:
-        decoded = base64.b64decode(encoded)
-    except (TypeError, ValueError):
-        return None
-    return ContentFile(decoded, name=f'{pattern}-snapshot.{ext}')
-
-
-def checkout_view(request):
-    payment_method = request.GET.get('method')
-    if payment_method not in ('khalti', 'esewa'):
-        payment_method = None
-
-    context = {
-        'payment_method': payment_method,
-    }
-    return render(request, 'shoes/checkout.html', context)
-
-
-def order_tracking_view(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
-    context = {
-        'order_id': order.order_id,
-        'status': order.status,
-        'payment_method': order.get_payment_method_display(),
-        'total_amount': order.total_amount,
-        'address': f"{order.address}, {order.city}",
-    }
-    return render(request, 'shoes/order_tracking.html', context)
-
-
-def payment_success_view(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
-    context = {
-        'order_id': order.order_id,
-        'total_amount': order.total_amount,
-        'payment_method': order.get_payment_method_display(),
-    }
-    return render(request, 'shoes/payment_success.html', context)
-
-
-
-STATUS_STEP = {
-    'pending_payment': 0,
-    'paid': 1,
-    'processing': 1,
-    'shipped': 2,
-    'delivered': 3,
-}
-
-STATUS_BADGE_CLASS = {
-    'pending_payment': 'pending',
-    'paid': 'processing',
-    'processing': 'processing',
-    'shipped': 'shipped',
-    'delivered': 'delivered',
-    'cancelled': 'cancelled',
-    'failed': 'cancelled',
-}
-@login_required
-def order_history_view(request):
-    status_filter = request.GET.get('status', 'all')
-
-    orders_qs = Order.objects.filter(user=request.user).prefetch_related(
-        'items__variant__shoe',
-        'items__variant__color',
-        'items__variant__size',
-    ).order_by('-created_at')
-
-    total_count = orders_qs.count()
-
-    if status_filter != 'all':
-        orders_qs = orders_qs.filter(status=status_filter)
-
-    order_rows = []
-    for order in orders_qs:
-        order_rows.append({
-            'order': order,
-            'items': order.items.all(),
-            'step_index': STATUS_STEP.get(order.status, 0),
-            'is_failed': order.status == 'failed',
-            'is_cancelled': order.status == 'cancelled',
-            'can_cancel': order.status == 'pending_payment',
-            'badge_class': STATUS_BADGE_CLASS.get(order.status, 'pending'),
-        })
-
-    context = {
-        'order_rows': order_rows,
-        'total_count': total_count,
-        'status_filter': status_filter,
-    }
-    return render(request, 'history/history.html', context)
-
-
-@login_required
-@require_POST
-def cancel_order(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id, user=request.user)
-
-    if order.status != 'pending_payment':
-        messages.error(request, "This order can no longer be cancelled — it's already being processed.")
-    else:
-        order.status = 'cancelled'
-        order.save()
-        # release any items still reserved against this order back to
-        # the cart's "unreserved" state (they were never hidden from
-        # the UI, this just clears the bookkeeping FK)
-        order.pending_cart_items.update(order=None)
-        messages.success(request, f"Order {order.order_id} has been cancelled.")
-
-    return redirect('shoes:history')
-
-
-
-@login_required
-def create_order(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST required'}, status=405)
-
-    data = json.loads(request.body)
-    address = data['address']
-    payment_method = data['payment_method']
-
-    cart_items = CartItem.objects.filter(user=request.user)
-    if not cart_items.exists():
-        return JsonResponse({'error': 'Your cart is empty.'}, status=400)
-
-    total_amount = 0
-    for item in cart_items:
-        if item.variant_id and item.quantity > item.variant.stock_quantity:
-            return JsonResponse({'error': f'{item.variant} is out of stock'}, status=400)
-        total_amount += item.subtotal
-
-    order = Order.objects.create(
-        user=request.user,
-        full_name=address['full_name'],
-        phone=address['phone'],
-        address=address['address'],
-        city=address['city'],
-        landmark=address.get('landmark', ''),
-        payment_method=payment_method,
-        total_amount=total_amount,
+    def __str__(self):
+        who = f"user:{self.user_id}" if self.user_id else f"visitor:{self.visitor_id}"
+        return f"View({self.shoe_id} by {who})"
+
+
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending_payment', 'Pending Payment'),
+        ('paid', 'Paid'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+        ('failed', 'Failed'),
+    ]
+    PAYMENT_CHOICES = [('esewa', 'eSewa'), ('khalti', 'Khalti')]
+
+    order_id = models.CharField(max_length=50, unique=True, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
+    full_name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20)
+    address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    landmark = models.CharField(max_length=255, blank=True)
+
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = "SIMP" + uuid.uuid4().hex[:12].upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.order_id
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+
+    # Catalog shoe (nullable now — customizer items don't have a variant)
+    variant = models.ForeignKey(
+        ShoesVariant, on_delete=models.PROTECT, related_name='order_items',
+        null=True, blank=True,
     )
 
-    for item in cart_items:
-        if item.variant_id:
-            OrderItem.objects.create(
-                order=order,
-                variant=item.variant,
-                price=item.unit_price,
-                quantity=item.quantity,
-            )
-        else:
-            order_item = OrderItem.objects.create(
-                order=order,
-                variant=None,
-                pattern=item.pattern,
-                colors=item.colors,
-                size=item.size,
-                price=item.unit_price,
-                quantity=item.quantity,
-            )
-            # Copy the customer's actual custom-design snapshot over,
-            # since CartItem.photo will be gone once payment succeeds
-            # and the cart item is deleted.
-            if item.photo:
-                item.photo.open()
-                order_item.photo.save(
-                    item.photo.name.rsplit('/', 1)[-1],
-                    ContentFile(item.photo.read()),
-                    save=True,
-                )
-
-    # Reserve the cart items against this order (bookkeeping only —
-    # they remain visible in the cart UI the whole time). They're
-    # only deleted once payment actually succeeds (see
-    # esewa_verify/khalti_verify below). If payment fails or the order
-    # is cancelled, the reservation is released (order set back to
-    # None) — the item was never hidden, so nothing needs restoring.
-    cart_items.update(order=order)
-
-    return JsonResponse({'order_id': order.order_id, 'total_amount': str(total_amount)})
+    # Customizer shoe fields (nullable — catalog items don't use these)
+    pattern = models.CharField(max_length=64, blank=True, null=True)
+    colors = models.JSONField(default=dict, blank=True)
+    size = models.CharField(max_length=8, blank=True, null=True)
+    photo = models.ImageField(upload_to='order_photos/', blank=True, null=True)
 
 
-def esewa_initiate(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
-    total_amount = str(order.total_amount)
-    transaction_uuid = order.order_id
-    product_code = settings.ESEWA_PRODUCT_CODE
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # snapshot at time of order
+    quantity = models.PositiveIntegerField(default=1)
 
-    message = f"total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code}"
-    signature = base64.b64encode(
-        hmac.new(settings.ESEWA_SECRET_KEY.encode(), message.encode(), hashlib.sha256).digest()
-    ).decode()
+    def subtotal(self):
+        return self.price * self.quantity
 
-    context = {
-        'amount': total_amount,
-        'tax_amount': '0',
-        'total_amount': total_amount,
-        'transaction_uuid': transaction_uuid,
-        'product_code': product_code,
-        'product_service_charge': '0',
-        'product_delivery_charge': '0',
-        'success_url': request.build_absolute_uri(f'/shoes/payments/esewa/verify/{order.order_id}/'),
-        'failure_url': request.build_absolute_uri('/shoes/checkout/'),
-        'signed_field_names': 'total_amount,transaction_uuid,product_code',
-        'signature': signature,
-        'esewa_form_url': settings.ESEWA_FORM_URL,
-    }
-    return render(request, 'shoes/esewa_redirect.html', context)
+    @property
+    def display_photo_url(self):
+        if self.photo:
+            return self.photo.url
+        if self.variant_id and self.variant.shoes_photo:
+            return self.variant.shoes_photo.url
+        return None
 
+    def __str__(self):
+        if self.variant_id:
+            return f"{self.variant} x{self.quantity}"
+        return f"{self.pattern} (size {self.size}) x{self.quantity}"
 
-def esewa_verify(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
-    encoded = request.GET.get('data')
-    if not encoded:
-        order.status = 'failed'
-        order.save()
-        order.pending_cart_items.update(order=None)
-        return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
-
-    decoded = json.loads(base64.b64decode(encoded))
-    if decoded.get('status') != 'COMPLETE':
-        order.status = 'failed'
-        order.save()
-        order.pending_cart_items.update(order=None)
-        return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
-
-    params = {
-        'product_code': settings.ESEWA_PRODUCT_CODE,
-        'total_amount': str(order.total_amount),
-        'transaction_uuid': order.order_id,
-    }
-    result = requests.get(settings.ESEWA_STATUS_URL, params=params).json()
-
-    if result.get('status') == 'COMPLETE':
-        order.status = 'paid'
-        order.transaction_id = decoded.get('transaction_code', '')
-        order.save()
-        order.pending_cart_items.all().delete()
-        return redirect(f'/shoes/orders/{order.order_id}/success/')
-
-    order.status = 'failed'
-    order.save()
-    order.pending_cart_items.update(order=None)
-    return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
-
-
-def khalti_initiate(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
-    payload = {
-        "return_url": request.build_absolute_uri(f'/shoes/payments/khalti/verify/{order.order_id}/'),
-        "website_url": request.build_absolute_uri('/'),
-        "amount": int(order.total_amount * 100),
-        "purchase_order_id": order.order_id,
-        "purchase_order_name": f"SIMP Order {order.order_id}",
-        "customer_info": {
-            "name": order.full_name,
-            "phone": order.phone,
-        },
-    }
-    headers = {
-        "Authorization": f"key {settings.KHALTI_SECRET_KEY}",
-        "Content-Type": "application/json",
-    }
-    resp = requests.post(settings.KHALTI_INITIATE_URL, json=payload, headers=headers)
-    result = resp.json()
-
-    if resp.status_code == 200 and 'payment_url' in result:
-        return redirect(result['payment_url'])
-
-    order.status = 'failed'
-    order.save()
-    order.pending_cart_items.update(order=None)
-    return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
-
-
-def khalti_verify(request, order_id):
-    order = get_object_or_404(Order, order_id=order_id)
-    pidx = request.GET.get('pidx')
-
-    headers = {
-        "Authorization": f"key {settings.KHALTI_SECRET_KEY}",
-        "Content-Type": "application/json",
-    }
-    result = requests.post(settings.KHALTI_LOOKUP_URL, json={"pidx": pidx}, headers=headers).json()
-
-    if result.get('status') == 'Completed':
-        order.status = 'paid'
-        order.transaction_id = result.get('transaction_id', '')
-        order.save()
-        order.pending_cart_items.all().delete()
-        return redirect(f'/shoes/orders/{order.order_id}/success/')
-
-    order.status = 'failed'
-    order.save()
-    order.pending_cart_items.update(order=None)
-    return redirect(f'/shoes/orders/{order.order_id}/track/?status=failed')
-# ---------------------------------------------------------------
-# Decal background removal (customizer sticker uploads)
-# ---------------------------------------------------------------
-@csrf_exempt
-def remove_background_view(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST required'}, status=405)
-    uploaded_file = request.FILES.get('image')
-    if not uploaded_file:
-        return JsonResponse({'error': 'No image provided'}, status=400)
-    try:
-        from rembg import remove
-        img = Image.open(uploaded_file)
-        output = remove(img)
-        buffer = BytesIO()
-        output.save(buffer, format='PNG')
-        encoded = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        return JsonResponse({'image': f'data:image/png;base64,{encoded}'})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)

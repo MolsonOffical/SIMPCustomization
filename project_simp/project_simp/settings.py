@@ -156,13 +156,8 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('CLOUDINARY_API_KEY'),
     'API_SECRET': config('CLOUDINARY_API_SECRET'),
 }
-# Email — Brevo, via django-anymail, over HTTPS.
-# Railway blocks outbound SMTP on Free/Trial/Hobby plans, so smtplib-based
-# backends (Gmail, Brevo's own SMTP relay, etc.) can't connect from a
-# deployed service. Anymail's Brevo backend calls Brevo's HTTPS API instead,
-# which is never blocked — same reasoning as the SendGrid setup this replaces.
-# BREVO_API_KEY must be a v3 API key (Settings > SMTP & API > API Keys),
-# set as an env var (Railway Variables tab / local .env) — never hardcode it.
+
+
 EMAIL_BACKEND = 'anymail.backends.brevo.EmailBackend'
 ANYMAIL = {
     'BREVO_API_KEY': config('BREVO_API_KEY'),

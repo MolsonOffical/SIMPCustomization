@@ -20,8 +20,6 @@ def _in_stock(qs):
 
 
 def _catalog_only(qs):
-    """Exclude customizer-linked shoes (same rule as ShoesListView) —
-    these aren't meant to appear as normal browsable/recommendable products."""
     return qs.filter(Q(customizer_id__isnull=True) | Q(customizer_id=""))
 
 
@@ -62,7 +60,7 @@ class ShoeRecommendationEngine:
             purchased_ids = OrderItem.objects.filter(
                 order__user=self.user,
                 order__status__in=CONFIRMED_STATUSES,
-                variant__isnull=False,  # FIX: customized/patterned orders have no variant/shoe link
+                variant__isnull=False, 
             ).values_list("variant__shoe_id", flat=True).distinct()
             interacted.update(purchased_ids)
 
@@ -281,7 +279,7 @@ class ShoeRecommendationEngine:
 
         scored = []
         for s in qs:
-            score = 2.0  # same-brand match
+            score = 2.0
 
             days_old = (timezone.now() - s.created_at).days
             if days_old <= 30:

@@ -684,6 +684,9 @@ canvas.webgl.placing-decal { cursor: crosshair; }
 
 @media (max-width: 900px) {
   .customizer-layout { flex-direction: column; height: auto; }
+  canvas.webgl {
+    height: 55vh;
+  }
   .product-panel { width: 100%; border-left: none; border-top: 1px solid #e5e5e5; }
   .header {
     flex-wrap: wrap;

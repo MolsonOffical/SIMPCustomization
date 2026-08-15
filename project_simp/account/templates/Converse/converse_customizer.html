@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/converse_customizer.css' %}" />
+<link rel="stylesheet" href="{% static 'css/converse_customizer.css' %}?v=2" />
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 <script src="https://unpkg.com/@lucide/lab@latest/dist/umd/lucide-lab.js"></script>
 
@@ -47,7 +47,7 @@
    <button class="apply-button" id="btnAddDesign" title="Upload a design image">
   <i data-lucide="image-plus"></i>
 </button>
-<input type="file" id="designFileInput" accept="image/*" style="display:none" />
+<input type="file" id="designFileInput" accept="image/*" style="position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;" />
 <label class="bg-toggle">
   <input type="checkbox" id="removeBgToggle" checked>
   <span class="bg-toggle-track"><span class="bg-toggle-thumb"></span></span>
@@ -57,7 +57,7 @@
 <button class="apply-button" id="btnFullPrint" title="Apply Full Print to Current Zone">
   <i data-lucide="stamp"></i>
 </button>
-<input type="file" id="fullPrintFileInput" accept="image/*" style="display:none" />
+<input type="file" id="fullPrintFileInput" accept="image/*" style="position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;" />
 <div class="toolbar-divider"></div>
     </div>
   </div>
@@ -669,6 +669,12 @@ const debugObject = { envMapIntensity: 5 };
 
 const controls = new OrbitControls(camera, canvas);
 controls.target.set(1.4, 0, 0);
+if (window.innerWidth <= 900) {
+  controls.target.set(0, 0, 0);
+  controls.minDistance = 4.3;
+  controls.maxDistance = 5.3;
+  camera.position.set(3.6, 2.4, 0);
+}
 controls.rotateSpeed   = 0.2;
 controls.zoomSpeed     = 0.5;
 controls.panSpeed      = 0.5;
@@ -1117,8 +1123,11 @@ document.getElementById('btnReopenFullPrint').addEventListener('click', () => {
   document.getElementById('fullPrintControls').classList.remove('hidden');
   document.getElementById('btnReopenFullPrint').classList.add('hidden');
 });
-document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
-document.getElementById('btnAddDesign').addEventListener('click', () => designFileInput.click());
+document.getElementById('btnAddDesign').addEventListener('click', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('designFileInput').click();
+});
 designFileInput.addEventListener('change', (e) => {
   beginDecalPlacement(e.target.files[0]);
   designFileInput.value = '';

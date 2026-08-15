@@ -28,6 +28,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+CSRF_TRUSTED_ORIGINS = ['https://simp1-production.up.railway.app']
 
 CSRF_TRUSTED_ORIGINS = ['https://simpcustomization-olpl.onrender.com']
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'anymail',
     'account',
     'shoes',
     'notifications',
@@ -114,6 +116,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "account.CustomUser"
 
+LOGIN_URL = 'account:login'
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -139,27 +143,32 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_MANIFEST_STRICT = False
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
 
-EMAIL_BACKEND = 'project_simp.email_backend.CustomEmailBackend'
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+EMAIL_BACKEND = 'anymail.backends.brevo.EmailBackend'
+ANYMAIL = {
+    'BREVO_API_KEY': config('BREVO_API_KEY'),
+}
 
-EMAIL_HOST_USER = 'simp03944@gmail.com'
-EMAIL_HOST_PASSWORD = 'idykfzosxglbdiyy'
-
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Must exactly match a sender you verified in Brevo (Settings > Senders,
+# Domains, IPs > Senders), or sends will fail.
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 # eSewa ePay v2 — UAT/test credentials (replace when going live)
 ESEWA_PRODUCT_CODE = "EPAYTEST"

@@ -28,7 +28,7 @@ from django.views.decorators.http import (
 from io import BytesIO
 from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
-from rembg import remove
+
 
 from account.models import CartItem, WishlistItem, PATTERN_PRICES, SIZE_CHOICES
 from .forms import ReviewForm
@@ -43,6 +43,8 @@ class ShoesListView(View):
             min_price=Min("variants__price"),
             total_stock=Sum("variants__stock_quantity"),
             avg_rating=Avg("reviews__rating"),
+        ).filter(
+            Q(customizer_id__isnull=True) | Q(customizer_id="")
         )
 
         search = request.GET.get("searched", "").strip()
@@ -1091,6 +1093,7 @@ def remove_background_view(request):
     if not uploaded_file:
         return JsonResponse({'error': 'No image provided'}, status=400)
     try:
+        from rembg import remove
         img = Image.open(uploaded_file)
         output = remove(img)
         buffer = BytesIO()
